@@ -75,7 +75,8 @@ logger.debug('Node env = ' + (process.env.NODE_ENV || app.settings.env));
 app.set('port', process.env.PORT || 8080);
 
 mongoose.set('strictQuery', false);
-mongoose.connect(config.db[app.settings.env]);
+// Use family: 4 to force IPv4 (localhost may resolve to IPv6 ::1 which MongoDB may not listen on)
+mongoose.connect(config.db[app.settings.env], { family: 4 });
 
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');

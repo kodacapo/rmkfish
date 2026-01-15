@@ -250,20 +250,10 @@ describe('POST /superuser-sessions', () => {
   });
 });
 
-function createSuperuser(fields) {
-  return new Promise((resolve, reject) => {
-    Superuser.create(fields, (err, doc) => {
-      if (err) reject(err);
-      resolve(doc);
-    });
-  });
+async function createSuperuser(fields) {
+  return await Superuser.create(fields);
 }
 
-function createExperimenter(fields) {
-  return new Promise((resolve, reject) => {
-    Experimenter.create(fields, (err, doc) => {
-      if (err) reject(err);
-      resolve(doc);
-    });
-  });
+async function createExperimenter(fields) {
+  return await Experimenter.create(fields);
 }
