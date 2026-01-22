@@ -6,6 +6,14 @@ var msgs;
 var socket = io.connect();
 var mwId = $.url().param('mwid');
 var pId = $.url().param('pid');
+var pParams = {
+    pDisplay: $.url().param('pdisplay'),
+    pClass: $.url().param('pclass'),
+    pClassIcon: $.url().param('pclassicon'),
+    pIsAdvantaged: parseAdvantaged($.url().param('pisadvantaged')),
+    pAdvantageIcon: $.url().param('padvantageicon'),
+    pFishValue: parseFishValue($.url().param('pfishvalue'))
+};
 var ocean;
 var prePauseButtonsState = {};
 
@@ -20,6 +28,33 @@ var mysteryFishImage = new Image();
 mysteryFishImage.src = 'public/img/mystery-fish.png';
 
 var st = { status: 'loading' };
+
+// Convert unicode code point (e.g., "2B50" or "U+2B50") to character
+function unicodeToChar(codePoint) {
+    if (!codePoint) return '';
+    // Remove "U+" prefix if present
+    var hex = codePoint.replace(/^U\+/i, '');
+    var code = parseInt(hex, 16);
+    if (isNaN(code)) return '';
+    return String.fromCodePoint(code);
+}
+
+// Parse pisadvantaged URL parameter to boolean
+function parseAdvantaged(value) {
+    if (value === undefined) return false;  // Not in URL = false
+    if (value === '' || value === null) return true;  // In URL with no value = true
+    if (value === 'true' || value === '1') return true;
+    if (value === 'false' || value === '0') return false;
+    return false;  // Invalid value = false
+}
+
+// Parse pfishvalue URL parameter to positive number or null
+function parseFishValue(value) {
+    if (value === undefined || value === null || value === '') return null;
+    var num = parseFloat(value);
+    if (isNaN(num) || num <= 0) return null;
+    return num;
+}
 
 if (lang && lang !== '' && lang.toLowerCase() in langs) {
     lang = lang.toLowerCase();
@@ -320,9 +355,13 @@ function updateFishers() {
 
     for (var i in st.fishers) {
         var fisher = st.fishers[i];
+        var classIcon = unicodeToChar(fisher.params && fisher.params.pClassIcon);
+        var advantageIcon = unicodeToChar(fisher.params && fisher.params.pAdvantageIcon);
+        var icons = [classIcon, advantageIcon].filter(Boolean).join(' ');
+
         if (fisher.name === pId) {
             // This is you
-            name = msgs.info_you;
+            name = icons ? icons + ' ' + msgs.info_you : msgs.info_you;
             $('#f0-name').text(name);
 
             if (fisher.status === 'At port') {
@@ -367,9 +406,10 @@ function updateFishers() {
 
             $('#f' + j).show();
             if (ocean.showFisherNames) {
-                name = fisher.name;
+                var pDisplay = (fisher.params && fisher.params.pDisplay) || fisher.name;
+                name = icons ? icons + ' ' + pDisplay : pDisplay;
             } else {
-                name = j;
+                name = icons ? icons + ' ' + j : j;
             }
             $('#f' + j + '-name').text(name);
 
@@ -712,7 +752,7 @@ function startTutorial() {
 }
 
 socket.on('connect', function () {
-    socket.emit('enterOcean', mwId, pId);
+    socket.emit('enterOcean', mwId, pId, pParams);
 });
 
 socket.on('ocean', setupOcean);
@@ -727,6 +767,9 @@ socket.on('pause', pause);
 socket.on('resume', resume);
 socket.on('start asking intent', startAskingIntendedCatch);
 socket.on('stop asking intent', stopAskingIntendedCatch);
+socket.on('joinError', function(data) {
+    alert(data.message);
+});
 
 function main() {
     hideCatchIntentColumn();

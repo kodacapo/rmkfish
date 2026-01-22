@@ -11,15 +11,15 @@ exports.engine = function engine(io, ioAdmin) {
     var clientOId;
     var clientPId;
 
-     socket.on('enterOcean', function(mwId, pId) {
+    socket.on('enterOcean', function(mwId, pId, pParams) {
       clientPId = pId;
-      clientOId = om.assignFisherToOcean(mwId, pId, enteredOcean);
+      clientOId = om.assignFisherToOcean(mwId, pId, pParams, enteredOcean);
     });
 
     var enteredOcean = function(newOId) {
       if (!newOId) {
         log.error('Failed to enter ocean - microworld not found or error occurred');
-        socket.emit('error', { message: 'Unable to join simulation. The experiment may no longer be available.' });
+        socket.emit('joinError', { message: 'Unable to join simulation. The experiment may no longer be available.' });
         return;
       }
 

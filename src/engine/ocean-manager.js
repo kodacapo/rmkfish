@@ -41,14 +41,14 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
     delete this.trackedSimulations[oId];
   };
 
-  this.assignFisherToOcean = function (mwId, pId, cb) {
+  this.assignFisherToOcean = function (mwId, pId, pParams, cb) {
     var oKeys = Object.keys(this.oceans);
     var oId = null;
 
     for (var i in oKeys) {
       oId = oKeys[i];
       if (this.oceans[oId].microworld._id.toString() === mwId && this.oceans[oId].hasRoom()) {
-        this.oceans[oId].addFisher(pId);
+        this.oceans[oId].addFisher(pId, pParams);
         return cb(oId);
       }
     }
@@ -60,7 +60,7 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
           log.error('Failed to assign fisher to ocean: ' + err.message);
           return cb(null); // Return null to indicate failure
         }
-        this.oceans[oId].addFisher(pId);
+        this.oceans[oId].addFisher(pId, pParams);
         return cb(oId);
       }.bind(this)
     );

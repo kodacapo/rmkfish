@@ -61,8 +61,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   };
 
 
-  this.addFisher = function(pId) {
-    this.fishers.push(new Fisher(pId, 'human', null, this));
+  this.addFisher = function(pId, pParams) {
+    this.fishers.push(new Fisher(pId, 'human', pParams, this));
     this.log.info('Human fisher ' + pId + ' joined.');
     return;
   };
@@ -214,6 +214,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     for (var i in this.fishers) {
       status.fishers.push({
         name: this.fishers[i].name,
+        params: this.fishers[i].params,
         seasonData: this.fishers[i].seasonData,
         money: this.fishers[i].money,
         totalFishCaught: this.fishers[i].totalFishCaught,

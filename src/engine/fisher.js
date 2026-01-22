@@ -3,7 +3,9 @@
 exports.Fisher = function Fisher(name, type, params, o) {
   this.name = name;
   this.type = type;
+
   this.params = params;
+
   this.ocean = o;
   this.ready = this.type === 'bot';
   this.hasReturned = false;
