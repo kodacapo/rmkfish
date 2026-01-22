@@ -11,7 +11,7 @@ exports.engine = function engine(io, ioAdmin) {
     var clientOId;
     var clientPId;
 
-    socket.on('enterOcean', function(mwId, pId) {
+     socket.on('enterOcean', function(mwId, pId) {
       clientPId = pId;
       clientOId = om.assignFisherToOcean(mwId, pId, enteredOcean);
     });
@@ -28,36 +28,62 @@ exports.engine = function engine(io, ioAdmin) {
       socket.join(myOId);
       socket.emit('ocean', om.oceans[myOId].getParams());
 
-      socket.on('readRules', function() {
-        om.oceans[myOId].readRules(myPId);
-        io.sockets.in(myOId).emit('aFisherIsReady', myPId);
-      });
+      // Define handlers as named functions so we can remove them on disconnect
+      // This prevents memory leaks from accumulated event listeners
+      function onReadRules() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].readRules(myPId);
+          io.sockets.in(myOId).emit('aFisherIsReady', myPId);
+        }
+      }
 
-      socket.on('attemptToFish', function() {
-        om.oceans[myOId].attemptToFish(myPId);
-      });
+      function onAttemptToFish() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].attemptToFish(myPId);
+        }
+      }
 
-      socket.on('recordIntendedCatch', function(numFish) {
-        om.oceans[myOId].recordIntendedCatch(myPId, numFish);
-      });
+      function onRecordIntendedCatch(numFish) {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].recordIntendedCatch(myPId, numFish);
+        }
+      }
 
-      socket.on('goToSea', function() {
-        om.oceans[myOId].goToSea(myPId);
-      });
+      function onGoToSea() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].goToSea(myPId);
+        }
+      }
 
-      socket.on('return', function() {
-        om.oceans[myOId].returnToPort(myPId);
-      });
+      function onReturn() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].returnToPort(myPId);
+        }
+      }
 
-      socket.on('requestPause', function() {
-        om.oceans[myOId].pause(myPId);
-      });
+      function onRequestPause() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].pause(myPId);
+        }
+      }
 
-      socket.on('requestResume', function() {
-        om.oceans[myOId].resume(myPId);
-      });
+      function onRequestResume() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].resume(myPId);
+        }
+      }
 
-      socket.on('disconnect', function() {
+      function onDisconnect() {
+        // Clean up all event listeners first to prevent memory leaks
+        socket.off('readRules', onReadRules);
+        socket.off('attemptToFish', onAttemptToFish);
+        socket.off('recordIntendedCatch', onRecordIntendedCatch);
+        socket.off('goToSea', onGoToSea);
+        socket.off('return', onReturn);
+        socket.off('requestPause', onRequestPause);
+        socket.off('requestResume', onRequestResume);
+        socket.off('disconnect', onDisconnect);
+
         // Check if ocean still exists before accessing its properties
         if (om.oceans[myOId] && !om.oceans[myOId].isInSetup() && !om.oceans[myOId].isRemovable()) {
           // disconnected before ocean i.e before simulation run has finished
@@ -75,7 +101,19 @@ exports.engine = function engine(io, ioAdmin) {
         } else {
           log.debug('Disconnect event for participant ' + myPId + ' but ocean ' + myOId + ' no longer exists');
         }
-      });
+
+        log.debug('Cleaned up socket handlers for participant ' + myPId);
+      }
+
+      // Register all event handlers
+      socket.on('readRules', onReadRules);
+      socket.on('attemptToFish', onAttemptToFish);
+      socket.on('recordIntendedCatch', onRecordIntendedCatch);
+      socket.on('goToSea', onGoToSea);
+      socket.on('return', onReturn);
+      socket.on('requestPause', onRequestPause);
+      socket.on('requestResume', onRequestResume);
+      socket.on('disconnect', onDisconnect);
     };
   });
 
