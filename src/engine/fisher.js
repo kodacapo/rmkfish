@@ -180,7 +180,10 @@ exports.Fisher = function Fisher(name, type, params, o) {
     this.changeMoney(-this.ocean.microworld.params.costCast);
     this.incrementCast();
     if (this.ocean.isSuccessfulCastAttempt()) {
-      this.changeMoney(this.ocean.microworld.params.fishValue);
+      var fishValue = (this.params && this.params.pFishValue != null)
+        ? this.params.pFishValue
+        : this.ocean.microworld.params.fishValue;
+      this.changeMoney(fishValue);
       this.incrementFishCaught();
       this.ocean.takeOneFish();
       this.ocean.log.info('Fisher ' + this.name + ' caught one fish.');

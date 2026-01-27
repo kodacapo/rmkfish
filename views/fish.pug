@@ -54,6 +54,7 @@ html
                     p#fish-total-header
                   th#profit-season-header.data-header.bootstro(data-bootstro-title="Season profit" data-bootstro-content="This column shows the current season's profit for each fisher." data-bootstro-placement="bottom")
                   th#profit-total-header.data-header.bootstro(data-bootstro-title="Overall profit" data-bootstro-content="This column shows the total profit for each fisher from the beginning of the simulation." data-bootstro-placement="bottom")
+                  th#profit-diff-header.data-header.bootstro(data-bootstro-title="Profit difference" data-bootstro-content="This column shows the difference between actual profit and what would have been earned with the other class's fish value." data-bootstro-placement="bottom")
                 tbody#fishers-tbody
                   each i in ["f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "f10", "f11"]
                     tr(id=i)
@@ -65,6 +66,7 @@ html
                       td(id=i + "-fish-total").fisher-label
                       td(id=i + "-profit-season").fisher-label
                       td(id=i + "-profit-total").fisher-label
+                      td(id=i + "-profit-diff").fisher-label
           .row#catch-intent-dialog-box.clearfix
             #catch-intent-dialog
               form#catch-intent-dialog-form

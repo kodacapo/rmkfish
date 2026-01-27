@@ -10,7 +10,7 @@ var pParams = {
     pDisplay: $.url().param('pdisplay'),
     pClass: $.url().param('pclass'),
     pClassIcon: $.url().param('pclassicon'),
-    pIsAdvantaged: parseAdvantaged($.url().param('pisadvantaged')),
+    pHasAdvantage: parseHasAdvantage($.url().param('phasadvantage')),
     pAdvantageIcon: $.url().param('padvantageicon'),
     pFishValue: parseFishValue($.url().param('pfishvalue'))
 };
@@ -39,8 +39,8 @@ function unicodeToChar(codePoint) {
     return String.fromCodePoint(code);
 }
 
-// Parse pisadvantaged URL parameter to boolean
-function parseAdvantaged(value) {
+// Parse phasadvantage URL parameter to boolean
+function parseHasAdvantage(value) {
     if (value === undefined) return false;  // Not in URL = false
     if (value === '' || value === null) return true;  // In URL with no value = true
     if (value === 'true' || value === '1') return true;
@@ -54,6 +54,41 @@ function parseFishValue(value) {
     var num = parseFloat(value);
     if (isNaN(num) || num <= 0) return null;
     return num;
+}
+
+// Get the fish value of a fisher with opposite pHasAdvantage
+function getOtherClassFishValue(currentFisher) {
+    // Return cached value if already computed
+    if (currentFisher.params && currentFisher.params.otherClassFishValue != null) {
+        return currentFisher.params.otherClassFishValue;
+    }
+
+    // Find a fisher with opposite pHasAdvantage and get their pFishValue
+    // If no opposite class exists, use the default ocean.fishValue
+    var currentAdvantage = currentFisher.params && currentFisher.params.pHasAdvantage;
+    var result = ocean.fishValue; // default fallback
+
+    for (var i in st.fishers) {
+        var f = st.fishers[i];
+        var fAdvantage = f.params && f.params.pHasAdvantage;
+        if (fAdvantage !== currentAdvantage && f.params && f.params.pFishValue != null) {
+            result = f.params.pFishValue;
+            break;
+        }
+    }
+
+    // Cache the computed value
+    if (!currentFisher.params) currentFisher.params = {};
+    currentFisher.params.otherClassFishValue = result;
+
+    return result;
+}
+
+// Compute profit difference: actual money minus hypothetical money with other class's fish value
+function computeProfitDiff(fisher) {
+    var otherFishValue = getOtherClassFishValue(fisher);
+    var hypotheticalMoney = fisher.totalFishCaught * otherFishValue;
+    return (fisher.money - hypotheticalMoney).toFixed(2);
 }
 
 if (lang && lang !== '' && lang.toLowerCase() in langs) {
@@ -182,16 +217,19 @@ function submitMyCatchIntent() {
 function hideProfitColumns() {
     $('#profit-season-header').hide();
     $('#profit-total-header').hide();
+    $('#profit-diff-header').hide();
     $('#profit-season-th').hide();
     $('#profit-total-th').hide();
     for (var i in st.fishers) {
         $('#f' + i + '-profit-season').hide();
         $('#f' + i + '-profit-total').hide();
+        $('#f' + i + '-profit-diff').hide();
     }
     $("#costs-box").hide();
     // Prevent bootstro from choking on hidden profit tutorial data
     $("#profit-season-header").removeClass("bootstro");
     $("#profit-total-header").removeClass("bootstro");
+    $("#profit-diff-header").removeClass("bootstro");
     $("#profit-season-th").removeClass("bootstro");
     $("#profit-total-th").removeClass("bootstro");
     $("#costs-box").removeClass("bootstro");
@@ -218,6 +256,7 @@ function loadLabels() {
     if (!ocean) return;
     $('#profit-season-header').text(ocean.currencySymbol + ' ' + msgs.info_season);
     $('#profit-total-header').text(ocean.currencySymbol + ' ' + msgs.info_overall);
+    $('#profit-diff-header').text(ocean.currencySymbol + ' Diff');
 
     updateCosts();
     updateStatus();
@@ -392,6 +431,9 @@ function updateFishers() {
             if (!(ocean.profitDisplayDisabled)) {
                 $('#f0-profit-season').text(profitSeason);
                 $('#f0-profit-total').text(profitTotal);
+                var profitDiff = computeProfitDiff(fisher);
+                $('#f0-profit-diff').text(profitDiff);
+                $('#f0').attr('data-profit-diff', profitDiff);
             }
 
             $('#f0').attr('data-fish-total', fishTotal);
@@ -449,10 +491,14 @@ function updateFishers() {
             } else if (ocean.showFisherBalance) {
                 $('#f' + j + '-profit-season').text(profitSeason);
                 $('#f' + j + '-profit-total').text(profitTotal);
+                var profitDiff = computeProfitDiff(fisher);
+                $('#f' + j + '-profit-diff').text(profitDiff);
+                $('#f' + j).attr('data-profit-diff', profitDiff);
             }
             else {
                 $('#f' + j + '-profit-season').text('?');
                 $('#f' + j + '-profit-total').text('?');
+                $('#f' + j + '-profit-diff').text('?');
             }
 
             $('#f' + j).attr('data-fish-total', fishTotal);
