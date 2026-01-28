@@ -207,32 +207,63 @@ function submitMyCatchIntent() {
 //////////// START Profit Columns Display Feature     
 ////////////////////////////////////////
 
-//controls visibility of both seasonal and overall profit columns in one function to hide
-//for tutorial text, table column heading, and table body
+// Helper functions to check per-column profit display settings.
+// Each falls back to the legacy profitDisplayDisabled flag for backward compatibility.
+function isProfitSeasonDisabled() {
+    return ocean.profitSeasonDisabled || ocean.profitDisplayDisabled;
+}
+function isProfitTotalDisabled() {
+    return ocean.profitTotalDisabled || ocean.profitDisplayDisabled;
+}
+function isProfitGapDisabled() {
+    return ocean.profitGapDisabled || ocean.profitDisplayDisabled;
+}
+function areAllProfitColumnsDisabled() {
+    return isProfitSeasonDisabled() && isProfitTotalDisabled() && isProfitGapDisabled();
+}
 
-// There is no need for the analogous 'show' function because that's the default, 
-// and the hide function is only called either once or not at all, depending on 
-// the setting in the experiment configuration.
+// Per-column hide functions. Each hides its column header, table heading, and cells,
+// and removes bootstro class to prevent tutorial overlay issues.
 
-function hideProfitColumns() {
+function hideProfitSeasonColumn() {
     $('#profit-season-header').hide();
-    $('#profit-total-header').hide();
-    $('#profit-diff-header').hide();
     $('#profit-season-th').hide();
-    $('#profit-total-th').hide();
     for (var i in st.fishers) {
         $('#f' + i + '-profit-season').hide();
-        $('#f' + i + '-profit-total').hide();
-        $('#f' + i + '-profit-diff').hide();
     }
-    $("#costs-box").hide();
-    // Prevent bootstro from choking on hidden profit tutorial data
     $("#profit-season-header").removeClass("bootstro");
-    $("#profit-total-header").removeClass("bootstro");
-    $("#profit-diff-header").removeClass("bootstro");
     $("#profit-season-th").removeClass("bootstro");
+}
+
+function hideProfitTotalColumn() {
+    $('#profit-total-header').hide();
+    $('#profit-total-th').hide();
+    for (var i in st.fishers) {
+        $('#f' + i + '-profit-total').hide();
+    }
+    $("#profit-total-header").removeClass("bootstro");
     $("#profit-total-th").removeClass("bootstro");
+}
+
+function hideProfitGapColumn() {
+    $('#profit-gap-header').hide();
+    for (var i in st.fishers) {
+        $('#f' + i + '-profit-gap').hide();
+    }
+    $("#profit-gap-header").removeClass("bootstro");
+}
+
+function hideAllProfitExtras() {
+    $("#costs-box").hide();
     $("#costs-box").removeClass("bootstro");
+}
+
+// Convenience wrapper that hides all profit columns and the costs box.
+function hideProfitColumns() {
+    hideProfitSeasonColumn();
+    hideProfitTotalColumn();
+    hideProfitGapColumn();
+    hideAllProfitExtras();
 }
 
 ////////////////////////////////////////
@@ -256,7 +287,7 @@ function loadLabels() {
     if (!ocean) return;
     $('#profit-season-header').text(ocean.currencySymbol + ' ' + msgs.info_season);
     $('#profit-total-header').text(ocean.currencySymbol + ' ' + msgs.info_overall);
-    $('#profit-diff-header').text(ocean.currencySymbol + ' Diff');
+    $('#profit-gap-header').text(ocean.currencySymbol + ' Diff');
 
     updateCosts();
     updateStatus();
@@ -428,12 +459,16 @@ function updateFishers() {
             $('#f0-catch-intent').text(catchIntent);
             $('#f0-fish-season').text(fishSeason);
             $('#f0-fish-total').text(fishTotal);
-            if (!(ocean.profitDisplayDisabled)) {
+            if (!isProfitSeasonDisabled()) {
                 $('#f0-profit-season').text(profitSeason);
+            }
+            if (!isProfitTotalDisabled()) {
                 $('#f0-profit-total').text(profitTotal);
+            }
+            if (!isProfitGapDisabled()) {
                 var profitDiff = computeProfitDiff(fisher);
-                $('#f0-profit-diff').text(profitDiff);
-                $('#f0').attr('data-profit-diff', profitDiff);
+                $('#f0-profit-gap').text(profitDiff);
+                $('#f0').attr('data-profit-gap', profitDiff);
             }
 
             $('#f0').attr('data-fish-total', fishTotal);
@@ -486,19 +521,28 @@ function updateFishers() {
                 $('#f' + j + '-fish-total').text('?');
             }
 
-            if (ocean.profitDisplayDisabled) {
-                // ignore update profits
-            } else if (ocean.showFisherBalance) {
-                $('#f' + j + '-profit-season').text(profitSeason);
-                $('#f' + j + '-profit-total').text(profitTotal);
-                var profitDiff = computeProfitDiff(fisher);
-                $('#f' + j + '-profit-diff').text(profitDiff);
-                $('#f' + j).attr('data-profit-diff', profitDiff);
+            if (!isProfitSeasonDisabled()) {
+                if (ocean.showFisherBalance) {
+                    $('#f' + j + '-profit-season').text(profitSeason);
+                } else {
+                    $('#f' + j + '-profit-season').text('?');
+                }
             }
-            else {
-                $('#f' + j + '-profit-season').text('?');
-                $('#f' + j + '-profit-total').text('?');
-                $('#f' + j + '-profit-diff').text('?');
+            if (!isProfitTotalDisabled()) {
+                if (ocean.showFisherBalance) {
+                    $('#f' + j + '-profit-total').text(profitTotal);
+                } else {
+                    $('#f' + j + '-profit-total').text('?');
+                }
+            }
+            if (!isProfitGapDisabled()) {
+                if (ocean.showFisherBalance) {
+                    var profitDiff = computeProfitDiff(fisher);
+                    $('#f' + j + '-profit-gap').text(profitDiff);
+                    $('#f' + j).attr('data-profit-gap', profitDiff);
+                } else {
+                    $('#f' + j + '-profit-gap').text('?');
+                }
             }
 
             $('#f' + j).attr('data-fish-total', fishTotal);
@@ -556,9 +600,10 @@ function setupOcean(o) {
     hideTutorial();
     hideCatchIntentColumn();
     hideCatchIntentDialog();
-    if (ocean.profitDisplayDisabled) {
-        hideProfitColumns();
-    }
+    if (isProfitSeasonDisabled()) hideProfitSeasonColumn();
+    if (isProfitTotalDisabled()) hideProfitTotalColumn();
+    if (isProfitGapDisabled()) hideProfitGapColumn();
+    if (areAllProfitColumnsDisabled()) hideAllProfitExtras();
 }
 
 function readRules() {

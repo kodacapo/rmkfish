@@ -640,13 +640,18 @@ describe('Fish (jsdom)', () => {
   describe('UI Display Functions', () => {
     beforeEach(() => {
       // Add necessary DOM elements
+      const profitElements = [
+        'profit-season-header', 'profit-total-header', 'profit-gap-header',
+        'profit-season-th', 'profit-total-th',
+        'f0-profit-season', 'f1-profit-season',
+        'f0-profit-total', 'f1-profit-total',
+        'f0-profit-gap', 'f1-profit-gap',
+        'costs-box'
+      ];
       if (!document.querySelector('#profit-season-header')) {
         const elements = [
-          'profit-season-header', 'profit-total-header',
-          'profit-season-th', 'profit-total-th',
-          'f0-profit-season', 'f1-profit-season',
-          'f0-profit-total', 'f1-profit-total',
-          'costs-box', 'read-rules', 'changeLocation',
+          ...profitElements,
+          'read-rules', 'changeLocation',
           'attempt-fish', 'pause', 'resume',
           'fisher-header', 'fish-season-header', 'fish-total-header',
           'revenue-fish', 'cost-departure', 'cost-cast', 'cost-second',
@@ -661,6 +666,12 @@ describe('Fish (jsdom)', () => {
           }
         });
       }
+
+      // Reset display styles for profit-related elements between tests
+      profitElements.forEach(id => {
+        const el = document.querySelector('#' + id);
+        if (el) el.style.display = '';
+      });
 
       window.st = {
         fishers: [
@@ -683,7 +694,10 @@ describe('Fish (jsdom)', () => {
         preparationText: 'Welcome to the fish game!\nGood luck!',
         enablePause: true,
         enableTutorial: true,
-        profitDisplayDisabled: false
+        profitDisplayDisabled: false,
+        profitSeasonDisabled: false,
+        profitTotalDisabled: false,
+        profitGapDisabled: false
       };
     });
 
@@ -719,6 +733,59 @@ describe('Fish (jsdom)', () => {
         window.hideProfitColumns();
 
         elem.classList.contains('bootstro').should.be.false();
+      });
+    });
+
+    describe('hideProfitSeasonColumn()', () => {
+      it('should hide only season profit elements', () => {
+        window.hideProfitSeasonColumn();
+
+        document.querySelector('#profit-season-header').style.display.should.equal('none');
+        document.querySelector('#profit-season-th').style.display.should.equal('none');
+        document.querySelector('#f0-profit-season').style.display.should.equal('none');
+        document.querySelector('#f1-profit-season').style.display.should.equal('none');
+      });
+
+      it('should not hide total or gap columns', () => {
+        window.hideProfitSeasonColumn();
+
+        document.querySelector('#profit-total-header').style.display.should.not.equal('none');
+        document.querySelector('#profit-gap-header').style.display.should.not.equal('none');
+      });
+    });
+
+    describe('hideProfitTotalColumn()', () => {
+      it('should hide only total profit elements', () => {
+        window.hideProfitTotalColumn();
+
+        document.querySelector('#profit-total-header').style.display.should.equal('none');
+        document.querySelector('#profit-total-th').style.display.should.equal('none');
+        document.querySelector('#f0-profit-total').style.display.should.equal('none');
+        document.querySelector('#f1-profit-total').style.display.should.equal('none');
+      });
+
+      it('should not hide season or gap columns', () => {
+        window.hideProfitTotalColumn();
+
+        document.querySelector('#profit-season-header').style.display.should.not.equal('none');
+        document.querySelector('#profit-gap-header').style.display.should.not.equal('none');
+      });
+    });
+
+    describe('hideProfitGapColumn()', () => {
+      it('should hide only gap profit elements', () => {
+        window.hideProfitGapColumn();
+
+        document.querySelector('#profit-gap-header').style.display.should.equal('none');
+        document.querySelector('#f0-profit-gap').style.display.should.equal('none');
+        document.querySelector('#f1-profit-gap').style.display.should.equal('none');
+      });
+
+      it('should not hide season or total columns', () => {
+        window.hideProfitGapColumn();
+
+        document.querySelector('#profit-season-header').style.display.should.not.equal('none');
+        document.querySelector('#profit-total-header').style.display.should.not.equal('none');
       });
     });
 
@@ -1058,8 +1125,22 @@ describe('Fish (jsdom)', () => {
         reportedMysteryFish: 0
       };
 
+      // Reset display styles for profit-related elements between tests
+      ['profit-season-header', 'profit-total-header', 'profit-gap-header',
+       'profit-season-th', 'profit-total-th',
+       'f0-profit-season', 'f1-profit-season',
+       'f0-profit-total', 'f1-profit-total',
+       'f0-profit-gap', 'f1-profit-gap',
+       'costs-box'].forEach(id => {
+        const el = document.querySelector('#' + id);
+        if (el) el.style.display = '';
+      });
+
       window.ocean = {
         profitDisplayDisabled: false,
+        profitSeasonDisabled: false,
+        profitTotalDisabled: false,
+        profitGapDisabled: false,
         enablePause: true,
         enableTutorial: true,
         currencySymbol: '$',
@@ -1072,6 +1153,9 @@ describe('Fish (jsdom)', () => {
       it('should call all ocean setup functions', () => {
         const testOcean = {
           profitDisplayDisabled: false,
+          profitSeasonDisabled: false,
+          profitTotalDisabled: false,
+          profitGapDisabled: false,
           enablePause: true,
           enableTutorial: true,
           preparationText: 'Welcome!',
@@ -1093,7 +1177,7 @@ describe('Fish (jsdom)', () => {
         catchIntentTh.style.display.should.equal('none');
       });
 
-      it('should hide profit columns when profit display is disabled', () => {
+      it('should hide profit columns when legacy profitDisplayDisabled is true', () => {
         const testOcean = {
           profitDisplayDisabled: true,
           enablePause: true,
@@ -1105,17 +1189,51 @@ describe('Fish (jsdom)', () => {
           costSecond: 0
         };
 
-        // Create profit elements
-        ['profit-season-header', 'profit-total-header'].forEach(id => {
-          const elem = document.createElement('div');
-          elem.id = id;
-          document.body.appendChild(elem);
-        });
+        window.setupOcean(testOcean);
+
+        document.querySelector('#profit-season-header').style.display.should.equal('none');
+        document.querySelector('#profit-total-header').style.display.should.equal('none');
+        document.querySelector('#profit-gap-header').style.display.should.equal('none');
+      });
+
+      it('should hide only season column when profitSeasonDisabled is true', () => {
+        const testOcean = {
+          profitSeasonDisabled: true,
+          profitTotalDisabled: false,
+          profitGapDisabled: false,
+          enablePause: true,
+          enableTutorial: true,
+          preparationText: 'Welcome!',
+          fishValue: 1.0,
+          costDeparture: 0,
+          costCast: 0,
+          costSecond: 0
+        };
 
         window.setupOcean(testOcean);
 
-        const profitHeader = document.querySelector('#profit-season-header');
-        profitHeader.style.display.should.equal('none');
+        document.querySelector('#profit-season-header').style.display.should.equal('none');
+        document.querySelector('#profit-total-header').style.display.should.not.equal('none');
+        document.querySelector('#profit-gap-header').style.display.should.not.equal('none');
+      });
+
+      it('should hide costs box only when all three profit columns are disabled', () => {
+        const testOcean = {
+          profitSeasonDisabled: true,
+          profitTotalDisabled: true,
+          profitGapDisabled: true,
+          enablePause: true,
+          enableTutorial: true,
+          preparationText: 'Welcome!',
+          fishValue: 1.0,
+          costDeparture: 0,
+          costCast: 0,
+          costSecond: 0
+        };
+
+        window.setupOcean(testOcean);
+
+        document.querySelector('#costs-box').style.display.should.equal('none');
       });
     });
 

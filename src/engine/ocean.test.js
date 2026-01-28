@@ -36,7 +36,10 @@ describe('Engine - Ocean', function() {
         catchIntentionsEnabled: false,
         catchIntentDialogDuration: 17,
         catchIntentSeasons: [2,4,6,8],
-        profitDisplayDisabled: false, 
+        profitDisplayDisabled: false,
+        profitSeasonDisabled: false,
+        profitTotalDisabled: false,
+        profitGapDisabled: true,
         bots: [
           {
             name: 'bot 1',
@@ -506,11 +509,68 @@ describe('Engine - Ocean', function() {
 
 });
 
-describe('profitDisplayIsDisabled()', function() {
-  it('should return true if the profitDisplay parameter is true', function(done) {
-    o.profitDisplayIsDisabled().should.equal(false);
+describe('profit display accessors', function() {
+  afterEach(function() {
+    o.microworld.params.profitDisplayDisabled = false;
+    o.microworld.params.profitSeasonDisabled = false;
+    o.microworld.params.profitTotalDisabled = false;
+    o.microworld.params.profitGapDisabled = true;
+  });
+
+  it('profitSeasonIsDisabled returns false by default', function(done) {
+    o.profitSeasonIsDisabled().should.equal(false);
+    return done();
+  });
+
+  it('profitSeasonIsDisabled returns true when profitSeasonDisabled is true', function(done) {
+    o.microworld.params.profitSeasonDisabled = true;
+    o.profitSeasonIsDisabled().should.equal(true);
+    return done();
+  });
+
+  it('profitTotalIsDisabled returns false by default', function(done) {
+    o.profitTotalIsDisabled().should.equal(false);
+    return done();
+  });
+
+  it('profitTotalIsDisabled returns true when profitTotalDisabled is true', function(done) {
+    o.microworld.params.profitTotalDisabled = true;
+    o.profitTotalIsDisabled().should.equal(true);
+    return done();
+  });
+
+  it('profitGapIsDisabled returns true by default', function(done) {
+    o.profitGapIsDisabled().should.equal(true);
+    return done();
+  });
+
+  it('profitGapIsDisabled returns false when profitGapDisabled is false', function(done) {
+    o.microworld.params.profitGapDisabled = false;
+    o.profitGapIsDisabled().should.equal(false);
+    return done();
+  });
+
+  it('backward compat: all return true when legacy profitDisplayDisabled is true', function(done) {
     o.microworld.params.profitDisplayDisabled = true;
+    o.profitSeasonIsDisabled().should.equal(true);
+    o.profitTotalIsDisabled().should.equal(true);
+    o.profitGapIsDisabled().should.equal(true);
     o.profitDisplayIsDisabled().should.equal(true);
+    return done();
+  });
+
+  it('profitDisplayIsDisabled returns true only when all three are disabled', function(done) {
+    o.microworld.params.profitSeasonDisabled = true;
+    o.microworld.params.profitTotalDisabled = true;
+    o.microworld.params.profitGapDisabled = true;
+    o.profitDisplayIsDisabled().should.equal(true);
+    return done();
+  });
+
+  it('profitDisplayIsDisabled returns false when only some are disabled', function(done) {
+    o.microworld.params.profitSeasonDisabled = true;
+    o.microworld.params.profitGapDisabled = true;
+    o.profitDisplayIsDisabled().should.equal(false);
     return done();
   });
 });

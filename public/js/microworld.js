@@ -48,7 +48,9 @@ function readyTooltips() {
     $('#catch-intention-seasons-tooltip').tooltip();
     $('#catch-intent-dialog-duration-tooltip').tooltip();
     $('#redirect-url-tooltip').tooltip();
-    $('#profit-columns-tooltip').tooltip();
+    $('#profit-season-tooltip').tooltip();
+    $('#profit-total-tooltip').tooltip();
+    $('#profit-gap-tooltip').tooltip();
 }
 
 function changeBotRowVisibility() {
@@ -328,7 +330,9 @@ function prepareMicroworldObject() {
     mw.redirectURL = $('#redirect-url').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
-    mw.profitDisplayDisabled = $('#disable-profit-columns').prop('checked');
+    mw.profitSeasonDisabled = $('#disable-profit-season').prop('checked');
+    mw.profitTotalDisabled = $('#disable-profit-total').prop('checked');
+    mw.profitGapDisabled = $('#disable-profit-gap').prop('checked');
     mw.costCast = $('#cost-cast').val();
     mw.costDeparture = $('#cost-departure').val();
     mw.costSecond = $('#cost-second').val();
@@ -478,8 +482,15 @@ function populatePage() {
     maybeDisableCatchIntentControls(mw.params.catchIntentionsEnabled);
     $('#redirect-url').val(mw.params.redirectURL);
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
-    $('#disable-profit-columns').prop('checked', mw.params.profitDisplayDisabled);
-    maybeDisableProfitControls(mw.params.profitDisplayDisabled);
+    var legacyDisabled = mw.params.profitDisplayDisabled || false;
+    $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled || legacyDisabled);
+    $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled || legacyDisabled);
+    $('#disable-profit-gap').prop('checked', mw.params.profitGapDisabled || legacyDisabled);
+    maybeDisableProfitControls(
+        (mw.params.profitSeasonDisabled || legacyDisabled) &&
+        (mw.params.profitTotalDisabled || legacyDisabled) &&
+        (mw.params.profitGapDisabled || legacyDisabled)
+    );
     $('#fish-value').val(mw.params.fishValue);
     $('#cost-cast').val(mw.params.costCast);
     $('#cost-departure').val(mw.params.costDeparture);
@@ -650,11 +661,16 @@ function prepareControls() {
         var enabledflg = $(this).is(':checked');
         maybeDisableCatchIntentControls(enabledflg);
     });
-    $('#disable-profit-columns').on("click", function () {
-        //Dis- or enable the other Profit controls depending on whether the checkbox is checked.
-        var disabledflg = $(this).is(':checked');
-        maybeDisableProfitControls(disabledflg);
-    });
+    function onProfitCheckboxChange() {
+        var allDisabled =
+            $('#disable-profit-season').is(':checked') &&
+            $('#disable-profit-total').is(':checked') &&
+            $('#disable-profit-gap').is(':checked');
+        maybeDisableProfitControls(allDisabled);
+    }
+    $('#disable-profit-season').on("click", onProfitCheckboxChange);
+    $('#disable-profit-total').on("click", onProfitCheckboxChange);
+    $('#disable-profit-gap').on("click", onProfitCheckboxChange);
     if (mode === 'new') {
         $('#microworld-header').text(pageHeader[mode]);
         $('#microworld-panel-title').text(panelTitle[mode]);
