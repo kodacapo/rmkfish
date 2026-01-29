@@ -56,28 +56,34 @@ function parseFishValue(value) {
     return num;
 }
 
-// Get the fish value of a fisher with opposite pHasAdvantage
+// Get the fish value used by the "other class" of fisher.
+// Compares effective fish values: pFishValue if set, otherwise ocean.fishValue.
+// Returns default before the game is in progress; caches once computed.
 function getOtherClassFishValue(currentFisher) {
-    // Return cached value if already computed
+    if (st.status === 'loading') {
+        return ocean.fishValue;
+    }
+
     if (currentFisher.params && currentFisher.params.otherClassFishValue != null) {
         return currentFisher.params.otherClassFishValue;
     }
 
-    // Find a fisher with opposite pHasAdvantage and get their pFishValue
-    // If no opposite class exists, use the default ocean.fishValue
-    var currentAdvantage = currentFisher.params && currentFisher.params.pHasAdvantage;
+    var currentFishValue = (currentFisher.params && currentFisher.params.pFishValue != null)
+        ? currentFisher.params.pFishValue
+        : ocean.fishValue;
     var result = ocean.fishValue; // default fallback
 
     for (var i in st.fishers) {
         var f = st.fishers[i];
-        var fAdvantage = f.params && f.params.pHasAdvantage;
-        if (fAdvantage !== currentAdvantage && f.params && f.params.pFishValue != null) {
-            result = f.params.pFishValue;
+        var fFishValue = (f.params && f.params.pFishValue != null)
+            ? f.params.pFishValue
+            : ocean.fishValue;
+        if (fFishValue !== currentFishValue) {
+            result = fFishValue;
             break;
         }
     }
 
-    // Cache the computed value
     if (!currentFisher.params) currentFisher.params = {};
     currentFisher.params.otherClassFishValue = result;
 
@@ -89,6 +95,14 @@ function computeProfitDiff(fisher) {
     var otherFishValue = getOtherClassFishValue(fisher);
     var hypotheticalMoney = fisher.totalFishCaught * otherFishValue;
     return (fisher.money - hypotheticalMoney).toFixed(2);
+}
+
+// Display a profit-gap value with sign prefix and color
+function displayProfitGap($cell, value) {
+    var num = parseFloat(value);
+    var text = num > 0 ? '+' + value : value;
+    var color = num > 0 ? 'blue' : (num < 0 ? 'red' : '');
+    $cell.text(text).css('color', color);
 }
 
 if (lang && lang !== '' && lang.toLowerCase() in langs) {
@@ -226,31 +240,18 @@ function areAllProfitColumnsDisabled() {
 // and removes bootstro class to prevent tutorial overlay issues.
 
 function hideProfitSeasonColumn() {
-    $('#profit-season-header').hide();
-    $('#profit-season-th').hide();
-    for (var i in st.fishers) {
-        $('#f' + i + '-profit-season').hide();
-    }
-    $("#profit-season-header").removeClass("bootstro");
-    $("#profit-season-th").removeClass("bootstro");
+    $('#profit-season-header').hide().removeClass("bootstro");
+    $('[id$="-profit-season"]').hide();
 }
 
 function hideProfitTotalColumn() {
-    $('#profit-total-header').hide();
-    $('#profit-total-th').hide();
-    for (var i in st.fishers) {
-        $('#f' + i + '-profit-total').hide();
-    }
-    $("#profit-total-header").removeClass("bootstro");
-    $("#profit-total-th").removeClass("bootstro");
+    $('#profit-total-header').hide().removeClass("bootstro");
+    $('[id$="-profit-total"]').hide();
 }
 
 function hideProfitGapColumn() {
-    $('#profit-gap-header').hide();
-    for (var i in st.fishers) {
-        $('#f' + i + '-profit-gap').hide();
-    }
-    $("#profit-gap-header").removeClass("bootstro");
+    $('#profit-gap-header').hide().removeClass("bootstro");
+    $('[id$="-profit-gap"]').hide();
 }
 
 function hideAllProfitExtras() {
@@ -287,7 +288,7 @@ function loadLabels() {
     if (!ocean) return;
     $('#profit-season-header').text(ocean.currencySymbol + ' ' + msgs.info_season);
     $('#profit-total-header').text(ocean.currencySymbol + ' ' + msgs.info_overall);
-    $('#profit-gap-header').text(ocean.currencySymbol + ' Diff');
+    $('#profit-gap-header').text(ocean.currencySymbol + ' ' + msgs.info_payGap);
 
     updateCosts();
     updateStatus();
@@ -467,7 +468,7 @@ function updateFishers() {
             }
             if (!isProfitGapDisabled()) {
                 var profitDiff = computeProfitDiff(fisher);
-                $('#f0-profit-gap').text(profitDiff);
+                displayProfitGap($('#f0-profit-gap'), profitDiff);
                 $('#f0').attr('data-profit-gap', profitDiff);
             }
 
@@ -538,7 +539,7 @@ function updateFishers() {
             if (!isProfitGapDisabled()) {
                 if (ocean.showFisherBalance) {
                     var profitDiff = computeProfitDiff(fisher);
-                    $('#f' + j + '-profit-gap').text(profitDiff);
+                    displayProfitGap($('#f' + j + '-profit-gap'), profitDiff);
                     $('#f' + j).attr('data-profit-gap', profitDiff);
                 } else {
                     $('#f' + j + '-profit-gap').text('?');

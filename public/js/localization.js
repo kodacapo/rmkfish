@@ -257,6 +257,15 @@ fr['info_overall'] = 'En tout';
 pt['info_overall'] = 'Total';
 ko['info_overall'] = '총';
 
+en['info_payGap'] = 'Pay Gap';
+cn['info_payGap'] = 'Pay Gap';
+ct['info_payGap'] = 'Pay Gap';
+de['info_payGap'] = 'Pay Gap';
+es['info_payGap'] = 'Pay Gap';
+fr['info_payGap'] = 'Pay Gap';
+pt['info_payGap'] = 'Pay Gap';
+ko['info_payGap'] = 'Pay Gap';
+
 // End report
 en['end_over'] = 'This simulation is over.';
 en['end_over'] = 'This game is over.';          // RMK
