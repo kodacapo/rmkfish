@@ -47,8 +47,14 @@ h2 {
 .blue {
   color: blue; }
 
+.navyblue {
+  color:#1F3A5F; }
+
 .red {
   color: red; }
+
+.crimsonred {
+  color:#8B1E2D; }
 
 .hidden {
   visibility: hidden; }

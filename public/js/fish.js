@@ -90,8 +90,8 @@ function getOtherClassFishValue(currentFisher) {
     return result;
 }
 
-// Compute profit difference: actual money minus hypothetical money with other class's fish value
-function computeProfitDiff(fisher) {
+// Compute profit gap: actual money minus hypothetical money with other class's fish value
+function computeProfitGap(fisher) {
     var otherFishValue = getOtherClassFishValue(fisher);
     var hypotheticalMoney = fisher.totalFishCaught * otherFishValue;
     return (fisher.money - hypotheticalMoney).toFixed(2);
@@ -101,7 +101,7 @@ function computeProfitDiff(fisher) {
 function displayProfitGap($cell, value) {
     var num = parseFloat(value);
     var text = num > 0 ? '+' + value : value;
-    var color = num > 0 ? 'blue' : (num < 0 ? 'red' : '');
+    var color = num > 0 ? 'navyblue' : (num < 0 ? 'crimsonred' : '');
     $cell.text(text).css('color', color);
 }
 
@@ -467,9 +467,9 @@ function updateFishers() {
                 $('#f0-profit-total').text(profitTotal);
             }
             if (!isProfitGapDisabled()) {
-                var profitDiff = computeProfitDiff(fisher);
-                displayProfitGap($('#f0-profit-gap'), profitDiff);
-                $('#f0').attr('data-profit-gap', profitDiff);
+                var profitGap = computeProfitGap(fisher);
+                displayProfitGap($('#f0-profit-gap'), profitGap);
+                $('#f0').attr('data-profit-gap', profitGap);
             }
 
             $('#f0').attr('data-fish-total', fishTotal);
@@ -538,9 +538,9 @@ function updateFishers() {
             }
             if (!isProfitGapDisabled()) {
                 if (ocean.showFisherBalance) {
-                    var profitDiff = computeProfitDiff(fisher);
-                    displayProfitGap($('#f' + j + '-profit-gap'), profitDiff);
-                    $('#f' + j).attr('data-profit-gap', profitDiff);
+                    var profitGap = computeProfitGap(fisher);
+                    displayProfitGap($('#f' + j + '-profit-gap'), profitGap);
+                    $('#f' + j).attr('data-profit-gap', profitGap);
                 } else {
                     $('#f' + j + '-profit-gap').text('?');
                 }
