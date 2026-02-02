@@ -196,6 +196,13 @@ describe('Fish (jsdom)', () => {
             if (element) element.removeAttribute(name);
             return this;
           },
+          css: function(prop, val) {
+            if (val !== undefined) {
+              if (element) element.style[prop] = val;
+              return this;
+            }
+            return element ? element.style[prop] : '';
+          },
           modal: function(options) {
             // Mock Bootstrap modal
             if (element && typeof element.modal === 'function') {

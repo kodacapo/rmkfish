@@ -102,7 +102,8 @@ function displayProfitGap($cell, value) {
     var num = parseFloat(value);
     var text = num > 0 ? '+' + value : value;
     var color = num > 0 ? 'navy' : (num < 0 ? 'crimson' : '');
-    $cell.text(text).css('color', color);
+    $cell.text(text);
+    $cell.css('color', color);
 }
 
 if (lang && lang !== '' && lang.toLowerCase() in langs) {
