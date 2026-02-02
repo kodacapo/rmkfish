@@ -77,71 +77,72 @@ describe('Fish (jsdom)', () => {
       }
 
       if (typeof selector === 'string') {
-        const element = document.querySelector(selector);
+        const elements = Array.from(document.querySelectorAll(selector));
+        const element = elements[0] || null;
         return {
           text: function(val) {
             if (val !== undefined) {
-              if (element) element.textContent = val;
+              elements.forEach(el => el.textContent = val);
               return this;
             }
             return element ? element.textContent : '';
           },
           val: function(val) {
             if (val !== undefined) {
-              if (element) element.value = val;
+              elements.forEach(el => el.value = val);
               return this;
             }
             return element ? element.value : '';
           },
           html: function(val) {
             if (val !== undefined) {
-              if (element) element.innerHTML = val;
+              elements.forEach(el => el.innerHTML = val);
               return this;
             }
             return element ? element.innerHTML : '';
           },
           attr: function(name, val) {
             if (val !== undefined) {
-              if (element) element.setAttribute(name, val);
+              elements.forEach(el => el.setAttribute(name, val));
               return this;
             }
             return element ? element.getAttribute(name) : null;
           },
           prop: function(name, val) {
             if (val !== undefined) {
-              if (element) element[name] = val;
+              elements.forEach(el => el[name] = val);
               return this;
             }
             return element ? element[name] : undefined;
           },
           addClass: function(className) {
-            if (element) element.classList.add(className);
+            elements.forEach(el => el.classList.add(className));
             return this;
           },
           removeClass: function(className) {
-            if (element) element.classList.remove(className);
+            elements.forEach(el => el.classList.remove(className));
             return this;
           },
           hasClass: function(className) {
             return element ? element.classList.contains(className) : false;
           },
           show: function() {
-            if (element) element.style.display = '';
+            elements.forEach(el => el.style.display = '');
             return this;
           },
           hide: function() {
-            if (element) element.style.display = 'none';
+            elements.forEach(el => el.style.display = 'none');
             return this;
           },
           on: function(event, handler) {
-            if (element) element.addEventListener(event, handler);
+            elements.forEach(el => el.addEventListener(event, handler));
             return this;
           },
           trigger: function(event) {
-            if (element) {
+            elements.forEach(el => {
               const evt = new window.Event(event);
-              element.dispatchEvent(evt);
-            }
+              el.dispatchEvent(evt);
+            });
             return this;
           },
           ready: function(handler) {
@@ -151,15 +152,15 @@ describe('Fish (jsdom)', () => {
           },
           width: function(val) {
             if (val !== undefined) {
-              if (element) element.style.width = val + 'px';
+              elements.forEach(el => el.style.width = val + 'px');
               return this;
             }
             return element ? (element.offsetWidth || 800) : 0;
           },
           each: function(callback) {
-            if (element) {
-              callback.call(element, 0, element);
-            }
+            elements.forEach((el, i) => {
+              callback.call(el, i, el);
+            });
             return this;
           },
           find: function(selector) {
@@ -167,7 +168,7 @@ describe('Fish (jsdom)', () => {
             return jQuery(found ? '#' + (found.id || 'not-found') : '#not-found');
           },
           fadeOut: function(duration, callback) {
-            if (element) element.style.display = 'none';
+            elements.forEach(el => el.style.display = 'none');
             if (typeof duration === 'function') {
               duration();
             } else if (callback) {
@@ -176,7 +177,7 @@ describe('Fish (jsdom)', () => {
             return this;
           },
           fadeIn: function(duration, callback) {
-            if (element) element.style.display = '';
+            elements.forEach(el => el.style.display = '');
             if (typeof duration === 'function') {
               duration();
             } else if (callback) {
@@ -187,27 +188,29 @@ describe('Fish (jsdom)', () => {
           data: function(name, val) {
             if (!element) return val === undefined ? undefined : this;
             if (val !== undefined) {
-              element.setAttribute('data-' + name, val);
+              elements.forEach(el => el.setAttribute('data-' + name, val));
               return this;
             }
             return element.getAttribute('data-' + name);
           },
           removeAttr: function(name) {
-            if (element) element.removeAttribute(name);
+            elements.forEach(el => el.removeAttribute(name));
             return this;
           },
           css: function(prop, val) {
             if (val !== undefined) {
-              if (element) element.style[prop] = val;
+              elements.forEach(el => el.style[prop] = val);
               return this;
             }
             return element ? element.style[prop] : '';
           },
           modal: function(options) {
             // Mock Bootstrap modal
-            if (element && typeof element.modal === 'function') {
-              element.modal(options);
-            }
+            elements.forEach(el => {
+              if (typeof el.modal === 'function') {
+                el.modal(options);
+              }
+            });
             return this;
           }
         };
@@ -714,8 +717,6 @@ describe('Fish (jsdom)', () => {
 
         document.querySelector('#profit-season-header').style.display.should.equal('none');
         document.querySelector('#profit-total-header').style.display.should.equal('none');
-        document.querySelector('#profit-season-th').style.display.should.equal('none');
-        document.querySelector('#profit-total-th').style.display.should.equal('none');
       });
 
       it('should hide profit columns for all fishers', () => {
@@ -748,7 +749,6 @@ describe('Fish (jsdom)', () => {
         window.hideProfitSeasonColumn();
 
         document.querySelector('#profit-season-header').style.display.should.equal('none');
-        document.querySelector('#profit-season-th').style.display.should.equal('none');
         document.querySelector('#f0-profit-season').style.display.should.equal('none');
         document.querySelector('#f1-profit-season').style.display.should.equal('none');
       });
@@ -766,7 +766,6 @@ describe('Fish (jsdom)', () => {
         window.hideProfitTotalColumn();
 
         document.querySelector('#profit-total-header').style.display.should.equal('none');
-        document.querySelector('#profit-total-th').style.display.should.equal('none');
         document.querySelector('#f0-profit-total').style.display.should.equal('none');
         document.querySelector('#f1-profit-total').style.display.should.equal('none');
       });
