@@ -101,7 +101,7 @@ function computeProfitGap(fisher) {
 function displayProfitGap($cell, value) {
     var num = parseFloat(value);
     var text = num > 0 ? '+' + value : value;
-    var color = num > 0 ? 'navyblue' : (num < 0 ? 'crimsonred' : '');
+    var color = num > 0 ? 'navy' : (num < 0 ? 'crimson' : '');
     $cell.text(text).css('color', color);
 }
 
