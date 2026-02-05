@@ -102,6 +102,48 @@ describe('Engine - Ocean', function() {
       o.log.entries.length.should.equal(1);
       return done();
     });
+
+    it('should assign default fisher class when classes enabled and no fClass provided', function(done) {
+      mw.params.fisherClassesEnabled = true;
+      mw.params.fisherClasses = ['Class A', 'Class B'];
+      mw.params.fisherClassEmojis = { 'Class A': '⭐', 'Class B': '🔵' };
+      var oWithClasses = new Ocean(mw, io, ioAdmin, { endOcean: function(){} });
+      oWithClasses.addFisher('p001', {});
+      oWithClasses.fishers[3].params.fClass.should.equal('Class A');
+      // Clean up
+      delete mw.params.fisherClassesEnabled;
+      delete mw.params.fisherClasses;
+      delete mw.params.fisherClassEmojis;
+      return done();
+    });
+
+    it('should keep valid fisher class when classes enabled and valid fClass provided', function(done) {
+      mw.params.fisherClassesEnabled = true;
+      mw.params.fisherClasses = ['Class A', 'Class B'];
+      mw.params.fisherClassEmojis = { 'Class A': '⭐', 'Class B': '🔵' };
+      var oWithClasses = new Ocean(mw, io, ioAdmin, { endOcean: function(){} });
+      oWithClasses.addFisher('p001', { fClass: 'Class B' });
+      oWithClasses.fishers[3].params.fClass.should.equal('Class B');
+      // Clean up
+      delete mw.params.fisherClassesEnabled;
+      delete mw.params.fisherClasses;
+      delete mw.params.fisherClassEmojis;
+      return done();
+    });
+
+    it('should assign default fisher class when classes enabled and invalid fClass provided', function(done) {
+      mw.params.fisherClassesEnabled = true;
+      mw.params.fisherClasses = ['Class A', 'Class B'];
+      mw.params.fisherClassEmojis = { 'Class A': '⭐', 'Class B': '🔵' };
+      var oWithClasses = new Ocean(mw, io, ioAdmin, { endOcean: function(){} });
+      oWithClasses.addFisher('p001', { fClass: 'InvalidClass' });
+      oWithClasses.fishers[3].params.fClass.should.equal('Class A');
+      // Clean up
+      delete mw.params.fisherClassesEnabled;
+      delete mw.params.fisherClasses;
+      delete mw.params.fisherClassEmojis;
+      return done();
+    });
   });
 
   describe('removeFisher()', function() {

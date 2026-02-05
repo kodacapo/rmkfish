@@ -8,8 +8,7 @@ var mwId = $.url().param('mwid');
 var pId = $.url().param('pid');
 var pParams = {
     pDisplay: $.url().param('pdisplay'),
-    pClass: $.url().param('pclass'),
-    pClassIcon: $.url().param('pclassicon'),
+    fClass: $.url().param('fclass'),
     pHasAdvantage: parseHasAdvantage($.url().param('phasadvantage')),
     pAdvantageIcon: $.url().param('padvantageicon'),
     pFishValue: parseFishValue($.url().param('pfishvalue'))
@@ -427,9 +426,10 @@ function updateFishers() {
 
     for (var i in st.fishers) {
         var fisher = st.fishers[i];
-        var classIcon = unicodeToChar(fisher.params && fisher.params.pClassIcon);
+        var fisherClass = fisher.params && fisher.params.fClass;
+        var classEmoji = fisherClass && ocean.fisherClassEmojis && ocean.fisherClassEmojis[fisherClass] ? ocean.fisherClassEmojis[fisherClass] : '';
         var advantageIcon = unicodeToChar(fisher.params && fisher.params.pAdvantageIcon);
-        var icons = [classIcon, advantageIcon].filter(Boolean).join(' ');
+        var icons = [classEmoji, advantageIcon].filter(Boolean).join(' ');
 
         if (fisher.name === pId) {
             // This is you
@@ -595,6 +595,7 @@ function hideTutorial() {
 
 function setupOcean(o) {
     ocean = o;
+    validateFisherClass();
     displayRules();
     loadLabels();
     updateCosts();
@@ -606,6 +607,28 @@ function setupOcean(o) {
     if (isProfitTotalDisabled()) hideProfitTotalColumn();
     if (isProfitGapDisabled()) hideProfitGapColumn();
     if (areAllProfitColumnsDisabled()) hideAllProfitExtras();
+}
+
+// Validate and assign fClass URL parameter against microworld fisher classes
+function validateFisherClass() {
+    if (!ocean.fisherClassesEnabled) {
+        // Fisher classes not enabled, clear fClass
+        pParams.fClass = null;
+        return;
+    }
+    var validClasses = ocean.fisherClasses || [];
+    if (validClasses.length === 0) {
+        pParams.fClass = null;
+        return;
+    }
+    if (!pParams.fClass) {
+        // No fclass provided, assign first class
+        pParams.fClass = validClasses[0];
+    } else if (validClasses.indexOf(pParams.fClass) === -1) {
+        // Invalid class provided, assign first class
+        console.warn('Invalid fclass "' + pParams.fClass + '". Valid classes are: ' + validClasses.join(', ') + '. Assigning to ' + validClasses[0]);
+        pParams.fClass = validClasses[0];
+    }
 }
 
 function readRules() {

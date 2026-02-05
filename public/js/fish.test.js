@@ -239,8 +239,7 @@ describe('Fish (jsdom)', () => {
             pid: '456',
             lang: 'en',
             pdisplay: 'TestPlayer',
-            pclass: 'GroupA',
-            pclassicon: 'icon-star'
+            fclass: 'GroupA'
           };
           return params[name];
         }
@@ -638,8 +637,7 @@ describe('Fish (jsdom)', () => {
       // Check that the mock URL params are correctly configured
       const urlParams = window.$.url().param;
       urlParams('pdisplay').should.equal('TestPlayer');
-      urlParams('pclass').should.equal('GroupA');
-      urlParams('pclassicon').should.equal('icon-star');
+      urlParams('fclass').should.equal('GroupA');
     });
 
     it('should initialize socket connection', () => {
@@ -1553,14 +1551,17 @@ describe('Fish (jsdom)', () => {
         document.querySelector('#f2-name').textContent.should.equal('Bob');
       });
 
-      it('should display pClassIcon as unicode character next to name', () => {
+      it('should display class emoji next to name when fisher classes enabled', () => {
         window.ocean = {
           showFishers: true,
           showFisherNames: true,
           showFisherStatus: true,
           showNumCaught: true,
           showFisherBalance: true,
-          profitDisplayDisabled: false
+          profitDisplayDisabled: false,
+          fisherClassesEnabled: true,
+          fisherClasses: ['Class A', 'Class B'],
+          fisherClassEmojis: { 'Class A': '⭐', 'Class B': '😀' }
         };
 
         window.st = {
@@ -1576,7 +1577,7 @@ describe('Fish (jsdom)', () => {
             },
             {
               name: 'other-fisher-1',
-              params: { pDisplay: 'Alice', pClassIcon: '2B50' },  // Star emoji
+              params: { pDisplay: 'Alice', fClass: 'Class A' },
               status: 'At sea',
               totalFishCaught: 8,
               money: 40.00,
@@ -1584,7 +1585,7 @@ describe('Fish (jsdom)', () => {
             },
             {
               name: 'other-fisher-2',
-              params: { pDisplay: 'Bob', pClassIcon: 'U+1F600' },  // Grinning face emoji with U+ prefix
+              params: { pDisplay: 'Bob', fClass: 'Class B' },
               status: 'At port',
               totalFishCaught: 12,
               money: 60.00,
@@ -1595,9 +1596,9 @@ describe('Fish (jsdom)', () => {
 
         window.updateFishers();
 
-        // Fisher with icon should show "⭐ Alice"
+        // Fisher with Class A should show "⭐ Alice"
         document.querySelector('#f1-name').textContent.should.equal('⭐ Alice');
-        // Fisher with U+ prefix icon should show "😀 Bob"
+        // Fisher with Class B should show "😀 Bob"
         document.querySelector('#f2-name').textContent.should.equal('😀 Bob');
       });
 

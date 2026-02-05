@@ -62,7 +62,16 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
 
   this.addFisher = function(pId, pParams) {
-    this.fishers.push(new Fisher(pId, 'human', pParams, this));
+    var validatedParams = pParams || {};
+    if (this.microworld.params.fisherClassesEnabled) {
+      var validClasses = this.microworld.params.fisherClasses || [];
+      if (validClasses.length > 0) {
+        if (!validatedParams.fClass || validClasses.indexOf(validatedParams.fClass) === -1) {
+          validatedParams.fClass = validClasses[0];
+        }
+      }
+    }
+    this.fishers.push(new Fisher(pId, 'human', validatedParams, this));
     this.log.info('Human fisher ' + pId + ' joined.');
     return;
   };
