@@ -136,6 +136,11 @@ app.get('/explain-fisher-classes', function (req, res) {
     myHost: req.protocol + '://' + req.get('host')
   });
 });
+app.get('/explain-fisher-advantage', function (req, res) {
+  res.render('explain-fisher-advantage.pug', {
+    myHost: req.protocol + '://' + req.get('host')
+  });
+});
 app.get('/new-welcome', function (req, res) {
   res.render('participant-access.pug');
 });

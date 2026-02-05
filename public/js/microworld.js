@@ -55,6 +55,7 @@ function readyTooltips() {
     $('#fisher-class-names-tooltip').tooltip();
     $('#fisher-class-counts-tooltip').tooltip();
     $('#fisher-class-emojis-tooltip').tooltip();
+    $('#fisher-advantage-tooltip').tooltip();
 }
 
 function changeBotRowVisibility() {
@@ -372,6 +373,7 @@ function prepareMicroworldObject() {
     mw.fisherClasses = classNames;
     mw.fisherClassCounts = parseFisherClassCounts($('#fisher-class-counts').val(), classNames);
     mw.fisherClassEmojis = parseFisherClassEmojis($('#fisher-class-emojis').val(), classNames);
+    mw.fisherAdvantageEnabled = $('#enable-fisher-advantage').prop('checked');
     mw.redirectURL = $('#redirect-url').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
@@ -531,6 +533,7 @@ function populatePage() {
     $('#fisher-class-counts').val(fisherClassCountsToString(mw.params.fisherClassCounts, classNames));
     $('#fisher-class-emojis').val(fisherClassEmojisToString(mw.params.fisherClassEmojis, classNames));
     maybeDisableFisherClassControls(mw.params.fisherClassesEnabled || false);
+    $('#enable-fisher-advantage').prop('checked', mw.params.fisherAdvantageEnabled || false);
     $('#redirect-url').val(mw.params.redirectURL);
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     var legacyDisabled = mw.params.profitDisplayDisabled || false;
@@ -768,6 +771,7 @@ function setButtons() {
     $('#show-catch-intentions-explanation').click(showCatchIntentionsExplanationText);
     $('#show-redirect-explanation').click(showRedirectExplanationText);
     $('#show-fisher-classes-explanation').click(showFisherClassesExplanationText);
+    $('#show-fisher-advantage-explanation').click(showFisherAdvantageExplanationText);
 
     initDownloadAll();
 }
@@ -922,6 +926,15 @@ function showFisherClassesExplanationText() {
     $('#explain-fisher-classes-modal').modal({ keyboard: false, backdrop: 'static' });
 }
 
+
+// FISHER ADVANTAGE FEATURE
+
+function showFisherAdvantageExplanationText() {
+    $('#explain-fisher-advantage-content').load('/explain-fisher-advantage', function () {
+        $('#explain-fisher-advantage-modal').modal({ show: true });
+    });
+    $('#explain-fisher-advantage-modal').modal({ keyboard: false, backdrop: 'static' });
+}
 
 // REDIRECTION FEATURE
 

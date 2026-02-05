@@ -41,6 +41,7 @@ var microworldSchema = new Schema({
     fisherClasses: [String],
     fisherClassCounts: Object,
     fisherClassEmojis: Object,
+    fisherAdvantageEnabled: Boolean,
     redirectURL: String,
     enableRespawnWarning: Boolean,
     fishValue: Number,

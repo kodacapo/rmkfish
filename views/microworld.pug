@@ -254,6 +254,17 @@ html
               .col-md-6
                 input#fisher-class-emojis.form-control.to-disable(type='text', value='♀︎, ♂︎', disabled=true)
 
+          h3 Fisher Advantage
+          .row
+            .form-group
+              .col-md-7
+                label.form-label.checkbox
+                  | Enable&nbsp;
+                  a#fisher-advantage-tooltip(title='Give some fishers a monetary advantage over the other fishers.', data-toggle='tooltip', data-placement='top') fisher advantage
+                  input#enable-fisher-advantage.to-disable(type='checkbox', checked=false)
+              .col-md-5
+                  button#show-fisher-advantage-explanation.btn.btn-info(type='button') EXPLAIN
+
       .row
         .col-md-4
           h3 Preparation text
@@ -527,4 +538,11 @@ html
           #explain-fisher-classes-content.modal-body Explanation of fisher classes features
           .modal-footer
             button#done-fisher-classes-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
+              | OK
+    #explain-fisher-advantage-modal.modal.fade(role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          #explain-fisher-advantage-content.modal-body Explanation of fisher advantage features
+          .modal-footer
+            button#done-fisher-advantage-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
               | OK
