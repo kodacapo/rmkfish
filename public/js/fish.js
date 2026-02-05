@@ -610,6 +610,7 @@ function setupOcean(o) {
 }
 
 // Validate and assign fClass URL parameter against microworld fisher classes
+// Matching is case-insensitive; the stored (capitalized) class name is used.
 function validateFisherClass() {
     if (!ocean.fisherClassesEnabled) {
         // Fisher classes not enabled, clear fClass
@@ -624,10 +625,16 @@ function validateFisherClass() {
     if (!pParams.fClass) {
         // No fclass provided, assign first class
         pParams.fClass = validClasses[0];
-    } else if (validClasses.indexOf(pParams.fClass) === -1) {
-        // Invalid class provided, assign first class
-        console.warn('Invalid fclass "' + pParams.fClass + '". Valid classes are: ' + validClasses.join(', ') + '. Assigning to ' + validClasses[0]);
-        pParams.fClass = validClasses[0];
+    } else {
+        // Case-insensitive lookup: find the canonical class name
+        var inputLower = pParams.fClass.toLowerCase();
+        var matched = validClasses.filter(function(c) { return c.toLowerCase() === inputLower; });
+        if (matched.length > 0) {
+            pParams.fClass = matched[0];
+        } else {
+            console.warn('Invalid fclass "' + pParams.fClass + '". Valid classes are: ' + validClasses.join(', ') + '. Assigning to ' + validClasses[0]);
+            pParams.fClass = validClasses[0];
+        }
     }
 }
 

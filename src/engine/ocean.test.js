@@ -144,6 +144,22 @@ describe('Engine - Ocean', function() {
       delete mw.params.fisherClassEmojis;
       return done();
     });
+
+    it('should match fisher class case-insensitively and normalize to canonical name', function(done) {
+      mw.params.fisherClassesEnabled = true;
+      mw.params.fisherClasses = ['Class A', 'Class B'];
+      mw.params.fisherClassEmojis = { 'Class A': '⭐', 'Class B': '🔵' };
+      var oWithClasses = new Ocean(mw, io, ioAdmin, { endOcean: function(){} });
+      oWithClasses.addFisher('p001', { fClass: 'class b' });
+      oWithClasses.fishers[3].params.fClass.should.equal('Class B');
+      oWithClasses.addFisher('p002', { fClass: 'CLASS A' });
+      oWithClasses.fishers[4].params.fClass.should.equal('Class A');
+      // Clean up
+      delete mw.params.fisherClassesEnabled;
+      delete mw.params.fisherClasses;
+      delete mw.params.fisherClassEmojis;
+      return done();
+    });
   });
 
   describe('removeFisher()', function() {

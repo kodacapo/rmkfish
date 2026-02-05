@@ -66,8 +66,13 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     if (this.microworld.params.fisherClassesEnabled) {
       var validClasses = this.microworld.params.fisherClasses || [];
       if (validClasses.length > 0) {
-        if (!validatedParams.fClass || validClasses.indexOf(validatedParams.fClass) === -1) {
+        if (!validatedParams.fClass) {
           validatedParams.fClass = validClasses[0];
+        } else {
+          // Case-insensitive lookup: use the canonical (capitalized) class name
+          var inputLower = validatedParams.fClass.toLowerCase();
+          var matched = validClasses.filter(function(c) { return c.toLowerCase() === inputLower; });
+          validatedParams.fClass = matched.length > 0 ? matched[0] : validClasses[0];
         }
       }
     }

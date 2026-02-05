@@ -526,7 +526,7 @@ function populatePage() {
     $('#catch-intent-prompt2').val(mw.params.catchIntentPrompt2);
     maybeDisableCatchIntentControls(mw.params.catchIntentionsEnabled);
     $('#enable-fisher-classes').prop('checked', mw.params.fisherClassesEnabled || false);
-    var classNames = mw.params.fisherClasses || ['Class A', 'Class B'];
+    var classNames = mw.params.fisherClasses || ['Female', 'Male'];
     $('#fisher-class-names').val(fisherClassNamesToString(classNames));
     $('#fisher-class-counts').val(fisherClassCountsToString(mw.params.fisherClassCounts, classNames));
     $('#fisher-class-emojis').val(fisherClassEmojisToString(mw.params.fisherClassEmojis, classNames));
@@ -606,19 +606,31 @@ function parseCommaSeparatedList(str) {
     return str.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
 }
 
-// Parse fisher class names: returns an array of class names
+// Capitalize a string: first letter uppercase, rest lowercase
+function capitalize(str) {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+// Capitalize each word in a string
+function capitalizeWords(str) {
+    if (!str) return '';
+    return str.split(/\s+/).map(capitalize).join(' ');
+}
+
+// Parse fisher class names: returns an array of capitalized class names
 function parseFisherClassNames(str) {
     var names = parseCommaSeparatedList(str);
     if (names.length === 0) {
-        return ['Class A', 'Class B'];
+        return ['Female', 'Male'];
     }
-    return names;
+    return names.map(capitalizeWords);
 }
 
 // Convert fisher class names array to comma-separated string for display
 function fisherClassNamesToString(names) {
     if (!names || !Array.isArray(names) || names.length === 0) {
-        return 'Class A, Class B';
+        return 'Female, Male';
     }
     return names.join(', ');
 }
@@ -664,7 +676,7 @@ function parseFisherClassEmojis(str, classNames) {
 // Convert fisher class emojis object to comma-separated string for display
 function fisherClassEmojisToString(emojis, classNames) {
     if (!emojis || typeof emojis !== 'object') {
-        return '⭐, 🔷';
+        return '♀︎, ♂︎';
     }
     if (classNames && Array.isArray(classNames)) {
         return classNames.map(function(name) { return emojis[name] || ''; }).join(', ');
