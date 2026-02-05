@@ -131,6 +131,11 @@ app.get('/explain-catch-intentions', function (req, res) {
     myHost: req.protocol + '://' + req.get('host')
   });
 });
+app.get('/explain-fisher-classes', function (req, res) {
+  res.render('explain-fisher-classes.pug', {
+    myHost: req.protocol + '://' + req.get('host')
+  });
+});
 app.get('/new-welcome', function (req, res) {
   res.render('participant-access.pug');
 });

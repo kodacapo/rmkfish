@@ -51,6 +51,10 @@ function readyTooltips() {
     $('#profit-season-tooltip').tooltip();
     $('#profit-total-tooltip').tooltip();
     $('#profit-gap-tooltip').tooltip();
+    $('#fisher-classes-tooltip').tooltip();
+    $('#fisher-class-names-tooltip').tooltip();
+    $('#fisher-class-counts-tooltip').tooltip();
+    $('#fisher-class-emojis-tooltip').tooltip();
 }
 
 function changeBotRowVisibility() {
@@ -258,6 +262,42 @@ function validate() {
         $('#catch-intent-seasons').val(parseCatchIntentSeasons(catchIntentSeasonsStr, true));
     }
 
+    if ($('#enable-fisher-classes').prop('checked')) {
+        var classNames = parseFisherClassNames($('#fisher-class-names').val());
+        var countsStr = $('#fisher-class-counts').val();
+        var countsList = parseCommaSeparatedList(countsStr);
+
+        // Validate counts are positive integers
+        var countsValid = true;
+        var countSum = 0;
+        for (var i = 0; i < countsList.length; i++) {
+            var num = parseInt(countsList[i], 10);
+            if (isNaN(num) || num <= 0) {
+                countsValid = false;
+                break;
+            }
+            countSum += num;
+        }
+
+        if (!countsValid) {
+            errors.push('"' + countsStr + '" is not a valid comma-separated list of positive numbers.');
+        } else {
+            if (countSum !== numFishers) {
+                errors.push('The sum of fisher class counts (' + countSum + ') must equal the number of fishers per simulation (' + numFishers + ').');
+            }
+            if (countsList.length !== classNames.length) {
+                errors.push('The number of class counts (' + countsList.length + ') must match the number of class names (' + classNames.length + ').');
+            }
+        }
+
+        // Validate emojis count matches class names
+        var emojisStr = $('#fisher-class-emojis').val();
+        var emojisList = parseCommaSeparatedList(emojisStr);
+        if (emojisList.length !== classNames.length) {
+            errors.push('The number of emojis (' + emojisList.length + ') must match the number of class names (' + classNames.length + ').');
+        }
+    }
+
     if (parseInt($('#catch-intent-dialog-duration').val()) < 0) {
         errors.push('The catch intent extra time cannot be negative.');
     }
@@ -327,6 +367,11 @@ function prepareMicroworldObject() {
     mw.catchIntentDialogDuration = $('#catch-intent-dialog-duration').val();
     mw.catchIntentPrompt1 = $('#catch-intent-prompt1').val();
     mw.catchIntentPrompt2 = $('#catch-intent-prompt2').val();
+    mw.fisherClassesEnabled = $('#enable-fisher-classes').prop('checked');
+    var classNames = parseFisherClassNames($('#fisher-class-names').val());
+    mw.fisherClasses = classNames;
+    mw.fisherClassCounts = parseFisherClassCounts($('#fisher-class-counts').val(), classNames);
+    mw.fisherClassEmojis = parseFisherClassEmojis($('#fisher-class-emojis').val(), classNames);
     mw.redirectURL = $('#redirect-url').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
@@ -480,6 +525,12 @@ function populatePage() {
     $('#catch-intent-prompt1').val(mw.params.catchIntentPrompt1);
     $('#catch-intent-prompt2').val(mw.params.catchIntentPrompt2);
     maybeDisableCatchIntentControls(mw.params.catchIntentionsEnabled);
+    $('#enable-fisher-classes').prop('checked', mw.params.fisherClassesEnabled || false);
+    var classNames = mw.params.fisherClasses || ['Class A', 'Class B'];
+    $('#fisher-class-names').val(fisherClassNamesToString(classNames));
+    $('#fisher-class-counts').val(fisherClassCountsToString(mw.params.fisherClassCounts, classNames));
+    $('#fisher-class-emojis').val(fisherClassEmojisToString(mw.params.fisherClassEmojis, classNames));
+    maybeDisableFisherClassControls(mw.params.fisherClassesEnabled || false);
     $('#redirect-url').val(mw.params.redirectURL);
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     var legacyDisabled = mw.params.profitDisplayDisabled || false;
@@ -539,6 +590,86 @@ function maybeDisableCatchIntentControls(enabledflg) {
     $('#catch-intent-dialog-duration').prop("disabled", !enabledflg);
     $('#catch-intent-prompt1').prop("disabled", !enabledflg);
     $('#catch-intent-prompt2').prop("disabled", !enabledflg);
+}
+
+function maybeDisableFisherClassControls(enabledflg) {
+    $('#fisher-class-names').prop("disabled", !enabledflg);
+    $('#fisher-class-counts').prop("disabled", !enabledflg);
+    $('#fisher-class-emojis').prop("disabled", !enabledflg);
+}
+
+// Parse a comma-separated string into an array of trimmed non-empty strings
+function parseCommaSeparatedList(str) {
+    if (!str || str.trim() === '') {
+        return [];
+    }
+    return str.split(',').map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+}
+
+// Parse fisher class names: returns an array of class names
+function parseFisherClassNames(str) {
+    var names = parseCommaSeparatedList(str);
+    if (names.length === 0) {
+        return ['Class A', 'Class B'];
+    }
+    return names;
+}
+
+// Convert fisher class names array to comma-separated string for display
+function fisherClassNamesToString(names) {
+    if (!names || !Array.isArray(names) || names.length === 0) {
+        return 'Class A, Class B';
+    }
+    return names.join(', ');
+}
+
+// Parse fisher class counts: returns an object indexed by class name
+// classNames should be an array of class names
+function parseFisherClassCounts(str, classNames) {
+    var parts = parseCommaSeparatedList(str);
+    var counts = {};
+    for (var i = 0; i < parts.length; i++) {
+        var num = parseInt(parts[i], 10);
+        if (isNaN(num) || num <= 0) {
+            return null; // Invalid
+        }
+        var className = classNames && classNames[i] ? classNames[i] : ('Class ' + (i + 1));
+        counts[className] = num;
+    }
+    return counts;
+}
+
+// Convert fisher class counts object to comma-separated string for display
+function fisherClassCountsToString(counts, classNames) {
+    if (!counts || typeof counts !== 'object') {
+        return '2, 2';
+    }
+    if (classNames && Array.isArray(classNames)) {
+        return classNames.map(function(name) { return counts[name] || 0; }).join(', ');
+    }
+    return Object.values(counts).join(', ');
+}
+
+// Parse fisher class emojis: returns an object indexed by class name
+function parseFisherClassEmojis(str, classNames) {
+    var parts = parseCommaSeparatedList(str);
+    var emojis = {};
+    for (var i = 0; i < parts.length; i++) {
+        var className = classNames && classNames[i] ? classNames[i] : ('Class ' + (i + 1));
+        emojis[className] = parts[i];
+    }
+    return emojis;
+}
+
+// Convert fisher class emojis object to comma-separated string for display
+function fisherClassEmojisToString(emojis, classNames) {
+    if (!emojis || typeof emojis !== 'object') {
+        return '⭐, 🔷';
+    }
+    if (classNames && Array.isArray(classNames)) {
+        return classNames.map(function(name) { return emojis[name] || ''; }).join(', ');
+    }
+    return Object.values(emojis).join(', ');
 }
 
 function maybeDisableProfitControls(disabledflg) {
@@ -624,6 +755,7 @@ function setButtons() {
 
     $('#show-catch-intentions-explanation').click(showCatchIntentionsExplanationText);
     $('#show-redirect-explanation').click(showRedirectExplanationText);
+    $('#show-fisher-classes-explanation').click(showFisherClassesExplanationText);
 
     initDownloadAll();
 }
@@ -660,6 +792,11 @@ function prepareControls() {
         //Dis- or enable the other CatchIntention controls depending on whether the checkbox is checked.
         var enabledflg = $(this).is(':checked');
         maybeDisableCatchIntentControls(enabledflg);
+    });
+    $('#enable-fisher-classes').on("click", function () {
+        //Dis- or enable the fisher class controls depending on whether the checkbox is checked.
+        var enabledflg = $(this).is(':checked');
+        maybeDisableFisherClassControls(enabledflg);
     });
     function onProfitCheckboxChange() {
         var allDisabled =
@@ -762,6 +899,15 @@ function showCatchIntentionsExplanationText() {
         $('#explain-catch-intentions-modal').modal({ show: true });
     });
     $('#explain-catch-intentions-modal').modal({ keyboard: false, backdrop: 'static' });
+}
+
+// FISHER CLASSES FEATURE
+
+function showFisherClassesExplanationText() {
+    $('#explain-fisher-classes-content').load('/explain-fisher-classes', function () {
+        $('#explain-fisher-classes-modal').modal({ show: true });
+    });
+    $('#explain-fisher-classes-modal').modal({ keyboard: false, backdrop: 'static' });
 }
 
 

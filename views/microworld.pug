@@ -224,6 +224,36 @@ html
                 a#chance-catch-tooltip(title='If the chance of catch is 1.0, every fishing attempt is successful. If it is 0.5, half of them are.', data-toggle='tooltip', data-placement='top') Chance of catch
               .col-md-6
                 input#chance-catch.form-control.to-disable(type='number', min='0', step='0.01', value='1.00')
+
+          h3 Fisher Classes
+          .row
+            .form-group
+              .col-md-7
+                label.form-label.checkbox
+                  | Enable&nbsp;
+                  a#fisher-classes-tooltip(title='Assign fishers to different classes with different fish values, allowing study of inequality and resource distribution.', data-toggle='tooltip', data-placement='top') fisher classes
+                  input#enable-fisher-classes.to-disable(type='checkbox', checked=false)
+              .col-md-5
+                  button#show-fisher-classes-explanation.btn.btn-info(type='button') EXPLAIN
+          .row
+            .form-group
+              label.form-label.col-md-6(for='fisher-class-names')
+                a#fisher-class-names-tooltip(title='Comma-separated list of class names.', data-toggle='tooltip', data-placement='top') List of class names
+              .col-md-6
+                input#fisher-class-names.form-control.to-disable(type='text', value='Class A, Class B', disabled=true)
+          .row
+            .form-group
+              label.form-label.col-md-6(for='fisher-class-counts')
+                a#fisher-class-counts-tooltip(title='Comma-separated list of fisher counts per class. Must sum to total fishers per simulation.', data-toggle='tooltip', data-placement='top') Number of fishers for each class
+              .col-md-6
+                input#fisher-class-counts.form-control.to-disable(type='text', value='2, 2', disabled=true)
+          .row
+            .form-group
+              label.form-label.col-md-6(for='fisher-class-emojis')
+                a#fisher-class-emojis-tooltip(title='Comma-separated list of emojis, one for each class.', data-toggle='tooltip', data-placement='top') Emojis for each class
+              .col-md-6
+                input#fisher-class-emojis.form-control.to-disable(type='text', value='⭐, 🔷', disabled=true)
+
       .row
         .col-md-4
           h3 Preparation text
@@ -490,4 +520,11 @@ html
           #explain-catch-intentions-content.modal-body Explanation of catch intentions features
           .modal-footer
             button#done-catch-intentions-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
+              | OK
+    #explain-fisher-classes-modal.modal.fade(role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          #explain-fisher-classes-content.modal-body Explanation of fisher classes features
+          .modal-footer
+            button#done-fisher-classes-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
               | OK
