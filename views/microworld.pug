@@ -148,29 +148,29 @@ html
               .col-md-5
                   button#show-catch-intentions-explanation.btn.btn-info(type='button') EXPLAIN
 
-          .row
+          .row.catch-intention-option.hide
             .form-group
-              label.form-label.col-md-6(for='catch-intent-seasons') Catch intention 
-                  a#catch-intention-seasons-tooltip(title='Comma-separated list of season numbers, 2 or higher, when to prompt human fishers to indicate their intent.', data-toggle='tooltip', data-placement='top') seasons 
+              label.form-label.col-md-6(for='catch-intent-seasons') Catch intention
+                  a#catch-intention-seasons-tooltip(title='Comma-separated list of season numbers, 2 or higher, when to prompt human fishers to indicate their intent.', data-toggle='tooltip', data-placement='top') seasons
               .col-md-6
-                input#catch-intent-seasons.form-control.to-disable(type='text', value='2,4,6,8,10', disabled=true)
-          .row
+                input#catch-intent-seasons.form-control.to-disable(type='text', value='2,4,6,8,10')
+          .row.catch-intention-option.hide
             .form-group
-              label.form-label.col-md-6(for='catch-intent-dialog-duration') Catch intention 
+              label.form-label.col-md-6(for='catch-intent-dialog-duration') Catch intention
                   a#catch-intent-dialog-duration-tooltip(title='The number of seconds at the beginning of the delay between seasons during which human fishers are prompted to indicate their intent.', data-toggle='tooltip', data-placement='top') dialog duration
                   |  (seconds)
               .col-md-6
-                input#catch-intent-dialog-duration.form-control.to-disable(type='number', min='1', step='1', value='5', disabled=true)
-          .row
+                input#catch-intent-dialog-duration.form-control.to-disable(type='number', min='1', step='1', value='5')
+          .row.catch-intention-option.hide
             .form-group
               label.form-label.col-md-6(for='catch-intent-prompt1') Catch intentions prompt (required)
               .col-md-6
-                input#catch-intent-prompt1.form-control.to-disable(type='text', autofocus='', disabled=true)
-          .row
+                input#catch-intent-prompt1.form-control.to-disable(type='text', autofocus='')
+          .row.catch-intention-option.hide
             .form-group
               label.form-label.col-md-6(for='catch-intent-prompt2') Catch intentions subprompt (optional)
               .col-md-6
-                input#catch-intent-prompt2.form-control.to-disable(type='text', autofocus='', disabled=true)
+                input#catch-intent-prompt2.form-control.to-disable(type='text', autofocus='')
           h3 Redirection 
           .row
             .form-group
@@ -235,24 +235,24 @@ html
                   input#enable-fisher-classes.to-disable(type='checkbox', checked=false)
               .col-md-5
                   button#show-fisher-classes-explanation.btn.btn-info(type='button') EXPLAIN
-          .row
+          .row.fisher-class-option.hide
             .form-group
               label.form-label.col-md-6(for='fisher-class-names')
                 a#fisher-class-names-tooltip(title='Comma-separated list of class names.', data-toggle='tooltip', data-placement='top') List of class names
               .col-md-6
-                input#fisher-class-names.form-control.to-disable(type='text', value='Female, Male', disabled=true)
-          .row
+                input#fisher-class-names.form-control.to-disable(type='text', value='Female, Male')
+          .row.fisher-class-option.hide
             .form-group
               label.form-label.col-md-6(for='fisher-class-counts')
                 a#fisher-class-counts-tooltip(title='Comma-separated list of fisher counts per class. Must sum to total fishers per simulation.', data-toggle='tooltip', data-placement='top') Number of fishers for each class
               .col-md-6
-                input#fisher-class-counts.form-control.to-disable(type='text', value='2, 2', disabled=true)
-          .row
+                input#fisher-class-counts.form-control.to-disable(type='text', value='2, 2')
+          .row.fisher-class-option.hide
             .form-group
               label.form-label.col-md-6(for='fisher-class-emojis')
                 a#fisher-class-emojis-tooltip(title='Comma-separated list of emojis, one for each class. Emojis are displayed in the game table just before the fisher name.', data-toggle='tooltip', data-placement='top') Emojis for each class
               .col-md-6
-                input#fisher-class-emojis.form-control.to-disable(type='text', value='♀︎, ♂︎', disabled=true)
+                input#fisher-class-emojis.form-control.to-disable(type='text', value='♀︎, ♂︎')
 
           h3 Fisher Advantage
           .row
@@ -264,6 +264,31 @@ html
                   input#enable-fisher-advantage.to-disable(type='checkbox', checked=false)
               .col-md-5
                   button#show-fisher-advantage-explanation.btn.btn-info(type='button') EXPLAIN
+          .row.fisher-advantage-option.hide
+            .form-group
+              label.form-label.col-md-6(for='fish-value-pay-gap')
+                a#fish-value-pay-gap-tooltip(title='Additional earnings per fish for advantaged fishers', data-toggle='tooltip', data-placement='top') Fish value pay gap
+              .col-md-6
+                input#fish-value-pay-gap.form-control.to-disable(type='number', min='0.00', step='0.01', value='0.00')
+          .row.fisher-advantage-option.hide
+            .form-group
+              .col-md-10
+                label.form-label.checkbox
+                  | Enable&nbsp;
+                  a#profit-gap-tooltip(title='Display the profit gap column in the play table throughout the game', data-toggle='tooltip', data-placement='top') profit gap column
+                  input#enable-profit-gap.to-disable(type='checkbox', checked=false)
+          .row.fisher-advantage-option.hide
+            .form-group
+              label.form-label.col-md-6(for='advantage-emoji')
+                a#advantage-emoji-tooltip(title='Emoji displayed before the name of a fisher with advantage', data-toggle='tooltip', data-placement='top') Advantage emoji
+              .col-md-6
+                input#advantage-emoji.form-control.to-disable(type='text', value='↑')
+          .row.fisher-advantage-option.hide
+            .form-group
+              label.form-label.col-md-6(for='disadvantage-emoji')
+                a#disadvantage-emoji-tooltip(title='Emoji displayed before the name of a fisher without advantage', data-toggle='tooltip', data-placement='top') No-advantage emoji
+              .col-md-6
+                input#disadvantage-emoji.form-control.to-disable(type='text', value='↓')
 
       .row
         .col-md-4
@@ -335,13 +360,6 @@ html
                   | Disable&nbsp;
                   a#profit-total-tooltip(title='Do NOT display fishers overall profits in the play table throughout the game', data-toggle='tooltip', data-placement='top') overall profit column
                   input#disable-profit-total.to-disable(type='checkbox', checked=false)
-          .row
-            .form-group
-              .col-md-10
-                label.form-label.checkbox
-                  | Disable&nbsp;
-                  a#profit-gap-tooltip(title='Do NOT display the profit gap column in the play table throughout the game', data-toggle='tooltip', data-placement='top') profit gap column
-                  input#disable-profit-gap.to-disable(type='checkbox', checked=true)
           .row
             .form-group
               .col-md-10

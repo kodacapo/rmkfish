@@ -9,9 +9,7 @@ var pId = $.url().param('pid');
 var pParams = {
     pDisplay: $.url().param('pdisplay'),
     fClass: $.url().param('fclass'),
-    pHasAdvantage: parseHasAdvantage($.url().param('phasadvantage')),
-    pAdvantageIcon: $.url().param('padvantageicon'),
-    pFishValue: parseFishValue($.url().param('pfishvalue'))
+    pHasAdvantage: parseHasAdvantage($.url().param('fhasadvantage'))
 };
 var ocean;
 var prePauseButtonsState = {};
@@ -28,17 +26,7 @@ mysteryFishImage.src = 'public/img/mystery-fish.png';
 
 var st = { status: 'loading' };
 
-// Convert unicode code point (e.g., "2B50" or "U+2B50") to character
-function unicodeToChar(codePoint) {
-    if (!codePoint) return '';
-    // Remove "U+" prefix if present
-    var hex = codePoint.replace(/^U\+/i, '');
-    var code = parseInt(hex, 16);
-    if (isNaN(code)) return '';
-    return String.fromCodePoint(code);
-}
-
-// Parse phasadvantage URL parameter to boolean
+// Parse fhasadvantage URL parameter to boolean
 function parseHasAdvantage(value) {
     if (value === undefined) return false;  // Not in URL = false
     if (value === '' || value === null) return true;  // In URL with no value = true
@@ -47,46 +35,24 @@ function parseHasAdvantage(value) {
     return false;  // Invalid value = false
 }
 
-// Parse pfishvalue URL parameter to positive number or null
-function parseFishValue(value) {
-    if (value === undefined || value === null || value === '') return null;
-    var num = parseFloat(value);
-    if (isNaN(num) || num <= 0) return null;
-    return num;
+// Get the fish value for a fisher, accounting for advantage.
+function getEffectiveFishValue(fisher) {
+    var base = ocean.fishValue;
+    if (ocean.fisherAdvantageEnabled && fisher.params && fisher.params.pHasAdvantage) {
+        base += (ocean.fishValuePayGap || 0);
+    }
+    return base;
 }
 
-// Get the fish value used by the "other class" of fisher.
-// Compares effective fish values: pFishValue if set, otherwise ocean.fishValue.
-// Returns default before the game is in progress; caches once computed.
+// Get the fish value used by the "other class" of fisher (with or without advantage).
 function getOtherClassFishValue(currentFisher) {
-    if (st.status === 'loading') {
+    if (!ocean.fisherAdvantageEnabled) return ocean.fishValue;
+    var currentHasAdvantage = currentFisher.params && currentFisher.params.pHasAdvantage;
+    if (currentHasAdvantage) {
         return ocean.fishValue;
+    } else {
+        return ocean.fishValue + (ocean.fishValuePayGap || 0);
     }
-
-    if (currentFisher.params && currentFisher.params.otherClassFishValue != null) {
-        return currentFisher.params.otherClassFishValue;
-    }
-
-    var currentFishValue = (currentFisher.params && currentFisher.params.pFishValue != null)
-        ? currentFisher.params.pFishValue
-        : ocean.fishValue;
-    var result = ocean.fishValue; // default fallback
-
-    for (var i in st.fishers) {
-        var f = st.fishers[i];
-        var fFishValue = (f.params && f.params.pFishValue != null)
-            ? f.params.pFishValue
-            : ocean.fishValue;
-        if (fFishValue !== currentFishValue) {
-            result = fFishValue;
-            break;
-        }
-    }
-
-    if (!currentFisher.params) currentFisher.params = {};
-    currentFisher.params.otherClassFishValue = result;
-
-    return result;
 }
 
 // Compute profit gap: actual money minus hypothetical money with other class's fish value
@@ -386,9 +352,13 @@ function clearWarnings() {
 function updateCosts() {
     if (!ocean) return;
 
-    if (ocean.fishValue !== 0) {
+    var displayFishValue = ocean.fishValue;
+    if (ocean.fisherAdvantageEnabled && pParams.pHasAdvantage) {
+        displayFishValue += (ocean.fishValuePayGap || 0);
+    }
+    if (displayFishValue !== 0) {
         $('#revenue-fish').text(msgs.costs_fishValue + ' ' +
-            ocean.currencySymbol + ocean.fishValue).show();
+            ocean.currencySymbol + displayFishValue).show();
     } else {
         $('#revenue-fish').hide();
     }
@@ -428,7 +398,12 @@ function updateFishers() {
         var fisher = st.fishers[i];
         var fisherClass = fisher.params && fisher.params.fClass;
         var classEmoji = fisherClass && ocean.fisherClassEmojis && ocean.fisherClassEmojis[fisherClass] ? ocean.fisherClassEmojis[fisherClass] : '';
-        var advantageIcon = unicodeToChar(fisher.params && fisher.params.pAdvantageIcon);
+        var advantageIcon = '';
+        if (ocean.fisherAdvantageEnabled && fisher.params) {
+            advantageIcon = fisher.params.pHasAdvantage
+                ? (ocean.advantageEmoji || '')
+                : (ocean.disadvantageEmoji || '');
+        }
         var icons = [classEmoji, advantageIcon].filter(Boolean).join(' ');
 
         if (fisher.name === pId) {
@@ -593,9 +568,17 @@ function hideTutorial() {
     if (!ocean.enableTutorial) $('#tutorial').hide();
 }
 
+function validateFisherAdvantage() {
+    if (!ocean.fisherAdvantageEnabled) {
+        pParams.pHasAdvantage = false;
+        return;
+    }
+}
+
 function setupOcean(o) {
     ocean = o;
     validateFisherClass();
+    validateFisherAdvantage();
     displayRules();
     loadLabels();
     updateCosts();

@@ -390,29 +390,6 @@ describe('Fish (jsdom)', () => {
       });
     });
 
-    describe('unicodeToChar()', () => {
-      it('should convert hex code point to unicode character', () => {
-        window.unicodeToChar('2B50').should.equal('⭐');
-        window.unicodeToChar('1F600').should.equal('😀');
-      });
-
-      it('should handle U+ prefix', () => {
-        window.unicodeToChar('U+2B50').should.equal('⭐');
-        window.unicodeToChar('u+1F600').should.equal('😀');
-      });
-
-      it('should return empty string for null or undefined', () => {
-        window.unicodeToChar(null).should.equal('');
-        window.unicodeToChar(undefined).should.equal('');
-        window.unicodeToChar('').should.equal('');
-      });
-
-      it('should return empty string for invalid code point', () => {
-        window.unicodeToChar('invalid').should.equal('');
-        window.unicodeToChar('ZZZZ').should.equal('');
-      });
-    });
-
     describe('substituteQueryParameter()', () => {
       it('should substitute query parameter in URL', () => {
         window.queryParams = { mwid: '123', pid: '456' };

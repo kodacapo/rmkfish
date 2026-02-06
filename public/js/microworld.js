@@ -56,6 +56,9 @@ function readyTooltips() {
     $('#fisher-class-counts-tooltip').tooltip();
     $('#fisher-class-emojis-tooltip').tooltip();
     $('#fisher-advantage-tooltip').tooltip();
+    $('#fish-value-pay-gap-tooltip').tooltip();
+    $('#advantage-emoji-tooltip').tooltip();
+    $('#disadvantage-emoji-tooltip').tooltip();
 }
 
 function changeBotRowVisibility() {
@@ -374,12 +377,15 @@ function prepareMicroworldObject() {
     mw.fisherClassCounts = parseFisherClassCounts($('#fisher-class-counts').val(), classNames);
     mw.fisherClassEmojis = parseFisherClassEmojis($('#fisher-class-emojis').val(), classNames);
     mw.fisherAdvantageEnabled = $('#enable-fisher-advantage').prop('checked');
+    mw.fishValuePayGap = $('#fish-value-pay-gap').val();
+    mw.advantageEmoji = $('#advantage-emoji').val();
+    mw.disadvantageEmoji = $('#disadvantage-emoji').val();
     mw.redirectURL = $('#redirect-url').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
     mw.profitSeasonDisabled = $('#disable-profit-season').prop('checked');
     mw.profitTotalDisabled = $('#disable-profit-total').prop('checked');
-    mw.profitGapDisabled = $('#disable-profit-gap').prop('checked');
+    mw.profitGapDisabled = !$('#enable-profit-gap').prop('checked');
     mw.costCast = $('#cost-cast').val();
     mw.costDeparture = $('#cost-departure').val();
     mw.costSecond = $('#cost-second').val();
@@ -534,12 +540,16 @@ function populatePage() {
     $('#fisher-class-emojis').val(fisherClassEmojisToString(mw.params.fisherClassEmojis, classNames));
     maybeDisableFisherClassControls(mw.params.fisherClassesEnabled || false);
     $('#enable-fisher-advantage').prop('checked', mw.params.fisherAdvantageEnabled || false);
+    $('#fish-value-pay-gap').val(mw.params.fishValuePayGap || 0);
+    $('#advantage-emoji').val(mw.params.advantageEmoji || '↑');
+    $('#disadvantage-emoji').val(mw.params.disadvantageEmoji || '↓');
+    maybeDisableFisherAdvantageControls(mw.params.fisherAdvantageEnabled || false);
     $('#redirect-url').val(mw.params.redirectURL);
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     var legacyDisabled = mw.params.profitDisplayDisabled || false;
     $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled || legacyDisabled);
     $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled || legacyDisabled);
-    $('#disable-profit-gap').prop('checked', mw.params.profitGapDisabled || legacyDisabled);
+    $('#enable-profit-gap').prop('checked', !(mw.params.profitGapDisabled || legacyDisabled));
     maybeDisableProfitControls(
         (mw.params.profitSeasonDisabled || legacyDisabled) &&
         (mw.params.profitTotalDisabled || legacyDisabled) &&
@@ -589,16 +599,19 @@ function populatePage() {
 }
 
 function maybeDisableCatchIntentControls(enabledflg) {
-    $('#catch-intent-seasons').prop("disabled", !enabledflg);
-    $('#catch-intent-dialog-duration').prop("disabled", !enabledflg);
-    $('#catch-intent-prompt1').prop("disabled", !enabledflg);
-    $('#catch-intent-prompt2').prop("disabled", !enabledflg);
+    if (enabledflg) {
+        $('.catch-intention-option').removeClass('hide');
+    } else {
+        $('.catch-intention-option').addClass('hide');
+    }
 }
 
 function maybeDisableFisherClassControls(enabledflg) {
-    $('#fisher-class-names').prop("disabled", !enabledflg);
-    $('#fisher-class-counts').prop("disabled", !enabledflg);
-    $('#fisher-class-emojis').prop("disabled", !enabledflg);
+    if (enabledflg) {
+        $('.fisher-class-option').removeClass('hide');
+    } else {
+        $('.fisher-class-option').addClass('hide');
+    }
 }
 
 // Parse a comma-separated string into an array of trimmed non-empty strings
@@ -685,6 +698,14 @@ function fisherClassEmojisToString(emojis, classNames) {
         return classNames.map(function(name) { return emojis[name] || ''; }).join(', ');
     }
     return Object.values(emojis).join(', ');
+}
+
+function maybeDisableFisherAdvantageControls(enabledflg) {
+    if (enabledflg) {
+        $('.fisher-advantage-option').removeClass('hide');
+    } else {
+        $('.fisher-advantage-option').addClass('hide');
+    }
 }
 
 function maybeDisableProfitControls(disabledflg) {
@@ -814,16 +835,20 @@ function prepareControls() {
         var enabledflg = $(this).is(':checked');
         maybeDisableFisherClassControls(enabledflg);
     });
+    $('#enable-fisher-advantage').on("click", function () {
+        var enabledflg = $(this).is(':checked');
+        maybeDisableFisherAdvantageControls(enabledflg);
+    });
     function onProfitCheckboxChange() {
         var allDisabled =
             $('#disable-profit-season').is(':checked') &&
             $('#disable-profit-total').is(':checked') &&
-            $('#disable-profit-gap').is(':checked');
+            !$('#enable-profit-gap').is(':checked');
         maybeDisableProfitControls(allDisabled);
     }
     $('#disable-profit-season').on("click", onProfitCheckboxChange);
     $('#disable-profit-total').on("click", onProfitCheckboxChange);
-    $('#disable-profit-gap').on("click", onProfitCheckboxChange);
+    $('#enable-profit-gap').on("click", onProfitCheckboxChange);
     if (mode === 'new') {
         $('#microworld-header').text(pageHeader[mode]);
         $('#microworld-panel-title').text(panelTitle[mode]);
