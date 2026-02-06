@@ -9,7 +9,7 @@ var pId = $.url().param('pid');
 var pParams = {
     pDisplay: $.url().param('pdisplay'),
     fClass: $.url().param('fclass'),
-    pHasAdvantage: parseHasAdvantage($.url().param('fhasadvantage'))
+    fHasAdvantage: parseHasAdvantage($.url().param('fhasadvantage'))
 };
 var ocean;
 var prePauseButtonsState = {};
@@ -38,7 +38,7 @@ function parseHasAdvantage(value) {
 // Get the fish value for a fisher, accounting for advantage.
 function getEffectiveFishValue(fisher) {
     var base = ocean.fishValue;
-    if (ocean.fisherAdvantageEnabled && fisher.params && fisher.params.pHasAdvantage) {
+    if (ocean.fisherAdvantageEnabled && fisher.params && fisher.params.fHasAdvantage) {
         base += (ocean.fishValuePayGap || 0);
     }
     return base;
@@ -47,7 +47,7 @@ function getEffectiveFishValue(fisher) {
 // Get the fish value used by the "other class" of fisher (with or without advantage).
 function getOtherClassFishValue(currentFisher) {
     if (!ocean.fisherAdvantageEnabled) return ocean.fishValue;
-    var currentHasAdvantage = currentFisher.params && currentFisher.params.pHasAdvantage;
+    var currentHasAdvantage = currentFisher.params && currentFisher.params.fHasAdvantage;
     if (currentHasAdvantage) {
         return ocean.fishValue;
     } else {
@@ -352,7 +352,7 @@ function updateCosts() {
     if (!ocean) return;
 
     var displayFishValue = ocean.fishValue;
-    if (ocean.fisherAdvantageEnabled && pParams.pHasAdvantage) {
+    if (ocean.fisherAdvantageEnabled && pParams.fHasAdvantage) {
         displayFishValue += (ocean.fishValuePayGap || 0);
     }
     if (displayFishValue !== 0) {
@@ -399,7 +399,7 @@ function updateFishers() {
         var classEmoji = fisherClass && ocean.fisherClassEmojis && ocean.fisherClassEmojis[fisherClass] ? ocean.fisherClassEmojis[fisherClass] : '';
         var advantageIcon = '';
         if (ocean.fisherAdvantageEnabled && fisher.params) {
-            advantageIcon = fisher.params.pHasAdvantage
+            advantageIcon = fisher.params.fHasAdvantage
                 ? (ocean.advantageEmoji || '')
                 : (ocean.disadvantageEmoji || '');
         }
@@ -569,7 +569,7 @@ function hideTutorial() {
 
 function validateFisherAdvantage() {
     if (!ocean.fisherAdvantageEnabled) {
-        pParams.pHasAdvantage = false;
+        pParams.fHasAdvantage = false;
         return;
     }
 }

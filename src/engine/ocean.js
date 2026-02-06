@@ -42,6 +42,13 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   // Track how many fishers of each class are still needed
   if (mw.params.fisherClassesEnabled && mw.params.fisherClassCounts) {
     this.classesNeeded = Object.assign({}, mw.params.fisherClassCounts);
+    // Subtract bots that already have classes assigned
+    for (var bi = 0; bi < this.fishers.length; bi++) {
+      var botClass = this.fishers[bi].params.fClass;
+      if (botClass && this.classesNeeded[botClass] > 0) {
+        this.classesNeeded[botClass]--;
+      }
+    }
   } else {
     this.classesNeeded = null;
   }

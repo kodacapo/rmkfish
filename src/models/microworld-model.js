@@ -78,6 +78,8 @@ var microworldSchema = new Schema({
         predictability: String,
         probAction: Number,
         attemptsSecond: Number,
+        fClass: String,
+        fHasAdvantage: Boolean,
       },
     ],
     oceanOrder: String,

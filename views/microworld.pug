@@ -409,72 +409,96 @@ html
                   input.to-disable#ocean_order_desc_money_overall(type='radio', name='ocean_order', value='ocean_order_desc_money_overall')
         .col-md-9
           h3 Bot behaviour
-          .row
-            label.form-label.col-md-2 Name
-            label.form-label.col-md-2
-              a#greed-tooltip(title='Between 0 and 1. The higher the value, the more greedily this bot will behave. A value of 0.5 takes as many fish as possible while still behaving sustainably.', data-toggle='tooltip', data-placement='top') Greed
-            label.form-label.col-md-2
-              a#trend-tooltip(title='A bot with a stable trend will behave the same way at the beginning and at the end of the simulation. A bot with an increasing trend will be more greedy as time goes by (while still being as greedy as specified in its Greed parameter, on average), and one with a decreasing trend will be less greedy in later seasons.', data-toggle='tooltip', data-placement='top') Trend
-            label.form-label.col-md-2
-              a#greed-spread-tooltip(title='For bots with regular predictability with increasing or decreasing trends, the greed spread is the difference between the lowest season greed and highest season greed centered around the average greed. For example: a greed of 0.5 and a greed spread of 0.2 will result in a low season greed of 0.4 and high season greed of 0.6 centered around an average greed of 0.5. Must be between 0 and 2 * Greed.', data-toggle='tooltip', data-placement='top') Greed Spread
-            label.form-label.col-md-2
-              a#predictability-tooltip(title='Erratic bots appear more lifelike, but they may behave non-optimally.', data-toggle='tooltip', data-placement='top') Predictability
-            label.form-label.col-md-2
-              a#prob-action-tooltip(title='If bots behave erratically, this parameter (between 0 and 1) controls how frequently they act. The lower the value, the more they will appear to hesitate.', data-toggle='tooltip', data-placement='top') Probability of action
-            label.form-label.col-md-2
-              a#attempts-second-tooltip(title='If bots behave erratically, this controls the maximum number of fish they will try to catch in any second, provided they are doing something that second. If bots behave regularly, this controls how many fish they will try to catch every second (until they fulfill their quota).', data-toggle='tooltip', data-placement='top') Maximum casts per second
-          each botName, i in {1: 'Dolphin', 2: 'Shark', 3: 'Octopus', 4: 'Whale', 5: 'Seagull', 6: 'Penguin', 7: 'Walrus', 8: 'Stingray', 9: 'Orca', 10: 'Seal', 11: 'Polar Bear'}
-            div(id="bot-" + i + "-row" class=(i < 4 ? "row bot-row" : "row bot-row collapse"))
-              .col-md-2
-                input.form-control.to-disable(id="bot-" + i + "-name", type='text', value=botName)
-              .col-md-2
-                input.form-control.to-disable(id="bot-" + i + "-greed", type='number', min='0', step='0.01', value='0.50')
-              .col-md-2
-                select.form-control.to-disable(id="bot-" + i + "-trend")
-                  option(value='stable') Stable
-                  option(value='decrease') Decrease
-                  option(value='increase') Increase
-              .col-md-2
-                input.form-control.to-disable(id="bot-" + i + "-greed-spread", type='number', min='0', max='2.0', step='0.01', value='0.20')
-              .col-md-2
-                select.form-control.to-disable(id="bot-" + i + "-predictability")
-                  option(value='erratic') Erratic
-                  option(value='regular') Regular
-              .col-md-2
-                input.form-control.to-disable(id="bot-" + i + "-prob-action", type='number', min='0', step='0.01', value='0.80')
-              .col-md-2
-                input.form-control.to-disable(id="bot-" + i + "-attempts-second", type='number', min='1', step='1', value='3')
-          .row
-            .col-md-2.col-md-offset-2
-              .form-group
-                label.form-label.checkbox
-                  | Uniform
-                  input#uniform-greed.to-disable(type='checkbox', checked='')
-            .col-md-2
-              .form-group
-                label.form-label.checkbox
-                  | Uniform
-                  input#uniform-trend.to-disable(type='checkbox', checked='')
-            .col-md-2
-              .form-group
-                label.form-label.checkbox
-                  | Uniform
-                  input#uniform-greed-spread.to-disable(type='checkbox', checked='')
-            .col-md-2
-              .form-group
-                label.form-label.checkbox
-                  | Uniform
-                  input#uniform-predictability.to-disable(type='checkbox', checked='')
-            .col-md-2
-              .form-group
-                label.form-label.checkbox
-                  | Uniform
-                  input#uniform-prob-action.to-disable(type='checkbox', checked='')
-            .col-md-2
-              .form-group
-                label.form-label.checkbox
-                  | Uniform
-                  input#uniform-attempts-second.to-disable(type='checkbox', checked='')
+          - var bots = {1: 'Dolphin', 2: 'Shark', 3: 'Octopus', 4: 'Whale', 5: 'Seagull', 6: 'Penguin', 7: 'Walrus', 8: 'Stingray', 9: 'Orca', 10: 'Seal', 11: 'Polar Bear'}
+          .table-responsive
+            table#bot-table.table.table-bordered
+              thead
+                tr
+                  th Setting
+                  th Name:
+                  each botName, i in bots
+                    th(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      input.form-control.to-disable(id="bot-" + i + "-name", type='text', value=botName)
+              tbody
+                tr.fisher-class-option.hide
+                  td Class
+                  td
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      select.form-control.to-disable(id="bot-" + i + "-class")
+                tr.fisher-advantage-option.hide
+                  td Advantage
+                  td
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      select.form-control.to-disable(id="bot-" + i + "-advantage")
+                        option(value='no') No
+                        option(value='yes') Yes
+                tr
+                  td
+                    a#greed-tooltip(title='Between 0 and 1. The higher the value, the more greedily this bot will behave. A value of 0.5 takes as many fish as possible while still behaving sustainably.', data-toggle='tooltip', data-placement='top') Greed
+                  td
+                    label.form-label.checkbox
+                      input#uniform-greed.to-disable(type='checkbox', checked='')
+                      |  Uniform
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      input.form-control.to-disable(id="bot-" + i + "-greed", type='number', min='0', step='0.01', value='0.50')
+                tr
+                  td
+                    a#trend-tooltip(title='A bot with a stable trend will behave the same way at the beginning and at the end of the simulation. A bot with an increasing trend will be more greedy as time goes by (while still being as greedy as specified in its Greed parameter, on average), and one with a decreasing trend will be less greedy in later seasons.', data-toggle='tooltip', data-placement='top') Trend
+                  td
+                    label.form-label.checkbox
+                      input#uniform-trend.to-disable(type='checkbox', checked='')
+                      |  Uniform
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      select.form-control.to-disable(id="bot-" + i + "-trend")
+                        option(value='stable') Stable
+                        option(value='decrease') Decrease
+                        option(value='increase') Increase
+                tr
+                  td
+                    a#greed-spread-tooltip(title='For bots with regular predictability with increasing or decreasing trends, the greed spread is the difference between the lowest season greed and highest season greed centered around the average greed. For example: a greed of 0.5 and a greed spread of 0.2 will result in a low season greed of 0.4 and high season greed of 0.6 centered around an average greed of 0.5. Must be between 0 and 2 * Greed.', data-toggle='tooltip', data-placement='top') Greed Spread
+                  td
+                    label.form-label.checkbox
+                      input#uniform-greed-spread.to-disable(type='checkbox', checked='')
+                      |  Uniform
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      input.form-control.to-disable(id="bot-" + i + "-greed-spread", type='number', min='0', max='2.0', step='0.01', value='0.20')
+                tr
+                  td
+                    a#predictability-tooltip(title='Erratic bots appear more lifelike, but they may behave non-optimally.', data-toggle='tooltip', data-placement='top') Predictability
+                  td
+                    label.form-label.checkbox
+                      input#uniform-predictability.to-disable(type='checkbox', checked='')
+                      |  Uniform
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      select.form-control.to-disable(id="bot-" + i + "-predictability")
+                        option(value='erratic') Erratic
+                        option(value='regular') Regular
+                tr
+                  td
+                    a#prob-action-tooltip(title='If bots behave erratically, this parameter (between 0 and 1) controls how frequently they act. The lower the value, the more they will appear to hesitate.', data-toggle='tooltip', data-placement='top') Probability of action
+                  td
+                    label.form-label.checkbox
+                      input#uniform-prob-action.to-disable(type='checkbox', checked='')
+                      |  Uniform
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      input.form-control.to-disable(id="bot-" + i + "-prob-action", type='number', min='0', step='0.01', value='0.80')
+                tr
+                  td
+                    a#attempts-second-tooltip(title='If bots behave erratically, this controls the maximum number of fish they will try to catch in any second, provided they are doing something that second. If bots behave regularly, this controls how many fish they will try to catch every second (until they fulfill their quota).', data-toggle='tooltip', data-placement='top') Maximum casts per second
+                  td
+                    label.form-label.checkbox
+                      input#uniform-attempts-second.to-disable(type='checkbox', checked='')
+                      |  Uniform
+                  each botName, i in bots
+                    td(class="bot-" + i + "-col" + (i < 4 ? "" : " hide"))
+                      input.form-control.to-disable(id="bot-" + i + "-attempts-second", type='number', min='1', step='1', value='3')
       .panel.panel-info
         #microworld-panel-2-title.panel-heading
           | Panel Title

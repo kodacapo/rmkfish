@@ -182,7 +182,7 @@ exports.Fisher = function Fisher(name, type, params, o) {
     if (this.ocean.isSuccessfulCastAttempt()) {
       var fishValue = this.ocean.microworld.params.fishValue;
       if (this.ocean.microworld.params.fisherAdvantageEnabled &&
-          this.params && this.params.pHasAdvantage) {
+          this.params && this.params.fHasAdvantage) {
         fishValue += (this.ocean.microworld.params.fishValuePayGap || 0);
       }
       this.changeMoney(fishValue);

@@ -72,11 +72,11 @@ function changeBotRowVisibility() {
     if (numHumans > numFishers) numHumans = numFishers;
 
     for (var i = 1; i <= numFishers - numHumans; i++) {
-        $('#bot-' + i + '-row').removeClass('collapse');
+        $('.bot-' + i + '-col').removeClass('hide');
     }
 
     for (var i = numFishers - numHumans + 1; i <= maxBot; i++) {
-        $('#bot-' + i + '-row').addClass('collapse');
+        $('.bot-' + i + '-col').addClass('hide');
     }
 }
 
@@ -154,6 +154,22 @@ function changeAttemptsSecondUniformity() {
     } else {
         for (var i = 2; i <= maxBot; i++) {
             $('#bot-' + i + '-attempts-second').attr('disabled', false);
+        }
+    }
+}
+
+function updateBotClassDropdowns() {
+    var classNames = parseFisherClassNames($('#fisher-class-names').val());
+    for (var i = 1; i <= maxBot; i++) {
+        var $select = $('#bot-' + i + '-class');
+        var currentVal = $select.val();
+        $select.empty();
+        for (var j = 0; j < classNames.length; j++) {
+            $select.append($('<option>').val(classNames[j]).text(classNames[j]));
+        }
+        // Restore previous value if it still exists
+        if (classNames.indexOf(currentVal) >= 0) {
+            $select.val(currentVal);
         }
     }
 }
@@ -300,6 +316,27 @@ function validate() {
         if (emojisList.length !== classNames.length) {
             errors.push('The number of emojis (' + emojisList.length + ') must match the number of class names (' + classNames.length + ').');
         }
+
+        // Validate bot class assignments don't exceed class counts
+        if (countsValid && countsList.length === classNames.length) {
+            var classCounts = {};
+            for (var i = 0; i < classNames.length; i++) {
+                classCounts[classNames[i]] = parseInt(countsList[i], 10);
+            }
+            var botClassTally = {};
+            var numBots = numFishers - numHumans;
+            for (var i = 1; i <= numBots; i++) {
+                var botClass = $('#bot-' + i + '-class').val();
+                if (botClass) {
+                    botClassTally[botClass] = (botClassTally[botClass] || 0) + 1;
+                }
+            }
+            for (var cls in botClassTally) {
+                if (botClassTally[cls] > (classCounts[cls] || 0)) {
+                    errors.push('Too many bots assigned to class "' + cls + '": ' + botClassTally[cls] + ' bots but only ' + classCounts[cls] + ' total slots for that class.');
+                }
+            }
+        }
     }
 
     if (parseInt($('#catch-intent-dialog-duration').val()) < 0) {
@@ -414,7 +451,9 @@ function prepareMicroworldObject() {
             trend: $(botPrefix + 'trend').val(),
             predictability: $(botPrefix + 'predictability').val(),
             probAction: $(botPrefix + 'prob-action').val(),
-            attemptsSecond: $(botPrefix + 'attempts-second').val()
+            attemptsSecond: $(botPrefix + 'attempts-second').val(),
+            fClass: $(botPrefix + 'class').val(),
+            fHasAdvantage: $(botPrefix + 'advantage').val() === 'yes'
         });
     }
     mw.oceanOrder = $("input[name=ocean_order]:checked").val();
@@ -581,6 +620,8 @@ function populatePage() {
     $('#uniform-prob-action').prop('checked', false);
     $('#uniform-attempts-second').prop('checked', false);
 
+    updateBotClassDropdowns();
+
     for (var i = 1; i <= mw.params.numFishers - mw.params.numHumans; i++) {
         var botPrefix = '#bot-' + i + '-';
         $(botPrefix + 'name').val(mw.params.bots[i - 1].name);
@@ -590,6 +631,8 @@ function populatePage() {
         $(botPrefix + 'predictability').val(mw.params.bots[i - 1].predictability);
         $(botPrefix + 'prob-action').val(mw.params.bots[i - 1].probAction);
         $(botPrefix + 'attempts-second').val(mw.params.bots[i - 1].attemptsSecond);
+        $(botPrefix + 'class').val(mw.params.bots[i - 1].fClass);
+        $(botPrefix + 'advantage').val(mw.params.bots[i - 1].fHasAdvantage ? 'yes' : 'no');
     }
 
     $("#" + mw.params.oceanOrder).prop('checked', true);
@@ -811,6 +854,7 @@ function setOnPageChanges() {
     $('#bot-1-prob-action').on('input', changeProbActionUniformity);
     $('#uniform-attempts-second').on('change', changeAttemptsSecondUniformity);
     $('#bot-1-attempts-second').on('input', changeAttemptsSecondUniformity);
+    $('#fisher-class-names').on('change blur', updateBotClassDropdowns);
 }
 
 function loadTexts() {
@@ -833,6 +877,7 @@ function prepareControls() {
         //Dis- or enable the fisher class controls depending on whether the checkbox is checked.
         var enabledflg = $(this).is(':checked');
         maybeDisableFisherClassControls(enabledflg);
+        if (enabledflg) updateBotClassDropdowns();
     });
     $('#enable-fisher-advantage').on("click", function () {
         var enabledflg = $(this).is(':checked');
@@ -856,6 +901,7 @@ function prepareControls() {
         $('#create').removeClass('collapse');
         $('#create-2').removeClass('collapse');
         $("#ocean_order_user_top").prop("checked", true);
+        updateBotClassDropdowns();
         uniformityChanges();
     } else if (mode === 'test') {
         $('title').text('Fish - Microworld in Test');
