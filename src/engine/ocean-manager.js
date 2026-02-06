@@ -41,15 +41,31 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
     delete this.trackedSimulations[oId];
   };
 
+  // Resolve incoming fisher's class using a microworld's params
+  function resolveClass(mwParams, pParams) {
+    if (!mwParams.fisherClassesEnabled) return null;
+    var validClasses = mwParams.fisherClasses || [];
+    if (validClasses.length === 0) return null;
+    var fClass = pParams && pParams.fClass;
+    if (!fClass) return validClasses[0];
+    var inputLower = fClass.toLowerCase();
+    var matched = validClasses.filter(function(c) { return c.toLowerCase() === inputLower; });
+    return matched.length > 0 ? matched[0] : validClasses[0];
+  }
+
   this.assignFisherToOcean = function (mwId, pId, pParams, cb) {
     var oKeys = Object.keys(this.oceans);
     var oId = null;
 
     for (var i in oKeys) {
       oId = oKeys[i];
-      if (this.oceans[oId].microworld._id.toString() === mwId && this.oceans[oId].hasRoom()) {
-        this.oceans[oId].addFisher(pId, pParams);
-        return cb(oId);
+      var ocean = this.oceans[oId];
+      if (ocean.microworld._id.toString() === mwId && ocean.hasRoom()) {
+        var resolvedClass = resolveClass(ocean.microworld.params, pParams);
+        if (resolvedClass === null || ocean.needsClass(resolvedClass)) {
+          ocean.addFisher(pId, pParams);
+          return cb(oId);
+        }
       }
     }
 

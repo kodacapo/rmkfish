@@ -39,12 +39,24 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   }
   this.oceanOrder = 'ocean_order_user_top';
 
+  // Track how many fishers of each class are still needed
+  if (mw.params.fisherClassesEnabled && mw.params.fisherClassCounts) {
+    this.classesNeeded = Object.assign({}, mw.params.fisherClassCounts);
+  } else {
+    this.classesNeeded = null;
+  }
+
   /////////////////////
   // Membership methods
   /////////////////////
 
   this.hasRoom = function() {
     return this.isInSetup() && this.fishers.length < this.microworld.params.numFishers;
+  };
+
+  this.needsClass = function(fClass) {
+    if (!this.classesNeeded) return true;
+    return (this.classesNeeded[fClass] || 0) > 0;
   };
 
   this.allHumansIn = function() {
@@ -77,6 +89,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       }
     }
     this.fishers.push(new Fisher(pId, 'human', validatedParams, this));
+    if (this.classesNeeded && validatedParams.fClass && this.classesNeeded[validatedParams.fClass] > 0) {
+      this.classesNeeded[validatedParams.fClass]--;
+    }
     this.log.info('Human fisher ' + pId + ' joined.');
     return;
   };
