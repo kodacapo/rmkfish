@@ -36,7 +36,6 @@ describe('Engine - Ocean', function() {
         catchIntentionsEnabled: false,
         catchIntentDialogDuration: 17,
         catchIntentSeasons: [2,4,6,8],
-        profitDisplayDisabled: false,
         profitSeasonDisabled: false,
         profitTotalDisabled: false,
         profitGapDisabled: true,
@@ -569,7 +568,6 @@ describe('Engine - Ocean', function() {
 
 describe('profit display accessors', function() {
   afterEach(function() {
-    o.microworld.params.profitDisplayDisabled = false;
     o.microworld.params.profitSeasonDisabled = false;
     o.microworld.params.profitTotalDisabled = false;
     o.microworld.params.profitGapDisabled = true;
@@ -602,18 +600,16 @@ describe('profit display accessors', function() {
     return done();
   });
 
-  it('profitGapIsDisabled returns false when profitGapDisabled is false', function(done) {
+  it('profitGapIsDisabled returns true when fisherAdvantageEnabled is false even if profitGapDisabled is false', function(done) {
     o.microworld.params.profitGapDisabled = false;
-    o.profitGapIsDisabled().should.equal(false);
+    o.profitGapIsDisabled().should.equal(true);
     return done();
   });
 
-  it('backward compat: all return true when legacy profitDisplayDisabled is true', function(done) {
-    o.microworld.params.profitDisplayDisabled = true;
-    o.profitSeasonIsDisabled().should.equal(true);
-    o.profitTotalIsDisabled().should.equal(true);
-    o.profitGapIsDisabled().should.equal(true);
-    o.profitDisplayIsDisabled().should.equal(true);
+  it('profitGapIsDisabled returns false when fisherAdvantageEnabled is true and profitGapDisabled is false', function(done) {
+    o.microworld.params.profitGapDisabled = false;
+    o.microworld.params.fisherAdvantageEnabled = true;
+    o.profitGapIsDisabled().should.equal(false);
     return done();
   });
 

@@ -48,7 +48,6 @@ var microworldSchema = new Schema({
     redirectURL: String,
     enableRespawnWarning: Boolean,
     fishValue: Number,
-    profitDisplayDisabled: Boolean,
     profitSeasonDisabled: Boolean,
     profitTotalDisabled: Boolean,
     profitGapDisabled: { type: Boolean, default: true },

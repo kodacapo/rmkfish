@@ -118,7 +118,6 @@ describe('Engine - Socket Listener Cleanup (Issue #1)', function() {
         catchIntentionsEnabled: false,
         catchIntentDialogDuration: 17,
         catchIntentSeasons: [],
-        profitDisplayDisabled: false,
         profitSeasonDisabled: false,
         profitTotalDisabled: false,
         profitGapDisabled: true,

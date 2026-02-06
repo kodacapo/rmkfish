@@ -679,7 +679,6 @@ describe('Fish (jsdom)', () => {
         preparationText: 'Welcome to the fish game!\nGood luck!',
         enablePause: true,
         enableTutorial: true,
-        profitDisplayDisabled: false,
         profitSeasonDisabled: false,
         profitTotalDisabled: false,
         profitGapDisabled: false
@@ -1118,7 +1117,6 @@ describe('Fish (jsdom)', () => {
       });
 
       window.ocean = {
-        profitDisplayDisabled: false,
         profitSeasonDisabled: false,
         profitTotalDisabled: false,
         profitGapDisabled: false,
@@ -1133,7 +1131,6 @@ describe('Fish (jsdom)', () => {
     describe('setupOcean()', () => {
       it('should call all ocean setup functions', () => {
         const testOcean = {
-          profitDisplayDisabled: false,
           profitSeasonDisabled: false,
           profitTotalDisabled: false,
           profitGapDisabled: false,
@@ -1158,30 +1155,12 @@ describe('Fish (jsdom)', () => {
         catchIntentTh.style.display.should.equal('none');
       });
 
-      it('should hide profit columns when legacy profitDisplayDisabled is true', () => {
-        const testOcean = {
-          profitDisplayDisabled: true,
-          enablePause: true,
-          enableTutorial: true,
-          preparationText: 'Welcome!',
-          fishValue: 1.0,
-          costDeparture: 0,
-          costCast: 0,
-          costSecond: 0
-        };
-
-        window.setupOcean(testOcean);
-
-        document.querySelector('#profit-season-header').style.display.should.equal('none');
-        document.querySelector('#profit-total-header').style.display.should.equal('none');
-        document.querySelector('#profit-gap-header').style.display.should.equal('none');
-      });
-
       it('should hide only season column when profitSeasonDisabled is true', () => {
         const testOcean = {
           profitSeasonDisabled: true,
           profitTotalDisabled: false,
           profitGapDisabled: false,
+          fisherAdvantageEnabled: true,
           enablePause: true,
           enableTutorial: true,
           preparationText: 'Welcome!',
@@ -1484,8 +1463,7 @@ describe('Fish (jsdom)', () => {
           showFisherNames: true,
           showFisherStatus: true,
           showNumCaught: true,
-          showFisherBalance: true,
-          profitDisplayDisabled: false
+          showFisherBalance: true
         };
 
         window.st = {
@@ -1535,7 +1513,6 @@ describe('Fish (jsdom)', () => {
           showFisherStatus: true,
           showNumCaught: true,
           showFisherBalance: true,
-          profitDisplayDisabled: false,
           fisherClassesEnabled: true,
           fisherClasses: ['Class A', 'Class B'],
           fisherClassEmojis: { 'Class A': '⭐', 'Class B': '😀' }
@@ -1585,8 +1562,7 @@ describe('Fish (jsdom)', () => {
           showFisherNames: false,
           showFisherStatus: true,
           showNumCaught: true,
-          showFisherBalance: true,
-          profitDisplayDisabled: false
+          showFisherBalance: true
         };
 
         window.st = {
@@ -1623,8 +1599,7 @@ describe('Fish (jsdom)', () => {
           showFisherNames: true,
           showFisherStatus: true,
           showNumCaught: true,
-          showFisherBalance: true,
-          profitDisplayDisabled: false
+          showFisherBalance: true
         };
 
         window.st = {

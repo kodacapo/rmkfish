@@ -188,15 +188,14 @@ function submitMyCatchIntent() {
 ////////////////////////////////////////
 
 // Helper functions to check per-column profit display settings.
-// Each falls back to the legacy profitDisplayDisabled flag for backward compatibility.
 function isProfitSeasonDisabled() {
-    return ocean.profitSeasonDisabled || ocean.profitDisplayDisabled;
+    return ocean.profitSeasonDisabled;
 }
 function isProfitTotalDisabled() {
-    return ocean.profitTotalDisabled || ocean.profitDisplayDisabled;
+    return ocean.profitTotalDisabled;
 }
 function isProfitGapDisabled() {
-    return ocean.profitGapDisabled || ocean.profitDisplayDisabled;
+    return !ocean.fisherAdvantageEnabled || ocean.profitGapDisabled;
 }
 function areAllProfitColumnsDisabled() {
     return isProfitSeasonDisabled() && isProfitTotalDisabled() && isProfitGapDisabled();

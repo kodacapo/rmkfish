@@ -86,7 +86,7 @@ describe('Engine - OceanManager', function() {
           catchIntentionsEnabled: false,
           catchIntentDialogDuration: 17,
           catchIntentSeasons: [],
-          profitDisplayDisabled: false,
+
           profitSeasonDisabled: false,
           profitTotalDisabled: false,
           profitGapDisabled: true,
@@ -157,7 +157,7 @@ describe('Engine - OceanManager', function() {
           catchIntentionsEnabled: false,
           catchIntentDialogDuration: 17,
           catchIntentSeasons: [],
-          profitDisplayDisabled: false,
+
           profitSeasonDisabled: false,
           profitTotalDisabled: false,
           profitGapDisabled: true,
@@ -218,7 +218,7 @@ describe('Engine - OceanManager', function() {
           catchIntentionsEnabled: false,
           catchIntentDialogDuration: 17,
           catchIntentSeasons: [],
-          profitDisplayDisabled: false,
+
           profitSeasonDisabled: false,
           profitTotalDisabled: false,
           profitGapDisabled: true,
@@ -282,7 +282,7 @@ describe('Engine - OceanManager', function() {
           catchIntentionsEnabled: false,
           catchIntentDialogDuration: 17,
           catchIntentSeasons: [],
-          profitDisplayDisabled: false,
+
           profitSeasonDisabled: false,
           profitTotalDisabled: false,
           profitGapDisabled: true,
@@ -342,7 +342,7 @@ describe('Engine - OceanManager', function() {
           catchIntentionsEnabled: false,
           catchIntentDialogDuration: 17,
           catchIntentSeasons: [],
-          profitDisplayDisabled: false,
+
           profitSeasonDisabled: false,
           profitTotalDisabled: false,
           profitGapDisabled: true,

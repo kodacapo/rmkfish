@@ -198,18 +198,16 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   }
 
   this.profitSeasonIsDisabled = function() {
-    return this.microworld.params.profitSeasonDisabled ||
-           this.microworld.params.profitDisplayDisabled;
+    return this.microworld.params.profitSeasonDisabled;
   }
 
   this.profitTotalIsDisabled = function() {
-    return this.microworld.params.profitTotalDisabled ||
-           this.microworld.params.profitDisplayDisabled;
+    return this.microworld.params.profitTotalDisabled;
   }
 
   this.profitGapIsDisabled = function() {
-    return this.microworld.params.profitGapDisabled ||
-           this.microworld.params.profitDisplayDisabled;
+    return !this.microworld.params.fisherAdvantageEnabled ||
+           this.microworld.params.profitGapDisabled;
   }
 
   this.profitDisplayIsDisabled = function() {

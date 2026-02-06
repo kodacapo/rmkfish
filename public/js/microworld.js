@@ -546,14 +546,13 @@ function populatePage() {
     maybeDisableFisherAdvantageControls(mw.params.fisherAdvantageEnabled || false);
     $('#redirect-url').val(mw.params.redirectURL);
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
-    var legacyDisabled = mw.params.profitDisplayDisabled || false;
-    $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled || legacyDisabled);
-    $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled || legacyDisabled);
-    $('#enable-profit-gap').prop('checked', !(mw.params.profitGapDisabled || legacyDisabled));
+    $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled);
+    $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled);
+    $('#enable-profit-gap').prop('checked', !mw.params.profitGapDisabled);
     maybeDisableProfitControls(
-        (mw.params.profitSeasonDisabled || legacyDisabled) &&
-        (mw.params.profitTotalDisabled || legacyDisabled) &&
-        (mw.params.profitGapDisabled || legacyDisabled)
+        mw.params.profitSeasonDisabled &&
+        mw.params.profitTotalDisabled &&
+        mw.params.profitGapDisabled
     );
     $('#fish-value').val(mw.params.fishValue);
     $('#cost-cast').val(mw.params.costCast);
