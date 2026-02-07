@@ -362,6 +362,10 @@ function validate() {
         if (disadvEmoji && !isSingleEmoji(disadvEmoji)) {
             errors.push('No-advantage emoji must be a single emoji or symbol character.');
         }
+        var payGap = parseFloat($('#fish-value-pay-gap').val());
+        if (isNaN(payGap) || payGap < 0.01) {
+            errors.push('The fish value pay gap must be at least 0.01.');
+        }
     }
 
     if (parseInt($('#catch-intent-dialog-duration').val()) < 0) {
