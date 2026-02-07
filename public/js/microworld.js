@@ -187,6 +187,15 @@ function parseCatchIntentSeasons(seasonsList, clean = false) {
     return seasonNumbers;
 }
 
+function isSingleEmoji(str) {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+        var segments = Array.from(new Intl.Segmenter().segment(str));
+        return segments.length === 1;
+    }
+    // Fallback: allow one code point with optional variation selector
+    return /^.[\uFE0F]?$/us.test(str);
+}
+
 function validate() {
     var errors = [];
 
@@ -316,6 +325,11 @@ function validate() {
         if (emojisList.length !== classNames.length) {
             errors.push('The number of emojis (' + emojisList.length + ') must match the number of class names (' + classNames.length + ').');
         }
+        for (var i = 0; i < emojisList.length; i++) {
+            if (!isSingleEmoji(emojisList[i].trim())) {
+                errors.push('Class emoji "' + emojisList[i] + '" must be a single emoji or symbol character.');
+            }
+        }
 
         // Validate bot class assignments don't exceed class counts
         if (countsValid && countsList.length === classNames.length) {
@@ -336,6 +350,17 @@ function validate() {
                     errors.push('Too many bots assigned to class "' + cls + '": ' + botClassTally[cls] + ' bots but only ' + classCounts[cls] + ' total slots for that class.');
                 }
             }
+        }
+    }
+
+    if ($('#enable-fisher-advantage').prop('checked')) {
+        var advEmoji = $('#advantage-emoji').val().trim();
+        if (advEmoji && !isSingleEmoji(advEmoji)) {
+            errors.push('Advantage emoji must be a single emoji or symbol character.');
+        }
+        var disadvEmoji = $('#disadvantage-emoji').val().trim();
+        if (disadvEmoji && !isSingleEmoji(disadvEmoji)) {
+            errors.push('No-advantage emoji must be a single emoji or symbol character.');
         }
     }
 

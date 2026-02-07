@@ -397,18 +397,23 @@ function updateFishers() {
         var fisher = st.fishers[i];
         var fisherClass = fisher.params && fisher.params.fClass;
         var classEmoji = fisherClass && ocean.fisherClassEmojis && ocean.fisherClassEmojis[fisherClass] ? ocean.fisherClassEmojis[fisherClass] : '';
-        var advantageIcon = '';
+        var advantageEmoji = '';
         if (ocean.fisherAdvantageEnabled && fisher.params) {
-            advantageIcon = fisher.params.fHasAdvantage
+            advantageEmoji = fisher.params.fHasAdvantage
                 ? (ocean.advantageEmoji || '')
                 : (ocean.disadvantageEmoji || '');
         }
-        var icons = [classEmoji, advantageIcon].filter(Boolean).join(' ');
+        var emojiList = [classEmoji, advantageEmoji].filter(Boolean);
+        var iconsHtml = emojiList.map(function (e) {
+            return '<span style="display:inline-block;width:1.5em;text-align:center">' +
+                $('<span>').text(e).html() + '</span>';
+        }).join('');
 
         if (fisher.name === pId) {
             // This is you
-            name = icons ? icons + ' ' + msgs.info_you : msgs.info_you;
-            $('#f0-name').text(name);
+            var nameHtml = $('<span>').text(msgs.info_you).html();
+            name = iconsHtml ? iconsHtml + ' ' + msgs.info_you : msgs.info_you;
+            $('#f0-name').html(iconsHtml ? iconsHtml + ' ' + nameHtml : nameHtml);
 
             if (fisher.status === 'At port') {
                 $('#f0-status').attr('src', '/public/img/anchor.png');
@@ -460,11 +465,13 @@ function updateFishers() {
             $('#f' + j).show();
             if (ocean.showFisherNames) {
                 var pDisplay = (fisher.params && fisher.params.pDisplay) || fisher.name;
-                name = icons ? icons + ' ' + pDisplay : pDisplay;
+                var nameHtml = $('<span>').text(pDisplay).html();
+                name = iconsHtml ? iconsHtml + ' ' + pDisplay : pDisplay;
+                $('#f' + j + '-name').html(iconsHtml ? iconsHtml + ' ' + nameHtml : nameHtml);
             } else {
-                name = icons ? icons + ' ' + j : j;
+                name = iconsHtml ? iconsHtml + ' ' + j : j;
+                $('#f' + j + '-name').html(iconsHtml ? iconsHtml + ' ' + j : j);
             }
-            $('#f' + j + '-name').text(name);
 
             var src = '';
             if (!ocean.showFisherStatus) {
