@@ -37,12 +37,27 @@ html(lang='en')
         dt Enable fisher classes
         dd.
             Toggle to enable or disable the feature entirely.
+
         dt List of class names
         dd.
-            A comma-separated list of names, where each name must consist of letters (a-z), with spaces allowed. For example: "Group A, Group B".
+            A comma-separated list of names, where each name must consist of letters (a-z), with spaces allowed. For example: "Group A, Group B". (Fish automatically capitalizes class names.)
+
         dt Number of fishers for each class
         dd.
             A comma-separated list of numbers, one for each class, in the same order, each one greater than 0. The sum of all numbers must be equal to the number of fishers per simulation.
+
         dt Emojis for each class
         dd.
             A comma-separated list of emojis, one for each class, in the same order, each one a single emoji character.
+
+        dt fclass
+        dd.
+            This URL parameter indicates the class of the incoming human fisher.  
+            If fisher classes are enabled and a fisher comes in without a class assignment, the fisher is assigned the first class in the list of classes. <br>
+            (Fish automatically capitalizes class names.)   <br>
+        
+        ul Example of a fisher Dolphin being in the class of females:
+
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Dolphin&fclass=female
+

@@ -31,7 +31,7 @@ html(lang='en')
 
     h4 Parameters
     p.
-        The following parameters control the Fisher Advantage feature:
+        The following parameters (microworld and URL) control the Fisher Advantage feature:
     dl
         dt Enable fisher advantage
         dd.
@@ -55,3 +55,25 @@ html(lang='en')
         dt No-advantage emoji
         dd.
             The emoji that Fish displays in front of a player's name if the player does not have advantage.
+
+        dt fhasadvantage
+        dd.
+            This URL parameter indicates whether or not the incoming human fisher has advantage or not.    <br>
+        
+        ul Equivalent ways of having advantage:
+
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Alice&fhasadvantage
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Alice&fhasadvantage=1
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Alice&fhasadvantage=true
+
+        ul Equivalent ways of #[bold not ] having advantage:
+
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Bob
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Bob&fhasadvantage=0
+            li(style=" font-family: Monaco; font-size: 12px ").
+                http://somefish.org/fish?mwid=123abc&pid=Bob&fhasadvantage=false
