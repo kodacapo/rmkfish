@@ -5,7 +5,7 @@
       "Bash(git -C /Users/hako/Documents/Rebecca/RMKFISH/rmkfish diff)",
       "Bash(git -C /Users/hako/Documents/Rebecca/RMKFISH/rmkfish log --oneline -3)",
       "Bash(wc:*)",
-      "Bash(git add:*)",
+      "Bash(git add:*)"
     ]
   }
 }
