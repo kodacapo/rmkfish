@@ -34,7 +34,11 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   for (var botIdx = 0; botIdx < mw.params.bots.length; botIdx++) {
     var bot = mw.params.bots[botIdx];
-    this.fishers.push(new Fisher(bot.name, 'bot', bot, this));
+    var botFisher = new Fisher(bot.name, 'bot', bot, this);
+    var kMs = (botIdx + 1) * 60 * 1000;
+    botFisher.entryTime = Date.now() - kMs;
+    botFisher.readyTime = Date.now() - kMs;
+    this.fishers.push(botFisher);
     this.log.debug('Bot fisher ' + bot.name + ' joined.');
   }
   this.oceanOrder = 'ocean_order_user_top';
@@ -312,9 +316,25 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.readRules = function(pId) {
     var idx = this.findFisherIndex(pId);
-    if (idx !== null) this.fishers[idx].ready = true;
+    if (idx !== null) {
+      this.fishers[idx].ready = true;
+      this.fishers[idx].readyTime = Date.now();
+    }
     this.log.info('Fisher ' + pId + ' is ready to start.');
     return;
+  };
+
+  this.getLobbyStatus = function() {
+    var numFishers = this.microworld.params.numFishers;
+    var slots = [];
+    for (var i = 0; i < this.fishers.length; i++) {
+      var f = this.fishers[i];
+      slots.push({ pId: f.name, entryTime: f.entryTime, readyTime: f.readyTime });
+    }
+    while (slots.length < numFishers) {
+      slots.push(null);
+    }
+    return { slots: slots };
   };
 
   this.attemptToFish = function(pId) {

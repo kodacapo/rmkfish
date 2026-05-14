@@ -1650,4 +1650,136 @@ describe('Fish (jsdom)', () => {
       });
     });
   });
+
+  describe('Lobby status table', () => {
+    before(() => {
+      // Add DOM elements needed by lobby functions
+      ['lobby-status-box', 'lobby-tbody'].forEach(id => {
+        if (!document.getElementById(id)) {
+          const tag = id === 'lobby-tbody' ? 'tbody' : 'div';
+          const el = document.createElement(tag);
+          el.id = id;
+          document.body.appendChild(el);
+        }
+      });
+
+      // Extend the jQuery mock to support empty(), append(), and $('<tag>') creation
+      const orig$ = window.$;
+      window.$ = function(selector) {
+        // Handle HTML element creation: $('<tr>'), $('<td>'), etc.
+        if (typeof selector === 'string' && /^<\w+>$/.test(selector)) {
+          const el = document.createElement(selector.slice(1, -1));
+          const obj = {
+            _domEl: el,
+            text: function(val) {
+              if (val !== undefined) { el.textContent = String(val); return obj; }
+              return el.textContent;
+            },
+            append: function() {
+              Array.from(arguments).forEach(function(item) {
+                if (item && item._domEl) el.appendChild(item._domEl);
+              });
+              return obj;
+            }
+          };
+          return obj;
+        }
+        const result = orig$(selector);
+        if (!result.empty) {
+          const els = Array.from(document.querySelectorAll(selector));
+          result.empty = function() {
+            els.forEach(function(el) { el.innerHTML = ''; });
+            return result;
+          };
+          result.append = function() {
+            Array.from(arguments).forEach(function(item) {
+              if (item && item._domEl) {
+                els.forEach(function(el) { el.appendChild(item._domEl); });
+              }
+            });
+            return result;
+          };
+        }
+        return result;
+      };
+      window.$.url = orig$.url;
+    });
+
+    describe('receiveLobbyStatus()', () => {
+      it('should store slots in lobbySlots', () => {
+        const slots = [{ entryTime: Date.now(), readyTime: null }, null];
+        window.receiveLobbyStatus({ slots: slots });
+        window.lobbySlots.should.deepEqual(slots);
+      });
+    });
+
+    describe('warnInitialDelay()', () => {
+      it('should hide #lobby-status-box', () => {
+        document.getElementById('lobby-status-box').style.display = '';
+        window.warnInitialDelay();
+        document.getElementById('lobby-status-box').style.display.should.equal('none');
+      });
+    });
+
+    describe('renderLobbyTable()', () => {
+      it('should create one row per slot', () => {
+        const now = Date.now();
+        window.lobbySlots = [
+          { entryTime: now - 120000, readyTime: now - 60000 },
+          { entryTime: now - 60000, readyTime: null },
+          null
+        ];
+        window.renderLobbyTable();
+        document.getElementById('lobby-tbody').querySelectorAll('tr').length.should.equal(3);
+      });
+
+      it('should show "Fisher missing" for null slots', () => {
+        window.lobbySlots = [null];
+        window.renderLobbyTable();
+        document.getElementById('lobby-tbody').querySelectorAll('td')[0].textContent.should.equal('Fisher missing');
+      });
+
+      it('should show "---" time for null slots', () => {
+        window.lobbySlots = [null];
+        window.renderLobbyTable();
+        document.getElementById('lobby-tbody').querySelectorAll('td')[1].textContent.should.equal('---');
+      });
+
+      it('should show "Fisher reading rules" when readyTime is null', () => {
+        window.lobbySlots = [{ entryTime: Date.now(), readyTime: null }];
+        window.renderLobbyTable();
+        document.getElementById('lobby-tbody').querySelectorAll('td')[0].textContent.should.equal('Fisher reading rules');
+      });
+
+      it('should show "Fisher ready and waiting" when readyTime is set', () => {
+        window.lobbySlots = [{ entryTime: Date.now() - 120000, readyTime: Date.now() - 60000 }];
+        window.renderLobbyTable();
+        document.getElementById('lobby-tbody').querySelectorAll('td')[0].textContent.should.equal('Fisher ready and waiting');
+      });
+
+      it('should sort longest wait first', () => {
+        const now = Date.now();
+        window.lobbySlots = [
+          { entryTime: now - 60000, readyTime: null },            // 1 min reading
+          { entryTime: now - 180000, readyTime: now - 120000 },   // 2 min ready
+        ];
+        window.renderLobbyTable();
+        const rows = document.getElementById('lobby-tbody').querySelectorAll('tr');
+        rows[0].querySelectorAll('td')[0].textContent.should.equal('Fisher ready and waiting');
+        rows[1].querySelectorAll('td')[0].textContent.should.equal('Fisher reading rules');
+      });
+
+      it('should place missing slots at the bottom', () => {
+        const now = Date.now();
+        window.lobbySlots = [
+          null,
+          { entryTime: now - 60000, readyTime: null },
+        ];
+        window.renderLobbyTable();
+        const rows = document.getElementById('lobby-tbody').querySelectorAll('tr');
+        rows[0].querySelectorAll('td')[0].textContent.should.equal('Fisher reading rules');
+        rows[1].querySelectorAll('td')[0].textContent.should.equal('Fisher missing');
+      });
+    });
+  });
 });

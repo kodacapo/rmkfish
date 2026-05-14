@@ -250,6 +250,9 @@ function loadLabels() {
     $('#fish-season-header').text(' ' + msgs.info_season);
     $('#fish-total-header').text(' ' + msgs.info_overall);
 
+    $('#lobby-status-header').text(msgs.lobby_header);
+    $('#lobby-waiting-header').text(msgs.lobby_headerWaiting);
+
     if (!ocean) return;
     $('#profit-season-header').text(ocean.currencySymbol + ' ' + msgs.info_season);
     $('#profit-total-header').text(ocean.currencySymbol + ' ' + msgs.info_overall);
@@ -629,7 +632,68 @@ function validateFisherClass() {
 
 function readRules() {
     socket.emit('readRules');
+    $('#lobby-status-box').show();
+    startLobbyTimer();
 }
+
+////////////////////////////////////////
+//////////// Lobby status table
+////////////////////////////////////////
+
+var lobbySlots = [];
+var lobbyTimer = null;
+
+function receiveLobbyStatus(data) {
+    lobbySlots = data.slots;
+    renderLobbyTable();
+}
+
+function renderLobbyTable() {
+    var now = Date.now();
+    var rows = [];
+
+    for (var i = 0; i < lobbySlots.length; i++) {
+        var slot = lobbySlots[i];
+        var rowStatus, rowTime, rowSortKey;
+
+        if (slot === null) {
+            rowStatus = msgs.lobby_fisherMissing;
+            rowTime = '---';
+            rowSortKey = -1;
+        } else if (slot.readyTime !== null) {
+            var readyMins = Math.floor((now - slot.readyTime) / 60000);
+            rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReady;
+            rowTime = readyMins + ' min';
+            rowSortKey = readyMins;
+        } else {
+            var entryMins = Math.floor((now - slot.entryTime) / 60000);
+            rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReading;
+            rowTime = entryMins + ' min';
+            rowSortKey = entryMins;
+        }
+
+        rows.push({ status: rowStatus, timeDisplay: rowTime, sortKey: rowSortKey });
+    }
+
+    rows.sort(function(a, b) { return b.sortKey - a.sortKey; });
+
+    var $tbody = $('#lobby-tbody');
+    $tbody.empty();
+    for (var j = 0; j < rows.length; j++) {
+        var row = rows[j];
+        $tbody.append(
+            $('<tr>').append(
+                $('<td>').text(row.status),
+                $('<td>').text(row.timeDisplay)
+            )
+        );
+    }
+}
+
+function startLobbyTimer() {
+    if (!lobbyTimer) {
+        lobbyTimer = setInterval(renderLobbyTable, 60000);
+    }}
 
 function changeLocation() {
     var btn = $('#changeLocation');
@@ -685,6 +749,8 @@ function beginSeason(data) {
 }
 
 function warnInitialDelay() {
+    $('#lobby-status-box').hide();
+    if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
 }
 
 function warnSeasonStart() {
@@ -875,6 +941,7 @@ socket.on('warn season start', warnSeasonStart);
 socket.on('warn season end', warnSeasonEnd);
 socket.on('end season', endSeason);
 socket.on('end run', endRun);
+socket.on('lobbyStatus', receiveLobbyStatus);
 socket.on('pause', pause);
 socket.on('resume', resume);
 socket.on('start asking intent', startAskingIntendedCatch);

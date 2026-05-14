@@ -207,6 +207,34 @@ html {
   }
 }
 
+#lobby-status-box {
+  margin-top: 20px;
+  table {
+    font-size: 16px;
+    font-size: 1.6rem;
+    background-color: white;
+    thead {
+      tr {
+        background-color: $primaryColor;
+        color: white;
+        th {
+          white-space: nowrap;
+          vertical-align: top;
+          text-align: center;
+        }
+      }
+    }
+    tbody {
+      tr {
+        font-weight: normal;
+        td {
+          text-align: center;
+        }
+      }
+    }
+  }
+}
+
 #canvas-container {
   #ocean-canvas {
     display: block;

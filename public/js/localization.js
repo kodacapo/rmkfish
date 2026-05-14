@@ -266,6 +266,52 @@ fr['info_payGap'] = 'Pay Gap';
 pt['info_payGap'] = 'Pay Gap';
 ko['info_payGap'] = 'Pay Gap';
 
+// Lobby
+en['lobby_header'] = 'Lobby Status';
+cn['lobby_header'] = '大厅状态';
+ct['lobby_header'] = '大廳狀態';
+de['lobby_header'] = 'Lobby-Status';
+es['lobby_header'] = 'Estado de la sala';
+fr['lobby_header'] = 'État du lobby';
+pt['lobby_header'] = 'Estado do lobby';
+ko['lobby_header'] = '로비 상태';
+
+en['lobby_headerWaiting'] = 'Waiting (min)';
+cn['lobby_headerWaiting'] = '等待时间（分钟）';
+ct['lobby_headerWaiting'] = '等待時間（分鐘）';
+de['lobby_headerWaiting'] = 'Wartezeit (Min.)';
+es['lobby_headerWaiting'] = 'Espera (min)';
+fr['lobby_headerWaiting'] = 'Attente (min)';
+pt['lobby_headerWaiting'] = 'Aguardando (min)';
+ko['lobby_headerWaiting'] = '대기 시간 (분)';
+
+en['lobby_fisherMissing'] = 'Fisher missing';
+cn['lobby_fisherMissing'] = '渔人缺席';
+ct['lobby_fisherMissing'] = '漁人缺席';
+de['lobby_fisherMissing'] = 'Fischer fehlt';
+es['lobby_fisherMissing'] = 'Pescador faltante';
+fr['lobby_fisherMissing'] = 'Pêcheur manquant';
+pt['lobby_fisherMissing'] = 'Pescador ausente';
+ko['lobby_fisherMissing'] = '플레이어 없음';
+
+en['lobby_fisherReady'] = 'Fisher ready and waiting';
+cn['lobby_fisherReady'] = '渔人已准备好，等待中';
+ct['lobby_fisherReady'] = '漁人已準備好，等待中';
+de['lobby_fisherReady'] = 'Fischer bereit und wartend';
+es['lobby_fisherReady'] = 'Pescador listo y esperando';
+fr['lobby_fisherReady'] = 'Pêcheur prêt et en attente';
+pt['lobby_fisherReady'] = 'Pescador pronto e aguardando';
+ko['lobby_fisherReady'] = '플레이어 준비 완료, 대기 중';
+
+en['lobby_fisherReading'] = 'Fisher reading rules';
+cn['lobby_fisherReading'] = '渔人正在阅读规则';
+ct['lobby_fisherReading'] = '漁人正在閱讀規則';
+de['lobby_fisherReading'] = 'Fischer liest Regeln';
+es['lobby_fisherReading'] = 'Pescador leyendo las reglas';
+fr['lobby_fisherReading'] = 'Pêcheur lit les règles';
+pt['lobby_fisherReading'] = 'Pescador lendo as regras';
+ko['lobby_fisherReading'] = '플레이어 규칙 읽는 중';
+
 // End report
 en['end_over'] = 'This simulation is over.';
 en['end_over'] = 'This game is over.';          // RMK

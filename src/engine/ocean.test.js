@@ -469,6 +469,93 @@ describe('Engine - Ocean', function() {
       o.fishers[3].ready.should.equal(true);
       return done();
     });
+
+    it('should set readyTime on the fisher', function(done) {
+      o.addFisher('p001');
+      var should = require('should');
+      should.equal(o.fishers[3].readyTime, null);
+      var before = Date.now();
+      o.readRules('p001');
+      var after = Date.now();
+      o.fishers[3].readyTime.should.be.within(before, after);
+      return done();
+    });
+
+    it('should leave entryTime unchanged after readRules', function(done) {
+      o.addFisher('p001');
+      var entryTime = o.fishers[3].entryTime;
+      o.readRules('p001');
+      o.fishers[3].entryTime.should.equal(entryTime);
+      return done();
+    });
+  });
+
+  describe('bot lobby timestamps', function() {
+    it('should offset bot entryTime by k minutes for the kth bot', function(done) {
+      var now = Date.now();
+      // mw has 3 bots (indices 0, 1, 2) → offsets 1, 2, 3 minutes
+      o.fishers[0].entryTime.should.be.within(now - 61000, now - 59000);
+      o.fishers[1].entryTime.should.be.within(now - 121000, now - 119000);
+      o.fishers[2].entryTime.should.be.within(now - 181000, now - 179000);
+      return done();
+    });
+
+    it('should offset bot readyTime by k minutes for the kth bot', function(done) {
+      var now = Date.now();
+      o.fishers[0].readyTime.should.be.within(now - 61000, now - 59000);
+      o.fishers[1].readyTime.should.be.within(now - 121000, now - 119000);
+      o.fishers[2].readyTime.should.be.within(now - 181000, now - 179000);
+      return done();
+    });
+  });
+
+  describe('getLobbyStatus()', function() {
+    it('should return numFishers slots', function(done) {
+      var status = o.getLobbyStatus();
+      status.slots.length.should.equal(mw.params.numFishers);
+      return done();
+    });
+
+    it('should fill slots for existing fishers and pad missing slots with null', function(done) {
+      // 3 bots present, 1 human slot missing (numFishers = 4)
+      var status = o.getLobbyStatus();
+      status.slots[0].should.not.equal(null);
+      status.slots[1].should.not.equal(null);
+      status.slots[2].should.not.equal(null);
+      should.equal(status.slots[3], null);
+      return done();
+    });
+
+    it('should include entryTime and readyTime for present fishers', function(done) {
+      var status = o.getLobbyStatus();
+      status.slots[0].should.have.property('entryTime');
+      status.slots[0].should.have.property('readyTime');
+      return done();
+    });
+
+    it('should show null readyTime for a human fisher who has not yet read rules', function(done) {
+      o.addFisher('p001');
+      var status = o.getLobbyStatus();
+      should.equal(status.slots[3].readyTime, null);
+      return done();
+    });
+
+    it('should show non-null readyTime after fisher reads rules', function(done) {
+      o.addFisher('p001');
+      o.readRules('p001');
+      var status = o.getLobbyStatus();
+      status.slots[3].readyTime.should.be.ok;
+      return done();
+    });
+
+    it('should have no missing slots once all fishers have joined', function(done) {
+      o.addFisher('p001');
+      var status = o.getLobbyStatus();
+      status.slots.forEach(function(slot) {
+        should.exist(slot);
+      });
+      return done();
+    });
   });
 
   describe('attemptToFish()', function() {

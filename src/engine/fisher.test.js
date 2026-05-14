@@ -23,6 +23,38 @@ describe('Engine - Fisher', function() {
     return done();
   });
 
+  describe('lobby timestamps', function() {
+    it('should set entryTime close to now for a human fisher', function(done) {
+      var before = Date.now();
+      var f = new Fisher('A Participant', 'human', {}, {});
+      var after = Date.now();
+      f.entryTime.should.be.within(before, after);
+      return done();
+    });
+
+    it('should set readyTime to null for a human fisher', function(done) {
+      var f = new Fisher('A Participant', 'human', {}, {});
+      should.equal(f.readyTime, null);
+      return done();
+    });
+
+    it('should set entryTime close to now for a bot fisher', function(done) {
+      var before = Date.now();
+      var f = new Fisher('Mr. Tuna', 'bot', {}, {});
+      var after = Date.now();
+      f.entryTime.should.be.within(before, after);
+      return done();
+    });
+
+    it('should set readyTime close to now for a bot fisher', function(done) {
+      var before = Date.now();
+      var f = new Fisher('Mr. Tuna', 'bot', {}, {});
+      var after = Date.now();
+      f.readyTime.should.be.within(before, after);
+      return done();
+    });
+  });
+
   describe('isBot()', function() {
     it('should return true for bot fishers', function(done) {
       var f = new Fisher('Mr. Tuna', 'bot', {}, {});

@@ -27,6 +27,7 @@ exports.engine = function engine(io, ioAdmin) {
       var myPId = clientPId;
       socket.join(myOId);
       socket.emit('ocean', om.oceans[myOId].getParams());
+      io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
 
       // Define handlers as named functions so we can remove them on disconnect
       // This prevents memory leaks from accumulated event listeners
@@ -34,6 +35,7 @@ exports.engine = function engine(io, ioAdmin) {
         if (om.oceans[myOId]) {
           om.oceans[myOId].readRules(myPId);
           io.sockets.in(myOId).emit('aFisherIsReady', myPId);
+          io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
         }
       }
 

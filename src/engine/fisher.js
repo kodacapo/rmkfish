@@ -8,6 +8,8 @@ exports.Fisher = function Fisher(name, type, params, o) {
 
   this.ocean = o;
   this.ready = this.type === 'bot';
+  this.entryTime = Date.now();
+  this.readyTime = this.type === 'bot' ? Date.now() : null;
   this.hasReturned = false;
   this.seasonData = [];
 
