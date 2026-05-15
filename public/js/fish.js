@@ -653,6 +653,12 @@ function receiveLobbyStatus(data) {
     renderLobbyTable();
 }
 
+function formatMmSs(totalSecs) {
+    var m = Math.floor(totalSecs / 60);
+    var s = totalSecs % 60;
+    return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+}
+
 function renderLobbyTable() {
     var now = Date.now();
     var rows = [];
@@ -666,15 +672,15 @@ function renderLobbyTable() {
             rowTime = '---';
             rowSortKey = -1;
         } else if (slot.readyTime !== null) {
-            var readyMins = Math.min(99, Math.max(0, Math.floor((now - slot.readyTime) / 60000)));
+            var readySecs = Math.min(60*60-1, Math.max(0, Math.floor((now - slot.readyTime) / 1000)));
             rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReady;
-            rowTime = readyMins + ' min';
-            rowSortKey = readyMins;
+            rowTime = formatMmSs(readySecs);
+            rowSortKey = readySecs;
         } else {
-            var entryMins = Math.min(99, Math.max(0, Math.floor((now - slot.entryTime) / 60000)));
+            var entrySecs = Math.min(60*60-1, Math.max(0, Math.floor((now - slot.entryTime) / 1000)));
             rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReading;
-            rowTime = entryMins + ' min';
-            rowSortKey = entryMins;
+            rowTime = formatMmSs(entrySecs);
+            rowSortKey = entrySecs;
         }
 
         rows.push({ status: rowStatus, timeDisplay: rowTime, sortKey: rowSortKey });
@@ -697,7 +703,7 @@ function renderLobbyTable() {
 
 function startLobbyTimer() {
     if (!lobbyTimer) {
-        lobbyTimer = setInterval(renderLobbyTable, 60000);
+        lobbyTimer = setInterval(renderLobbyTable, 1000);
     }}
 
 ////////////////////////////////////////

@@ -35,7 +35,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   for (var botIdx = 0; botIdx < mw.params.bots.length; botIdx++) {
     var bot = mw.params.bots[botIdx];
     var botFisher = new Fisher(bot.name, 'bot', bot, this);
-    var kMs = (botIdx + 1) * 60 * 1000;
+    var kMs = (botIdx * 60 + Math.random() * 60) * 1000;
     botFisher.entryTime = Date.now() - kMs;
     botFisher.readyTime = Date.now() - kMs;
     this.fishers.push(botFisher);
