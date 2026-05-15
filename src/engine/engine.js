@@ -28,6 +28,9 @@ exports.engine = function engine(io, ioAdmin) {
       socket.join(myOId);
       socket.emit('ocean', om.oceans[myOId].getParams());
       io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+      om.oceans[myOId].setFisherNotifier(myPId, function(event, data) {
+        socket.emit(event, data);
+      });
 
       // Define handlers as named functions so we can remove them on disconnect
       // This prevents memory leaks from accumulated event listeners
@@ -75,6 +78,33 @@ exports.engine = function engine(io, ioAdmin) {
         }
       }
 
+      function onKeepReading() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].keepReading(myPId);
+        }
+      }
+
+      function onProceedToLobby() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].readRules(myPId);
+          io.sockets.in(myOId).emit('aFisherIsReady', myPId);
+          io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+        }
+      }
+
+      function onKeepWaiting() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].keepWaiting(myPId);
+        }
+      }
+
+      function onAbortFish() {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].clearAllAbortTimers(myPId);
+          om.oceans[myOId].log.info('Fisher ' + myPId + ' aborted session.');
+        }
+      }
+
       function onDisconnect() {
         // Clean up all event listeners first to prevent memory leaks
         socket.off('readRules', onReadRules);
@@ -84,6 +114,10 @@ exports.engine = function engine(io, ioAdmin) {
         socket.off('return', onReturn);
         socket.off('requestPause', onRequestPause);
         socket.off('requestResume', onRequestResume);
+        socket.off('keepReading', onKeepReading);
+        socket.off('proceedToLobby', onProceedToLobby);
+        socket.off('keepWaiting', onKeepWaiting);
+        socket.off('abortFish', onAbortFish);
         socket.off('disconnect', onDisconnect);
 
         // Check if ocean still exists before accessing its properties
@@ -100,6 +134,9 @@ exports.engine = function engine(io, ioAdmin) {
         // Only try to remove fisher if ocean still exists
         if (om.oceans[myOId]) {
           om.removeFisherFromOcean(myOId, myPId);
+          if (om.oceans[myOId].isInSetup()) {
+            io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+          }
         } else {
           log.debug('Disconnect event for participant ' + myPId + ' but ocean ' + myOId + ' no longer exists');
         }
@@ -115,6 +152,10 @@ exports.engine = function engine(io, ioAdmin) {
       socket.on('return', onReturn);
       socket.on('requestPause', onRequestPause);
       socket.on('requestResume', onRequestResume);
+      socket.on('keepReading', onKeepReading);
+      socket.on('proceedToLobby', onProceedToLobby);
+      socket.on('keepWaiting', onKeepWaiting);
+      socket.on('abortFish', onAbortFish);
       socket.on('disconnect', onDisconnect);
     };
   });
