@@ -109,3 +109,14 @@ html
           .modal-footer
             button#finished.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
               | OK
+    #abort-modal.modal.fade(role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          .modal-body
+            p#abort-prompt-message
+          .modal-footer
+            small#abort-countdown
+            button#abort-keep-reading.btn.btn-default(type='button')
+            button#abort-proceed.btn.btn-primary(type='button')
+            button#abort-keep-waiting.btn.btn-default(type='button')
+            button#abort-confirm.btn.btn-danger(type='button')

@@ -111,6 +111,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     for (var i in this.fishers) {
       var fisher = this.fishers[i];
       if (fisher.isHuman() && fisher.name === pId) {
+        this.clearAllAbortTimers(pId);
         this.resume(pId); // just in case this fisher paused the game just before leaving!
         this.fishers.splice(i, 1);
         this.log.info('Human fisher ' + pId + ' left.');
@@ -320,6 +321,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       this.fishers[idx].ready = true;
       this.fishers[idx].readyTime = Date.now();
     }
+    this.clearReadRulesTimer(pId);
+    this.startLobbyWaitTimer(pId);
     this.log.info('Fisher ' + pId + ' is ready to start.');
     return;
   };
@@ -335,6 +338,93 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       slots.push(null);
     }
     return { slots: slots };
+  };
+
+  ////////////////////////////
+  // Abort / timeout methods
+  ////////////////////////////
+
+  this.setFisherNotifier = function(pId, notifyFn) {
+    var idx = this.findFisherIndex(pId);
+    if (idx !== null) {
+      this.fishers[idx].notify = notifyFn;
+      this.startReadRulesTimer(pId);
+    }
+  };
+
+  this.startReadRulesTimer = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return;
+    var fisher = this.fishers[idx];
+    var timeoutMins = this.microworld.params.readRulesTimeout;
+    if (!timeoutMins || fisher.ready) return;
+    this.clearReadRulesTimer(pId);
+    var self = this;
+    fisher.readRulesTimer = setTimeout(function() {
+      fisher.readRulesTimer = null;
+      self.onPlayerTimeout(pId, 'readingRules');
+    }, timeoutMins * 60 * 1000);
+  };
+
+  this.clearReadRulesTimer = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return;
+    var fisher = this.fishers[idx];
+    if (fisher.readRulesTimer) {
+      clearTimeout(fisher.readRulesTimer);
+      fisher.readRulesTimer = null;
+    }
+  };
+
+  this.startLobbyWaitTimer = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return;
+    var fisher = this.fishers[idx];
+    var timeoutMins = this.microworld.params.lobbyWaitTimeout;
+    if (!timeoutMins) return;
+    this.clearLobbyWaitTimer(pId);
+    var self = this;
+    fisher.lobbyWaitTimer = setTimeout(function() {
+      fisher.lobbyWaitTimer = null;
+      self.onPlayerTimeout(pId, 'lobbyWait');
+    }, timeoutMins * 60 * 1000);
+  };
+
+  this.clearLobbyWaitTimer = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return;
+    var fisher = this.fishers[idx];
+    if (fisher.lobbyWaitTimer) {
+      clearTimeout(fisher.lobbyWaitTimer);
+      fisher.lobbyWaitTimer = null;
+    }
+  };
+
+  this.clearAllAbortTimers = function(pId) {
+    this.clearReadRulesTimer(pId);
+    this.clearLobbyWaitTimer(pId);
+  };
+
+  this.onPlayerTimeout = function(pId, stage) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return;
+    var fisher = this.fishers[idx];
+    fisher.timeoutCount += 1;
+    this.log.info('Fisher ' + pId + ' timed out (stage: ' + stage + ', count: ' + fisher.timeoutCount + ')');
+    var maxTimeouts = this.microworld.params.maxTimeouts;
+    if (maxTimeouts && fisher.timeoutCount >= maxTimeouts) {
+      if (fisher.notify) fisher.notify('forceAbort', {});
+    } else {
+      if (fisher.notify) fisher.notify('abortPrompt', { stage: stage });
+    }
+  };
+
+  this.keepReading = function(pId) {
+    this.startReadRulesTimer(pId);
+  };
+
+  this.keepWaiting = function(pId) {
+    this.startLobbyWaitTimer(pId);
   };
 
   this.attemptToFish = function(pId) {
@@ -389,6 +479,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   };
 
   this.getOceanReady = function() {
+    for (var fi in this.fishers) {
+      this.clearAllAbortTimers(this.fishers[fi].name);
+    }
     var expId = this.microworld.experimenter._id.toString();
     this.status = 'initial delay';
     this.log.info('All fishers ready to start.');

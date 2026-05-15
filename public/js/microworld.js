@@ -48,6 +48,10 @@ function readyTooltips() {
     $('#catch-intention-seasons-tooltip').tooltip();
     $('#catch-intent-dialog-duration-tooltip').tooltip();
     $('#redirect-url-tooltip').tooltip();
+    $('#read-rules-timeout-tooltip').tooltip();
+    $('#lobby-wait-timeout-tooltip').tooltip();
+    $('#prompt-timeout-tooltip').tooltip();
+    $('#max-timeouts-tooltip').tooltip();
     $('#profit-season-tooltip').tooltip();
     $('#profit-total-tooltip').tooltip();
     $('#profit-gap-tooltip').tooltip();
@@ -447,6 +451,11 @@ function prepareMicroworldObject() {
     mw.advantageEmoji = $('#advantage-emoji').val();
     mw.disadvantageEmoji = $('#disadvantage-emoji').val();
     mw.redirectURL = $('#redirect-url').val();
+    mw.readRulesTimeout = $('#read-rules-timeout').val() || null;
+    mw.lobbyWaitTimeout = $('#lobby-wait-timeout').val() || null;
+    mw.promptTimeout = $('#prompt-timeout').val() || null;
+    mw.maxTimeouts = $('#max-timeouts').val() || null;
+    mw.abortUrl = $('#abort-url').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
     mw.profitSeasonDisabled = $('#disable-profit-season').prop('checked');
@@ -613,6 +622,11 @@ function populatePage() {
     $('#disadvantage-emoji').val(mw.params.disadvantageEmoji || '↓');
     maybeDisableFisherAdvantageControls(mw.params.fisherAdvantageEnabled || false);
     $('#redirect-url').val(mw.params.redirectURL);
+    $('#read-rules-timeout').val(mw.params.readRulesTimeout || '');
+    $('#lobby-wait-timeout').val(mw.params.lobbyWaitTimeout || '');
+    $('#prompt-timeout').val(mw.params.promptTimeout || '');
+    $('#max-timeouts').val(mw.params.maxTimeouts || '');
+    $('#abort-url').val(mw.params.abortUrl || '');
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled);
     $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled);

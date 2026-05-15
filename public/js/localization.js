@@ -266,6 +266,61 @@ fr['info_payGap'] = 'Pay Gap';
 pt['info_payGap'] = 'Pay Gap';
 ko['info_payGap'] = 'Pay Gap';
 
+// Abort / timeout
+en['abort_readingRulesMessage'] = "You've been reading the rules for a while. Would you like to continue reading, proceed to the lobby, or leave the simulation?";
+cn['abort_readingRulesMessage'] = '您已阅读规则一段时间。您想继续阅读、进入大厅还是离开模拟？';
+ct['abort_readingRulesMessage'] = '您已閱讀規則一段時間。您想繼續閱讀、進入大廳還是離開模擬？';
+de['abort_readingRulesMessage'] = 'Sie lesen die Regeln schon eine Weile. Möchten Sie weiterlesen, zur Lobby gehen oder die Simulation verlassen?';
+es['abort_readingRulesMessage'] = 'Has estado leyendo las reglas por un tiempo. ¿Deseas seguir leyendo, ir al lobby o abandonar la simulación?';
+fr['abort_readingRulesMessage'] = "Vous lisez les règles depuis un moment. Voulez-vous continuer à lire, passer au lobby ou quitter la simulation ?";
+pt['abort_readingRulesMessage'] = 'Você está lendo as regras há algum tempo. Gostaria de continuar lendo, ir ao lobby ou sair da simulação?';
+ko['abort_readingRulesMessage'] = '규칙을 꽤 오래 읽고 있습니다. 계속 읽으시겠습니까, 로비로 이동하시겠습니까, 아니면 시뮬레이션을 종료하시겠습니까?';
+
+en['abort_lobbyWaitMessage'] = "You've been waiting for the simulation to start for a while. Would you like to keep waiting or leave the simulation?";
+cn['abort_lobbyWaitMessage'] = '您等待模拟开始已有一段时间。您想继续等待还是离开模拟？';
+ct['abort_lobbyWaitMessage'] = '您等待模擬開始已有一段時間。您想繼續等待還是離開模擬？';
+de['abort_lobbyWaitMessage'] = 'Sie warten schon eine Weile auf den Start der Simulation. Möchten Sie weiter warten oder die Simulation verlassen?';
+es['abort_lobbyWaitMessage'] = 'Has estado esperando que comience la simulación por un tiempo. ¿Deseas seguir esperando o abandonar la simulación?';
+fr['abort_lobbyWaitMessage'] = "Vous attendez depuis un moment que la simulation commence. Voulez-vous continuer à attendre ou quitter la simulation ?";
+pt['abort_lobbyWaitMessage'] = 'Você está esperando a simulação começar há algum tempo. Gostaria de continuar esperando ou sair da simulação?';
+ko['abort_lobbyWaitMessage'] = '시뮬레이션 시작을 꽤 오래 기다리고 있습니다. 계속 기다리시겠습니까 아니면 시뮬레이션을 종료하시겠습니까?';
+
+en['abort_keepReading'] = 'Keep Reading';
+cn['abort_keepReading'] = '继续阅读';
+ct['abort_keepReading'] = '繼續閱讀';
+de['abort_keepReading'] = 'Weiterlesen';
+es['abort_keepReading'] = 'Seguir leyendo';
+fr['abort_keepReading'] = 'Continuer à lire';
+pt['abort_keepReading'] = 'Continuar lendo';
+ko['abort_keepReading'] = '계속 읽기';
+
+en['abort_proceed'] = 'Proceed to Lobby';
+cn['abort_proceed'] = '进入大厅';
+ct['abort_proceed'] = '進入大廳';
+de['abort_proceed'] = 'Zur Lobby';
+es['abort_proceed'] = 'Ir al lobby';
+fr['abort_proceed'] = 'Aller au lobby';
+pt['abort_proceed'] = 'Ir ao lobby';
+ko['abort_proceed'] = '로비로 이동';
+
+en['abort_keepWaiting'] = 'Keep Waiting';
+cn['abort_keepWaiting'] = '继续等待';
+ct['abort_keepWaiting'] = '繼續等待';
+de['abort_keepWaiting'] = 'Weiter warten';
+es['abort_keepWaiting'] = 'Seguir esperando';
+fr['abort_keepWaiting'] = 'Continuer à attendre';
+pt['abort_keepWaiting'] = 'Continuar aguardando';
+ko['abort_keepWaiting'] = '계속 대기';
+
+en['abort_abort'] = 'Abort';
+cn['abort_abort'] = '中止';
+ct['abort_abort'] = '中止';
+de['abort_abort'] = 'Abbrechen';
+es['abort_abort'] = 'Abandonar';
+fr['abort_abort'] = 'Abandonner';
+pt['abort_abort'] = 'Abandonar';
+ko['abort_abort'] = '종료';
+
 // Lobby
 en['lobby_header'] = 'Lobby Status';
 cn['lobby_header'] = '大厅状态';

@@ -11,6 +11,10 @@ exports.Fisher = function Fisher(name, type, params, o) {
   this.entryTime = Date.now();
   this.readyTime = this.type === 'bot' ? Date.now() : null;
   this.hasReturned = false;
+  this.timeoutCount = 0;
+  this.readRulesTimer = null;
+  this.lobbyWaitTimer = null;
+  this.notify = null;
   this.seasonData = [];
 
   this.startMoney = 0;
