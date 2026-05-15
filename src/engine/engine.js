@@ -28,6 +28,9 @@ exports.engine = function engine(io, ioAdmin) {
       socket.join(myOId);
       socket.emit('ocean', om.oceans[myOId].getParams());
       io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+      om.oceans[myOId].setFisherNotifier(myPId, function(event, data) {
+        socket.emit(event, data);
+      });
 
       // Define handlers as named functions so we can remove them on disconnect
       // This prevents memory leaks from accumulated event listeners
