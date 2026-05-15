@@ -331,14 +331,14 @@ fr['lobby_header'] = 'État du lobby';
 pt['lobby_header'] = 'Estado do lobby';
 ko['lobby_header'] = '로비 상태';
 
-en['lobby_headerWaiting'] = 'Waiting (min)';
-cn['lobby_headerWaiting'] = '等待时间（分钟）';
-ct['lobby_headerWaiting'] = '等待時間（分鐘）';
-de['lobby_headerWaiting'] = 'Wartezeit (Min.)';
-es['lobby_headerWaiting'] = 'Espera (min)';
-fr['lobby_headerWaiting'] = 'Attente (min)';
-pt['lobby_headerWaiting'] = 'Aguardando (min)';
-ko['lobby_headerWaiting'] = '대기 시간 (분)';
+en['lobby_headerWaiting'] = 'Waiting (mm:ss)';
+cn['lobby_headerWaiting'] = '等待时间（分:秒）';
+ct['lobby_headerWaiting'] = '等待時間（分:秒）';
+de['lobby_headerWaiting'] = 'Wartezeit (mm:ss)';
+es['lobby_headerWaiting'] = 'Espera (mm:ss)';
+fr['lobby_headerWaiting'] = 'Attente (mm:ss)';
+pt['lobby_headerWaiting'] = 'Aguardando (mm:ss)';
+ko['lobby_headerWaiting'] = '대기 시간 (mm:ss)';
 
 en['lobby_fisherMissing'] = 'Fisher missing';
 cn['lobby_fisherMissing'] = '渔人缺席';
