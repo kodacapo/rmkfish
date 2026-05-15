@@ -222,6 +222,17 @@ html {
   margin-top: 0;
 }
 
+#abort-modal .modal-footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 8px;
+}
+#abort-modal .modal-footer button {
+  display: inline-block;
+  margin: 0;
+}
+
 @media (min-width: 768px) {
   .col-sm-8 {
     width: 75%;

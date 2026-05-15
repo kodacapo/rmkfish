@@ -671,14 +671,10 @@ function renderLobbyTable() {
             rowStatus = msgs.lobby_fisherMissing;
             rowTime = '---';
             rowSortKey = -1;
-        } else if (slot.readyTime !== null) {
-            var readySecs = Math.min(60*60-1, Math.max(0, Math.floor((now - slot.readyTime) / 1000)));
-            rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReady;
-            rowTime = formatMmSs(readySecs);
-            rowSortKey = readySecs;
         } else {
             var entrySecs = Math.min(60*60-1, Math.max(0, Math.floor((now - slot.entryTime) / 1000)));
-            rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReading;
+            var isReady = slot.readyTime !== null;
+            rowStatus = slot.pId === pId ? msgs.info_you : (isReady ? msgs.lobby_fisherReady : msgs.lobby_fisherReading);
             rowTime = formatMmSs(entrySecs);
             rowSortKey = entrySecs;
         }
@@ -711,7 +707,23 @@ function startLobbyTimer() {
 ////////////////////////////////////////
 
 var abortCountdownInterval = null;
+var forceAbortCountdownInterval = null;
 var simOverTimer = null;
+
+function startCountdown(seconds, intervalVar, displaySelector, doneFn) {
+    if (intervalVar) {
+        clearInterval(intervalVar);
+    }
+    var remaining = seconds;
+    $(displaySelector).text('(' + remaining + 's)');
+    return setInterval(function() {
+        remaining -= 1;
+        $(displaySelector).text('(' + remaining + 's)');
+        if (remaining <= 0) {
+            doneFn();
+        }
+    }, 1000);
+}
 
 function showAbortPrompt(data) {
     var stage = data.stage;
@@ -729,26 +741,11 @@ function showAbortPrompt(data) {
     }
     $('#abort-modal').modal({ keyboard: false, backdrop: 'static' });
     if (ocean.promptTimeout) {
-        startAbortCountdown(ocean.promptTimeout);
-    }
-}
-
-function startAbortCountdown(seconds) {
-    clearAbortCountdown();
-    var remaining = seconds;
-    updateCountdownDisplay(remaining);
-    abortCountdownInterval = setInterval(function() {
-        remaining -= 1;
-        updateCountdownDisplay(remaining);
-        if (remaining <= 0) {
+        abortCountdownInterval = startCountdown(ocean.promptTimeout, abortCountdownInterval, '#abort-countdown', function() {
             clearAbortCountdown();
             doAbort();
-        }
-    }, 1000);
-}
-
-function updateCountdownDisplay(remaining) {
-    $('#abort-countdown').text('(' + remaining + 's)');
+        });
+    }
 }
 
 function clearAbortCountdown() {
@@ -774,6 +771,32 @@ function doAbort() {
         }
         location.href = url;
     }
+}
+
+function showForceAbortModal() {
+    $('#force-abort-message').text(msgs.forceAbort_message);
+    $('#force-abort-ok').text(msgs.forceAbort_ok);
+    $('#force-abort-modal').modal({ keyboard: false, backdrop: 'static' });
+    if (ocean.promptTimeout) {
+        forceAbortCountdownInterval = startCountdown(ocean.promptTimeout, forceAbortCountdownInterval, '#force-abort-countdown', function() {
+            clearForceAbortCountdown();
+            doForceAbortOk();
+        });
+    }
+}
+
+function clearForceAbortCountdown() {
+    if (forceAbortCountdownInterval) {
+        clearInterval(forceAbortCountdownInterval);
+        forceAbortCountdownInterval = null;
+    }
+    $('#force-abort-countdown').text('');
+}
+
+function doForceAbortOk() {
+    clearForceAbortCountdown();
+    $('#force-abort-modal').modal('hide');
+    doAbort();
 }
 
 function doAbortKeepReading() {
@@ -1053,7 +1076,7 @@ socket.on('end season', endSeason);
 socket.on('end run', endRun);
 socket.on('lobbyStatus', receiveLobbyStatus);
 socket.on('abortPrompt', showAbortPrompt);
-socket.on('forceAbort', doAbort);
+socket.on('forceAbort', showForceAbortModal);
 socket.on('pause', pause);
 socket.on('resume', resume);
 socket.on('start asking intent', startAskingIntendedCatch);
@@ -1073,6 +1096,7 @@ function main() {
     $('#resume').on('click', requestResume);
     $('#finished').on('click', maybeRedirect);
     $('#abort-keep-reading').on('click', doAbortKeepReading);
+    $('#force-abort-ok').on('click', doForceAbortOk);
     $('#abort-proceed').on('click', doAbortProceed);
     $('#abort-keep-waiting').on('click', doAbortKeepWaiting);
     $('#abort-confirm').on('click', doAbort);

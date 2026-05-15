@@ -47,14 +47,14 @@ pt['costs_costLeave'] = 'Deixar o porto custa';
 ko['costs_costLeave'] = '출항 비용';
 
 // Status
-en['status_wait'] = 'Please wait';
-cn['status_wait'] = '请稍候';
-ct['status_wait'] = '請稍候';
-de['status_wait'] = 'Bitte warten';
-es['status_wait'] = 'Espera por favor';
-fr['status_wait'] = 'Veuillez patienter';
-pt['status_wait'] = 'Por favor aguarde';
-ko['status_wait'] = '잠시만 기다려주십시오';
+en['status_wait'] = 'Please wait in the lobby';
+cn['status_wait'] = '请在大厅等候';
+ct['status_wait'] = '請在大廳等候';
+de['status_wait'] = 'Bitte warten Sie in der Lobby';
+es['status_wait'] = 'Por favor espere en el vestíbulo';
+fr['status_wait'] = 'Veuillez patienter dans le salon';
+pt['status_wait'] = 'Por favor aguarde no lobby';
+ko['status_wait'] = '로비에서 기다려주십시오';
 
 en['status_subWait'] = 'Loading the application';
 en['status_subWait'] = 'while other fishers are joining';           // RMK
@@ -320,6 +320,24 @@ es['abort_abort'] = 'Abandonar';
 fr['abort_abort'] = 'Abandonner';
 pt['abort_abort'] = 'Abandonar';
 ko['abort_abort'] = '종료';
+
+en['forceAbort_message'] = 'The maximum waiting time has been reached. Your session has ended.';
+cn['forceAbort_message'] = '已达到最长等待时间，您的会话已结束。';
+ct['forceAbort_message'] = '已達到最長等待時間，您的會話已結束。';
+de['forceAbort_message'] = 'Die maximale Wartezeit wurde erreicht. Ihre Sitzung wurde beendet.';
+es['forceAbort_message'] = 'Se ha alcanzado el tiempo máximo de espera. Su sesión ha finalizado.';
+fr['forceAbort_message'] = "Le temps d'attente maximum a été atteint. Votre session est terminée.";
+pt['forceAbort_message'] = 'O tempo máximo de espera foi atingido. Sua sessão foi encerrada.';
+ko['forceAbort_message'] = '최대 대기 시간에 도달했습니다. 세션이 종료되었습니다.';
+
+en['forceAbort_ok'] = 'OK';
+cn['forceAbort_ok'] = '确定';
+ct['forceAbort_ok'] = '確定';
+de['forceAbort_ok'] = 'OK';
+es['forceAbort_ok'] = 'Aceptar';
+fr['forceAbort_ok'] = 'OK';
+pt['forceAbort_ok'] = 'OK';
+ko['forceAbort_ok'] = '확인';
 
 // Lobby
 en['lobby_header'] = 'Lobby Status';

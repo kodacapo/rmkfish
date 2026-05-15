@@ -60,6 +60,7 @@ function readyTooltips() {
     $('#fisher-class-counts-tooltip').tooltip();
     $('#fisher-class-emojis-tooltip').tooltip();
     $('#fisher-advantage-tooltip').tooltip();
+    $('#clean-abort-tooltip').tooltip();
     $('#fish-value-pay-gap-tooltip').tooltip();
     $('#advantage-emoji-tooltip').tooltip();
     $('#disadvantage-emoji-tooltip').tooltip();
@@ -388,6 +389,25 @@ function validate() {
         errors.push('The text for ending on depletion is missing.');
     }
 
+    if ($('#enable-clean-abort').prop('checked')) {
+        var readRulesTimeout = parseInt($('#read-rules-timeout').val());
+        if (isNaN(readRulesTimeout) || readRulesTimeout < 0 || readRulesTimeout > 10) {
+            errors.push('Read rules timeout must be between 0 and 10 minutes.');
+        }
+        var lobbyWaitTimeout = parseInt($('#lobby-wait-timeout').val());
+        if (isNaN(lobbyWaitTimeout) || lobbyWaitTimeout < 0 || lobbyWaitTimeout > 10) {
+            errors.push('Lobby wait timeout must be between 0 and 10 minutes.');
+        }
+        var promptTimeout = parseInt($('#prompt-timeout').val());
+        if (isNaN(promptTimeout) || promptTimeout < 10 || promptTimeout > 60) {
+            errors.push('Prompt timeout must be between 10 and 60 seconds.');
+        }
+        var maxTimeouts = parseInt($('#max-timeouts').val());
+        if (isNaN(maxTimeouts) || maxTimeouts < 1 || maxTimeouts > 20) {
+            errors.push('Max timeouts must be between 1 and 20.');
+        }
+    }
+
     for (var i = 1; i <= (numFishers - numHumans); i++) {
         if ($('#bot-' + i + '-name').val().length < 1) {
             errors.push('Bot ' + i + ' needs a name.');
@@ -451,10 +471,11 @@ function prepareMicroworldObject() {
     mw.advantageEmoji = $('#advantage-emoji').val();
     mw.disadvantageEmoji = $('#disadvantage-emoji').val();
     mw.redirectURL = $('#redirect-url').val();
-    mw.readRulesTimeout = $('#read-rules-timeout').val() || null;
-    mw.lobbyWaitTimeout = $('#lobby-wait-timeout').val() || null;
-    mw.promptTimeout = $('#prompt-timeout').val() || null;
-    mw.maxTimeouts = $('#max-timeouts').val() || null;
+    mw.cleanAbortEnabled = $('#enable-clean-abort').prop('checked');
+    mw.readRulesTimeout = parseInt($('#read-rules-timeout').val()) || 0;
+    mw.lobbyWaitTimeout = parseInt($('#lobby-wait-timeout').val()) || 0;
+    mw.promptTimeout = parseInt($('#prompt-timeout').val()) || 20;
+    mw.maxTimeouts = parseInt($('#max-timeouts').val()) || 10;
     mw.abortUrl = $('#abort-url').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
@@ -622,6 +643,8 @@ function populatePage() {
     $('#disadvantage-emoji').val(mw.params.disadvantageEmoji || '↓');
     maybeDisableFisherAdvantageControls(mw.params.fisherAdvantageEnabled || false);
     $('#redirect-url').val(mw.params.redirectURL);
+    $('#enable-clean-abort').prop('checked', mw.params.cleanAbortEnabled || false);
+    maybeDisableCleanAbortControls(mw.params.cleanAbortEnabled || false);
     $('#read-rules-timeout').val(mw.params.readRulesTimeout || '');
     $('#lobby-wait-timeout').val(mw.params.lobbyWaitTimeout || '');
     $('#prompt-timeout').val(mw.params.promptTimeout || '');
@@ -793,6 +816,16 @@ function maybeDisableFisherAdvantageControls(enabledflg) {
     }
 }
 
+function maybeDisableCleanAbortControls(enabledflg) {
+    if (enabledflg) {
+        $('.clean-abort-option').removeClass('hide');
+    } else {
+        $('.clean-abort-option').addClass('hide');
+        $('#read-rules-timeout').val(0);
+        $('#lobby-wait-timeout').val(0);
+    }
+}
+
 function maybeDisableProfitControls(disabledflg) {
     $('#show-fisher-balance').prop("disabled", disabledflg);
 }
@@ -878,6 +911,7 @@ function setButtons() {
     $('#show-redirect-explanation').click(showRedirectExplanationText);
     $('#show-fisher-classes-explanation').click(showFisherClassesExplanationText);
     $('#show-fisher-advantage-explanation').click(showFisherAdvantageExplanationText);
+    $('#show-clean-abort-explanation').click(showCleanAbortExplanationText);
 
     initDownloadAll();
 }
@@ -925,6 +959,9 @@ function prepareControls() {
     $('#enable-fisher-advantage').on("click", function () {
         var enabledflg = $(this).is(':checked');
         maybeDisableFisherAdvantageControls(enabledflg);
+    });
+    $('#enable-clean-abort').on("click", function () {
+        maybeDisableCleanAbortControls($(this).is(':checked'));
     });
     function onProfitCheckboxChange() {
         var allDisabled =
@@ -1039,6 +1076,15 @@ function showFisherClassesExplanationText() {
     $('#explain-fisher-classes-modal').modal({ keyboard: false, backdrop: 'static' });
 }
 
+
+// CLEAN ABORT FEATURE
+
+function showCleanAbortExplanationText() {
+    $('#explain-clean-abort-content').load('/explain-clean-abort', function () {
+        $('#explain-clean-abort-modal').modal({ show: true });
+    });
+    $('#explain-clean-abort-modal').modal({ keyboard: false, backdrop: 'static' });
+}
 
 // FISHER ADVANTAGE FEATURE
 

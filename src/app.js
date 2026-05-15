@@ -141,6 +141,9 @@ app.get('/explain-fisher-advantage', function (req, res) {
     myHost: req.protocol + '://' + req.get('host')
   });
 });
+app.get('/explain-clean-abort', function (req, res) {
+  res.render('explain-clean-abort.pug');
+});
 app.get('/new-welcome', function (req, res) {
   res.render('participant-access.pug');
 });

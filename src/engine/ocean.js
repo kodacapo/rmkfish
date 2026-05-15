@@ -412,7 +412,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     fisher.timeoutCount += 1;
     this.log.info('Fisher ' + pId + ' timed out (stage: ' + stage + ', count: ' + fisher.timeoutCount + ')');
     var maxTimeouts = this.microworld.params.maxTimeouts;
-    if (maxTimeouts && fisher.timeoutCount >= maxTimeouts) {
+    if (fisher.timeoutCount >= maxTimeouts) {
       if (fisher.notify) fisher.notify('forceAbort', {});
     } else {
       if (fisher.notify) fisher.notify('abortPrompt', { stage: stage });

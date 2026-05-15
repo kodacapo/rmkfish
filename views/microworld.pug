@@ -182,32 +182,41 @@ html
             .form-group
               .col-md-12
                 input#redirect-url.form-control.to-disable(type='text', value='')
-          h3 Abort / timeout
+          h3 Clean Abort
           .row
+            .form-group
+              .col-md-7
+                label.form-label.checkbox
+                  | Enable&nbsp;
+                  a#clean-abort-tooltip(title='Enable timeouts and abort prompts for participants who take too long to read the rules or wait in the lobby.', data-toggle='tooltip', data-placement='top') clean abort
+                  input#enable-clean-abort.to-disable(type='checkbox', checked=false)
+              .col-md-5
+                button#show-clean-abort-explanation.btn.btn-info(type='button') EXPLAIN
+          .row.clean-abort-option.hide
             .form-group
               label.form-label.col-md-7(for='read-rules-timeout')
-                a#read-rules-timeout-tooltip(title='Minutes before prompting a participant still reading the rules. Leave blank to disable.', data-toggle='tooltip', data-placement='top') Read rules timeout (min)
+                a#read-rules-timeout-tooltip(title='Minutes before prompting a participant still reading the rules. 0 to disable.', data-toggle='tooltip', data-placement='top') Read rules timeout (min)
               .col-md-5
-                input#read-rules-timeout.form-control.to-disable(type='number', min='1', step='1')
-          .row
+                input#read-rules-timeout.form-control.to-disable(type='number', min='0', max='10', step='1')
+          .row.clean-abort-option.hide
             .form-group
               label.form-label.col-md-7(for='lobby-wait-timeout')
-                a#lobby-wait-timeout-tooltip(title='Minutes before prompting a participant waiting in the lobby after reading rules. Leave blank to disable.', data-toggle='tooltip', data-placement='top') Lobby wait timeout (min)
+                a#lobby-wait-timeout-tooltip(title='Minutes before prompting a participant waiting in the lobby. 0 to disable.', data-toggle='tooltip', data-placement='top') Lobby wait timeout (min)
               .col-md-5
-                input#lobby-wait-timeout.form-control.to-disable(type='number', min='1', step='1')
-          .row
+                input#lobby-wait-timeout.form-control.to-disable(type='number', min='0', max='10', step='1')
+          .row.clean-abort-option.hide
             .form-group
               label.form-label.col-md-7(for='prompt-timeout')
-                a#prompt-timeout-tooltip(title='Seconds before auto-redirecting if a participant does not respond to an abort prompt. Also applies to the simulation-over dialog if a redirect URL is set. Leave blank to disable.', data-toggle='tooltip', data-placement='top') Prompt timeout (sec)
+                a#prompt-timeout-tooltip(title='Seconds before auto-acting if a participant does not respond to an abort prompt. Also applies to the simulation-over dialog if a redirect URL is set.', data-toggle='tooltip', data-placement='top') Prompt timeout (sec)
               .col-md-5
-                input#prompt-timeout.form-control.to-disable(type='number', min='1', step='1')
-          .row
+                input#prompt-timeout.form-control.to-disable(type='number', min='10', max='60', step='1')
+          .row.clean-abort-option.hide
             .form-group
               label.form-label.col-md-7(for='max-timeouts')
-                a#max-timeouts-tooltip(title='Maximum number of times a participant may be prompted before the next timeout forces an immediate redirect. Leave blank for no limit.', data-toggle='tooltip', data-placement='top') Max timeouts
+                a#max-timeouts-tooltip(title='Maximum number of times a participant may be prompted before the next timeout forces an immediate exit.', data-toggle='tooltip', data-placement='top') Max timeouts
               .col-md-5
-                input#max-timeouts.form-control.to-disable(type='number', min='1', step='1')
-          .row
+                input#max-timeouts.form-control.to-disable(type='number', min='1', max='20', step='1')
+          .row.clean-abort-option.hide
             .form-group
               label.form-label.col-md-7(for='abort-url') Abort URL
               .col-md-12
@@ -617,4 +626,11 @@ html
           #explain-fisher-advantage-content.modal-body Explanation of fisher advantage features
           .modal-footer
             button#done-fisher-advantage-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
+              | OK
+    #explain-clean-abort-modal.modal.fade(role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          #explain-clean-abort-content.modal-body Explanation of clean abort features
+          .modal-footer
+            button#done-clean-abort-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
               | OK

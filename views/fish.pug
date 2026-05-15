@@ -114,9 +114,17 @@ html
         .modal-content
           .modal-body
             p#abort-prompt-message
-          .modal-footer
             small#abort-countdown
+          .modal-footer
             button#abort-keep-reading.btn.btn-default(type='button')
             button#abort-proceed.btn.btn-primary(type='button')
             button#abort-keep-waiting.btn.btn-default(type='button')
             button#abort-confirm.btn.btn-danger(type='button')
+    #force-abort-modal.modal.fade(role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          .modal-body
+            p#force-abort-message
+            small#force-abort-countdown
+          .modal-footer
+            button#force-abort-ok.btn.btn-primary(type='button')
