@@ -253,6 +253,11 @@ function loadLabels() {
     $('#lobby-status-header').text(msgs.lobby_header);
     $('#lobby-waiting-header').text(msgs.lobby_headerWaiting);
 
+    $('#abort-keep-reading').text(msgs.abort_keepReading);
+    $('#abort-proceed').text(msgs.abort_proceed);
+    $('#abort-keep-waiting').text(msgs.abort_keepWaiting);
+    $('#abort-confirm').text(msgs.abort_abort);
+
     if (!ocean) return;
     $('#profit-season-header').text(ocean.currencySymbol + ' ' + msgs.info_season);
     $('#profit-total-header').text(ocean.currencySymbol + ' ' + msgs.info_overall);
@@ -661,12 +666,12 @@ function renderLobbyTable() {
             rowTime = '---';
             rowSortKey = -1;
         } else if (slot.readyTime !== null) {
-            var readyMins = Math.floor((now - slot.readyTime) / 60000);
+            var readyMins = Math.min(99, Math.max(0, Math.floor((now - slot.readyTime) / 60000)));
             rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReady;
             rowTime = readyMins + ' min';
             rowSortKey = readyMins;
         } else {
-            var entryMins = Math.floor((now - slot.entryTime) / 60000);
+            var entryMins = Math.min(99, Math.max(0, Math.floor((now - slot.entryTime) / 60000)));
             rowStatus = slot.pId === pId ? msgs.info_you : msgs.lobby_fisherReading;
             rowTime = entryMins + ' min';
             rowSortKey = entryMins;
@@ -694,6 +699,94 @@ function startLobbyTimer() {
     if (!lobbyTimer) {
         lobbyTimer = setInterval(renderLobbyTable, 60000);
     }}
+
+////////////////////////////////////////
+//////////// Abort / timeout feature
+////////////////////////////////////////
+
+var abortCountdownInterval = null;
+var simOverTimer = null;
+
+function showAbortPrompt(data) {
+    var stage = data.stage;
+    if (stage === 'readingRules') {
+        $('#abort-prompt-message').text(msgs.abort_readingRulesMessage);
+        $('#abort-keep-reading').show();
+        $('#abort-proceed').show();
+        $('#abort-keep-waiting').hide();
+        $('#rules-modal').modal('hide');
+    } else {
+        $('#abort-prompt-message').text(msgs.abort_lobbyWaitMessage);
+        $('#abort-keep-reading').hide();
+        $('#abort-proceed').hide();
+        $('#abort-keep-waiting').show();
+    }
+    $('#abort-modal').modal({ keyboard: false, backdrop: 'static' });
+    if (ocean.promptTimeout) {
+        startAbortCountdown(ocean.promptTimeout);
+    }
+}
+
+function startAbortCountdown(seconds) {
+    clearAbortCountdown();
+    var remaining = seconds;
+    updateCountdownDisplay(remaining);
+    abortCountdownInterval = setInterval(function() {
+        remaining -= 1;
+        updateCountdownDisplay(remaining);
+        if (remaining <= 0) {
+            clearAbortCountdown();
+            doAbort();
+        }
+    }, 1000);
+}
+
+function updateCountdownDisplay(remaining) {
+    $('#abort-countdown').text('(' + remaining + 's)');
+}
+
+function clearAbortCountdown() {
+    if (abortCountdownInterval) {
+        clearInterval(abortCountdownInterval);
+        abortCountdownInterval = null;
+    }
+    $('#abort-countdown').text('');
+}
+
+function hideAbortModal() {
+    clearAbortCountdown();
+    $('#abort-modal').modal('hide');
+}
+
+function doAbort() {
+    hideAbortModal();
+    socket.emit('abortFish');
+    var url = ocean.abortUrl;
+    if (url && url.length > 0) {
+        for (var key in queryParams) {
+            url = substituteQueryParameter(url, key);
+        }
+        location.href = url;
+    }
+}
+
+function doAbortKeepReading() {
+    hideAbortModal();
+    socket.emit('keepReading');
+    displayRules();
+}
+
+function doAbortProceed() {
+    hideAbortModal();
+    socket.emit('proceedToLobby');
+    $('#lobby-status-box').show();
+    startLobbyTimer();
+}
+
+function doAbortKeepWaiting() {
+    hideAbortModal();
+    socket.emit('keepWaiting');
+}
 
 function changeLocation() {
     var btn = $('#changeLocation');
@@ -795,6 +888,13 @@ function endRun(trigger) {
     socket.disconnect();
     $('#over-text').html(overText);
     $('#over-modal').modal({ keyboard: false, backdrop: 'static' });
+
+    if (ocean.redirectURL && ocean.redirectURL.length > 0 && ocean.promptTimeout) {
+        simOverTimer = setTimeout(function() {
+            simOverTimer = null;
+            maybeRedirect();
+        }, ocean.promptTimeout * 1000);
+    }
 }
 
 // 
@@ -804,6 +904,10 @@ function endRun(trigger) {
 var queryParams = $.url().param();
 
 function maybeRedirect() {
+    if (simOverTimer) {
+        clearTimeout(simOverTimer);
+        simOverTimer = null;
+    }
     // replace the keyword REDIRECTURL with the value of the redirectURL parameter
     var url = ocean.redirectURL;
     if (url && url.length > 0) {
@@ -942,6 +1046,8 @@ socket.on('warn season end', warnSeasonEnd);
 socket.on('end season', endSeason);
 socket.on('end run', endRun);
 socket.on('lobbyStatus', receiveLobbyStatus);
+socket.on('abortPrompt', showAbortPrompt);
+socket.on('forceAbort', doAbort);
 socket.on('pause', pause);
 socket.on('resume', resume);
 socket.on('start asking intent', startAskingIntendedCatch);
@@ -960,6 +1066,10 @@ function main() {
     $('#pause').on('click', requestPause);
     $('#resume').on('click', requestResume);
     $('#finished').on('click', maybeRedirect);
+    $('#abort-keep-reading').on('click', doAbortKeepReading);
+    $('#abort-proceed').on('click', doAbortProceed);
+    $('#abort-keep-waiting').on('click', doAbortKeepWaiting);
+    $('#abort-confirm').on('click', doAbort);
     loadLabels();
     resizeOceanCanvasToScreenWidth();
     $(window).resize(resizeOceanCanvasToScreenWidth);
