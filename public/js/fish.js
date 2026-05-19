@@ -403,7 +403,7 @@ function updateFishers() {
 
     for (var i in st.fishers) {
         var fisher = st.fishers[i];
-        var fisherClass = fisher.params && fisher.params.fClass;
+        var fisherClass = ocean.fisherClassesEnabled && fisher.params && fisher.params.fClass;
         var classEmoji = fisherClass && ocean.fisherClassEmojis && ocean.fisherClassEmojis[fisherClass] ? ocean.fisherClassEmojis[fisherClass] : '';
         var advantageEmoji = '';
         if (ocean.fisherAdvantageEnabled && fisher.params) {
