@@ -728,22 +728,22 @@ function startCountdown(seconds, intervalVar, displaySelector, doneFn) {
 function showAbortPrompt(data) {
     var stage = data.stage;
     if (stage === 'readingRules') {
-        $('#abort-prompt-message').text(msgs.abort_readingRulesMessage);
+        $('#abort-prompt-message').text(ocean.abortReadingRulesText || msgs.abort_readingRulesMessage);
         $('#abort-keep-reading').show();
         $('#abort-proceed').show();
         $('#abort-keep-waiting').hide();
         $('#rules-modal').modal('hide');
     } else {
-        $('#abort-prompt-message').text(msgs.abort_lobbyWaitMessage);
+        $('#abort-prompt-message').text(ocean.abortLobbyWaitText || msgs.abort_lobbyWaitMessage);
         $('#abort-keep-reading').hide();
         $('#abort-proceed').hide();
         $('#abort-keep-waiting').show();
     }
-    $('#abort-modal').modal({ keyboard: false, backdrop: 'static' });
+    $('#maybe-abort-modal').modal({ keyboard: false, backdrop: 'static' });
     if (ocean.promptTimeout) {
         abortCountdownInterval = startCountdown(ocean.promptTimeout, abortCountdownInterval, '#abort-countdown', function() {
-            clearAbortCountdown();
-            doAbort();
+            hideAbortModal();
+            showForceAbortModal();
         });
     }
 }
@@ -758,7 +758,7 @@ function clearAbortCountdown() {
 
 function hideAbortModal() {
     clearAbortCountdown();
-    $('#abort-modal').modal('hide');
+    $('#maybe-abort-modal').modal('hide');
 }
 
 function doAbort() {
@@ -774,7 +774,7 @@ function doAbort() {
 }
 
 function showForceAbortModal() {
-    $('#force-abort-message').text(msgs.forceAbort_message);
+    $('#force-abort-message').text(ocean.forceAbortText || msgs.forceAbort_message);
     $('#force-abort-ok').text(msgs.forceAbort_ok);
     $('#force-abort-modal').modal({ keyboard: false, backdrop: 'static' });
     if (ocean.promptTimeout) {

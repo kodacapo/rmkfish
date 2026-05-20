@@ -477,6 +477,9 @@ function prepareMicroworldObject() {
     mw.promptTimeout = parseInt($('#prompt-timeout').val()) || 20;
     mw.maxTimeouts = parseInt($('#max-timeouts').val()) || 10;
     mw.abortUrl = $('#abort-url').val();
+    mw.abortReadingRulesText = $('#abort-reading-rules-text').val();
+    mw.abortLobbyWaitText = $('#abort-lobby-wait-text').val();
+    mw.forceAbortText = $('#force-abort-text').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.fishValue = $('#fish-value').val();
     mw.profitSeasonDisabled = $('#disable-profit-season').prop('checked');
@@ -645,11 +648,14 @@ function populatePage() {
     $('#redirect-url').val(mw.params.redirectURL);
     $('#enable-clean-abort').prop('checked', mw.params.cleanAbortEnabled || false);
     maybeDisableCleanAbortControls(mw.params.cleanAbortEnabled || false);
-    $('#read-rules-timeout').val(mw.params.readRulesTimeout || '');
-    $('#lobby-wait-timeout').val(mw.params.lobbyWaitTimeout || '');
+    $('#read-rules-timeout').val(mw.params.readRulesTimeout != null ? mw.params.readRulesTimeout : 0);
+    $('#lobby-wait-timeout').val(mw.params.lobbyWaitTimeout != null ? mw.params.lobbyWaitTimeout : 0);
     $('#prompt-timeout').val(mw.params.promptTimeout || '');
     $('#max-timeouts').val(mw.params.maxTimeouts || '');
     $('#abort-url').val(mw.params.abortUrl || '');
+    $('#abort-reading-rules-text').val(mw.params.abortReadingRulesText || '');
+    $('#abort-lobby-wait-text').val(mw.params.abortLobbyWaitText || '');
+    $('#force-abort-text').val(mw.params.forceAbortText || '');
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled);
     $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled);

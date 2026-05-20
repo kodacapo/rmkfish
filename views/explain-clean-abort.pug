@@ -20,19 +20,25 @@ html(lang='en')
         dd.
             How many minutes a participant may spend reading the rules before being prompted.
             Set to 0 to disable this timeout.
+        dt Reading rules timeout message
+        dd Optional custom text for the rules-reading timeout dialog.
         dt Lobby wait timeout (min)
         dd.
             How many minutes a participant may wait in the lobby (after reading the rules)
             before being prompted. Set to 0 to disable this timeout.
+        dt Lobby wait timeout message
+        dd Optional custom text for the lobby-wait timeout dialog.
         dt Prompt timeout (sec)
         dd.
-            How many seconds a participant has to respond to an abort prompt before FISH
-            acts automatically (proceeding with the default action). Also controls how long
-            the session-over and force-abort dialogs wait before redirecting.
+            How many seconds a participant has to respond to a timeout prompt before FISH
+            escalates to the force-abort dialog. Also controls how long the session-over
+            and force-abort dialogs wait before redirecting.
         dt Max timeouts
         dd.
             How many times a participant may be prompted before the next timeout results
-            in an immediate forced exit, without a prompt.
+            in an immediate forced exit.
+        dt Force abort message
+        dd Optional custom text for the force-abort dialog.
         dt Abort URL
         dd.
             The URL to redirect to when a participant is aborted (either voluntarily or forced).
@@ -40,7 +46,7 @@ html(lang='en')
             variable substitution as the Redirection URL.
     h4 Prompts
     p.
-        When a timeout occurs, the participant sees a modal dialog with options appropriate
+        When a timeout occurs, the participant sees a dialog with options appropriate
         to their current stage:
     dl
         dt While reading rules
@@ -48,8 +54,14 @@ html(lang='en')
         dt While waiting in the lobby
         dd Keep Waiting or Abort
     p.
-        If the participant does not respond within the Prompt timeout, FISH takes the default
-        action automatically (counting as one timeout).
+        If the participant does not respond within the Prompt timeout, the dialog closes
+        and the force-abort dialog appears. The participant must acknowledge it (or wait
+        for its own countdown) before being redirected.
     p.
-        Once a participant reaches the Max timeouts limit, the next timeout results in an
-        immediate forced exit with a notification dialog but no choice of action.
+        Once a participant reaches the Max timeouts limit, the next timeout triggers the
+        force-abort dialog immediately, with no prior prompt.
+    p.
+        Each dialog has an optional custom message field. Leave it blank to use the system
+        default, which is automatically translated into the participant's language. Supply
+        your own text to provide study-specific context — for example, explaining what
+        happens to the participant's data or where they will be redirected.

@@ -200,14 +200,24 @@ html
                 input#read-rules-timeout.form-control.to-disable(type='number', min='0', max='10', step='1')
           .row.clean-abort-option.hide
             .form-group
+              label.form-label.col-md-12(for='abort-reading-rules-text') Reading rules timeout message
+              .col-md-12
+                textarea#abort-reading-rules-text.form-control.to-disable(rows='3', placeholder='Leave blank to use default message')
+          .row.clean-abort-option.hide
+            .form-group
               label.form-label.col-md-7(for='lobby-wait-timeout')
                 a#lobby-wait-timeout-tooltip(title='Minutes before prompting a participant waiting in the lobby. 0 to disable.', data-toggle='tooltip', data-placement='top') Lobby wait timeout (min)
               .col-md-5
                 input#lobby-wait-timeout.form-control.to-disable(type='number', min='0', max='10', step='1')
           .row.clean-abort-option.hide
             .form-group
+              label.form-label.col-md-12(for='abort-lobby-wait-text') Lobby wait timeout message
+              .col-md-12
+                textarea#abort-lobby-wait-text.form-control.to-disable(rows='3', placeholder='Leave blank to use default message')
+          .row.clean-abort-option.hide
+            .form-group
               label.form-label.col-md-7(for='prompt-timeout')
-                a#prompt-timeout-tooltip(title='Seconds before auto-acting if a participant does not respond to an abort prompt. Also applies to the simulation-over dialog if a redirect URL is set.', data-toggle='tooltip', data-placement='top') Prompt timeout (sec)
+                a#prompt-timeout-tooltip(title='Seconds before auto-acting if a participant does not respond to a timeout prompt. Also applies to the simulation-over dialog if a redirect URL is set.', data-toggle='tooltip', data-placement='top') Prompt timeout (sec)
               .col-md-5
                 input#prompt-timeout.form-control.to-disable(type='number', min='10', max='60', step='1')
           .row.clean-abort-option.hide
@@ -216,6 +226,11 @@ html
                 a#max-timeouts-tooltip(title='Maximum number of times a participant may be prompted before the next timeout forces an immediate exit.', data-toggle='tooltip', data-placement='top') Max timeouts
               .col-md-5
                 input#max-timeouts.form-control.to-disable(type='number', min='1', max='20', step='1')
+          .row.clean-abort-option.hide
+            .form-group
+              label.form-label.col-md-12(for='force-abort-text') Force abort message
+              .col-md-12
+                textarea#force-abort-text.form-control.to-disable(rows='3', placeholder='Leave blank to use default message')
           .row.clean-abort-option.hide
             .form-group
               label.form-label.col-md-7(for='abort-url') Abort URL
