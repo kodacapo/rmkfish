@@ -25,12 +25,29 @@ exports.engine = function engine(io, ioAdmin) {
 
       var myOId = newOId;
       var myPId = clientPId;
+
+      // Capture the previous socket ID before setFisherNotifier overwrites it
+      var prevSocketId = om.oceans[myOId].getSocketId(myPId);
+
       socket.join(myOId);
       socket.emit('ocean', om.oceans[myOId].getParams());
       io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
-      om.oceans[myOId].setFisherNotifier(myPId, function(event, data) {
+
+      // Update ownership first so any incoming disconnect from the old socket
+      // is recognised as stale before we tell it to go away
+      om.oceans[myOId].setFisherNotifier(myPId, socket.id, function(event, data) {
         socket.emit(event, data);
       });
+
+      // Now displace the previous socket (ownership already transferred above)
+      if (prevSocketId && prevSocketId !== socket.id) {
+        var prevSocket = io.sockets.connected[prevSocketId];
+        if (prevSocket) {
+          prevSocket.emit('displaced', {});
+          prevSocket.leave(myOId);
+          log.debug('Displaced stale socket ' + prevSocketId + ' for ' + myPId + ' from room ' + myOId);
+        }
+      }
 
       // Define handlers as named functions so we can remove them on disconnect
       // This prevents memory leaks from accumulated event listeners
@@ -131,11 +148,15 @@ exports.engine = function engine(io, ioAdmin) {
           ioAdmin.in(ocean.microworld.experimenter._id.toString()).emit('simulationInterrupt', simulationData);
         }
 
-        // Only try to remove fisher if ocean still exists
+        // Only try to remove fisher if ocean still exists and this socket is still the active one
         if (om.oceans[myOId]) {
-          om.removeFisherFromOcean(myOId, myPId);
-          if (om.oceans[myOId].isInSetup()) {
-            io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+          if (!om.oceans[myOId].isCurrentSocket(myPId, socket.id)) {
+            log.debug('Stale socket disconnect for ' + myPId + ' in ocean ' + myOId + ' — skipping removal');
+          } else {
+            om.removeFisherFromOcean(myOId, myPId);
+            if (om.oceans[myOId] && om.oceans[myOId].isInSetup()) {
+              io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+            }
           }
         } else {
           log.debug('Disconnect event for participant ' + myPId + ' but ocean ' + myOId + ' no longer exists');

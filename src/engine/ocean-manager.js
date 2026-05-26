@@ -60,7 +60,15 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
     for (var i in oKeys) {
       oId = oKeys[i];
       var ocean = this.oceans[oId];
-      if (ocean.microworld._id.toString() === mwId && ocean.hasRoom()) {
+      if (ocean.microworld._id.toString() !== mwId) continue;
+
+      // Reconnect: fisher is already in this ocean (e.g. browser refresh or second tab)
+      if (ocean.findFisherIndex(pId) !== null) {
+        log.info('Fisher ' + pId + ' reconnected to existing ocean ' + oId);
+        return cb(oId);
+      }
+
+      if (ocean.hasRoom()) {
         var resolvedClass = resolveClass(ocean.microworld.params, pParams);
         if (resolvedClass === null || ocean.needsClass(resolvedClass)) {
           ocean.addFisher(pId, pParams);
