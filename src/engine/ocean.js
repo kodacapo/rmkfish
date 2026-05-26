@@ -344,12 +344,24 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   // Abort / timeout methods
   ////////////////////////////
 
-  this.setFisherNotifier = function(pId, notifyFn) {
+  this.setFisherNotifier = function(pId, socketId, notifyFn) {
     var idx = this.findFisherIndex(pId);
     if (idx !== null) {
       this.fishers[idx].notify = notifyFn;
+      this.fishers[idx].socketId = socketId;
       this.startReadRulesTimer(pId);
     }
+  };
+
+  this.isCurrentSocket = function(pId, socketId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return false;
+    return this.fishers[idx].socketId === socketId;
+  };
+
+  this.getSocketId = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    return idx !== null ? this.fishers[idx].socketId : null;
   };
 
   this.startReadRulesTimer = function(pId) {

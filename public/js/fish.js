@@ -1085,6 +1085,17 @@ socket.on('joinError', function(data) {
     alert(data.message);
 });
 
+socket.on('displaced', function() {
+    if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
+    clearAbortCountdown();
+    clearForceAbortCountdown();
+    hideAbortModal();
+    disableButtons();
+    $('#lobby-status-box').hide();
+    $('#displaced-notice').show();
+    socket.disconnect();
+});
+
 function main() {
     hideCatchIntentColumn();
     $('#read-rules').on('click', readRules);
