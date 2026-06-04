@@ -108,6 +108,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       var fisher = this.fishers[i];
       if (fisher.isHuman() && fisher.name === pId) {
         this.resume(pId); // just in case this fisher paused the game just before leaving!
+        if (this.classesNeeded && fisher.params.fClass) {
+          this.classesNeeded[fisher.params.fClass] = (this.classesNeeded[fisher.params.fClass] || 0) + 1;
+        }
         this.fishers.splice(i, 1);
         this.log.info('Human fisher ' + pId + ' left.');
       }
