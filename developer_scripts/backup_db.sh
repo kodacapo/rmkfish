@@ -10,12 +10,12 @@ LAST_RUN_FILE="$HOME/.fish_last_backup_run_id"
 DROPBOX_DEST="dropbox:/fish-backups"
 
 LATEST_ID=$(mongosh fish --quiet --eval \
-  "db.runs.findOne({}, {projection: {_id:1}, sort: {_id:-1}})?._id?.toString() ?? ''" \
-  2>/dev/null || echo "")
+  "const r = db.runs.findOne({}, {projection: {_id:1}, sort: {_id:-1}}); print(r ? r._id.toString() : '')" \
+  2>/dev/null | tail -1 || echo "")
 
 LAST_ID=$(cat "$LAST_RUN_FILE" 2>/dev/null || echo "")
 
-if [ -n "$LATEST_ID" ] && [ "$LATEST_ID" = "$LAST_ID" ]; then
+if [ "$LATEST_ID" = "$LAST_ID" ]; then
   echo "No new runs since last backup. Skipping."
   exit 0
 fi
@@ -36,6 +36,6 @@ rclone copy "$ARCHIVE" "$DROPBOX_DEST"
 echo "Cleaning up local files..."
 rm -rf "$BACKUP_DIR" "$ARCHIVE"
 
-[ -n "$LATEST_ID" ] && echo "$LATEST_ID" > "$LAST_RUN_FILE"
+echo "$LATEST_ID" > "$LAST_RUN_FILE"
 
 echo "Done. Backup saved to $DROPBOX_DEST/$BACKUP_NAME.tar.gz"
