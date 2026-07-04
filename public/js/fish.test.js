@@ -77,6 +77,23 @@ describe('Fish (jsdom)', () => {
       }
 
       if (typeof selector === 'string') {
+        if (/^<\w+>$/.test(selector)) {
+          const el = document.createElement(selector.slice(1, -1));
+          return {
+            text: function(val) {
+              if (val !== undefined) { el.textContent = String(val); return this; }
+              return el.textContent;
+            },
+            html: function(val) {
+              if (val !== undefined) { el.innerHTML = val; return this; }
+              return el.innerHTML;
+            },
+            attr: function(name, val) {
+              if (val !== undefined) { el.setAttribute(name, val); return this; }
+              return el.getAttribute(name);
+            }
+          };
+        }
         const elements = Array.from(document.querySelectorAll(selector));
         const element = elements[0] || null;
         return {
@@ -286,7 +303,10 @@ describe('Fish (jsdom)', () => {
         buttons_pause: 'Pause',
         buttons_resume: 'Resume',
         warning_seasonStart: 'Season starting!',
-        warning_seasonEnd: 'Season ending!'
+        warning_seasonEnd: 'Season ending!',
+        lobby_fisherMissing: 'Fisher missing',
+        lobby_fisherReady: 'Fisher ready and waiting',
+        lobby_fisherReading: 'Fisher reading rules'
       },
       es: {
         info_intent: 'Captura Prevista',

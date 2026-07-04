@@ -493,18 +493,18 @@ describe('Engine - Ocean', function() {
   describe('bot lobby timestamps', function() {
     it('should offset bot entryTime by k minutes for the kth bot', function(done) {
       var now = Date.now();
-      // mw has 3 bots (indices 0, 1, 2) → offsets 1, 2, 3 minutes
-      o.fishers[0].entryTime.should.be.within(now - 61000, now - 59000);
-      o.fishers[1].entryTime.should.be.within(now - 121000, now - 119000);
-      o.fishers[2].entryTime.should.be.within(now - 181000, now - 179000);
+      // formula: (botIdx * 60 + rand * 60) * 1000, so bot k falls in [k*60s, (k+1)*60s] before now
+      o.fishers[0].entryTime.should.be.within(now - 61000, now + 1000);
+      o.fishers[1].entryTime.should.be.within(now - 121000, now - 59000);
+      o.fishers[2].entryTime.should.be.within(now - 181000, now - 119000);
       return done();
     });
 
     it('should offset bot readyTime by k minutes for the kth bot', function(done) {
       var now = Date.now();
-      o.fishers[0].readyTime.should.be.within(now - 61000, now - 59000);
-      o.fishers[1].readyTime.should.be.within(now - 121000, now - 119000);
-      o.fishers[2].readyTime.should.be.within(now - 181000, now - 179000);
+      o.fishers[0].readyTime.should.be.within(now - 61000, now + 1000);
+      o.fishers[1].readyTime.should.be.within(now - 121000, now - 59000);
+      o.fishers[2].readyTime.should.be.within(now - 181000, now - 119000);
       return done();
     });
   });
