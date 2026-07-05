@@ -258,13 +258,13 @@ pt['info_overall'] = 'Total';
 ko['info_overall'] = '총';
 
 en['info_payGap'] = 'Pay Gap';
-cn['info_payGap'] = 'Pay Gap';
-ct['info_payGap'] = 'Pay Gap';
-de['info_payGap'] = 'Pay Gap';
-es['info_payGap'] = 'Pay Gap';
-fr['info_payGap'] = 'Pay Gap';
-pt['info_payGap'] = 'Pay Gap';
-ko['info_payGap'] = 'Pay Gap';
+cn['info_payGap'] = '薪酬差距';
+ct['info_payGap'] = '薪酬差距';
+de['info_payGap'] = 'Lohngefälle';
+es['info_payGap'] = 'Brecha salarial';
+fr['info_payGap'] = 'Écart salarial';
+pt['info_payGap'] = 'Hiato salarial';
+ko['info_payGap'] = '임금 격차';
 
 // Abort / timeout
 en['abort_readingRulesMessage'] = "You've been reading the rules for a while. Would you like to continue reading, proceed to the lobby, or leave the simulation?";
