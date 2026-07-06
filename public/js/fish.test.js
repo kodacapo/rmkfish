@@ -1013,6 +1013,40 @@ describe('Fish (jsdom)', () => {
         cost.style.display.should.equal('none');
       });
 
+      describe('with fisher advantage', () => {
+        afterEach(() => {
+          window.pParams.fHasAdvantage = false;
+        });
+
+        it('should show reduced costs for an advantaged fisher', () => {
+          window.ocean.fisherAdvantageEnabled = true;
+          window.ocean.costDeparture = 1.0;
+          window.ocean.costDepartureReduction = 0.4;
+          window.ocean.costCast = 0.5;
+          window.ocean.costCastReduction = 0.2;
+          window.ocean.costSecond = 0.1;
+          window.ocean.costSecondReduction = 0.06;
+          window.pParams.fHasAdvantage = true;
+
+          window.updateCosts();
+
+          document.querySelector('#cost-departure').textContent.should.match(/\$0\.6/);
+          document.querySelector('#cost-cast').textContent.should.match(/\$0\.3/);
+          document.querySelector('#cost-second').textContent.should.match(/\$0\.04/);
+        });
+
+        it('should show full costs for a fisher without advantage', () => {
+          window.ocean.fisherAdvantageEnabled = true;
+          window.ocean.costDeparture = 1.0;
+          window.ocean.costDepartureReduction = 0.4;
+          window.pParams.fHasAdvantage = false;
+
+          window.updateCosts();
+
+          document.querySelector('#cost-departure').textContent.should.match(/\$1/);
+        });
+      });
+
       it('should return early if ocean is not defined', () => {
         window.ocean = null;
 

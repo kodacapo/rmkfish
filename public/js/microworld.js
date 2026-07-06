@@ -62,6 +62,9 @@ function readyTooltips() {
     $('#fisher-advantage-tooltip').tooltip();
     $('#clean-abort-tooltip').tooltip();
     $('#fish-value-pay-gap-tooltip').tooltip();
+    $('#cost-cast-reduction-tooltip').tooltip();
+    $('#cost-departure-reduction-tooltip').tooltip();
+    $('#cost-second-reduction-tooltip').tooltip();
     $('#advantage-emoji-tooltip').tooltip();
     $('#disadvantage-emoji-tooltip').tooltip();
 }
@@ -371,6 +374,27 @@ function validate() {
         if (isNaN(payGap) || payGap < 0.01) {
             errors.push('The fish value pay gap must be at least 0.01.');
         }
+
+        var costCastReduction = parseFloat($('#cost-cast-reduction').val());
+        if (isNaN(costCastReduction) || costCastReduction < 0) {
+            errors.push('The cost to attempt to fish reduction cannot be negative.');
+        } else if (costCastReduction > parseFloat($('#cost-cast').val())) {
+            errors.push('The cost to attempt to fish reduction cannot exceed the cost to attempt to fish.');
+        }
+
+        var costDepartureReduction = parseFloat($('#cost-departure-reduction').val());
+        if (isNaN(costDepartureReduction) || costDepartureReduction < 0) {
+            errors.push('The cost to set sail reduction cannot be negative.');
+        } else if (costDepartureReduction > parseFloat($('#cost-departure').val())) {
+            errors.push('The cost to set sail reduction cannot exceed the cost to set sail.');
+        }
+
+        var costSecondReduction = parseFloat($('#cost-second-reduction').val());
+        if (isNaN(costSecondReduction) || costSecondReduction < 0) {
+            errors.push('The cost per second at sea reduction cannot be negative.');
+        } else if (costSecondReduction > parseFloat($('#cost-second').val())) {
+            errors.push('The cost per second at sea reduction cannot exceed the cost per second at sea.');
+        }
     }
 
     if (parseInt($('#catch-intent-dialog-duration').val()) < 0) {
@@ -468,6 +492,9 @@ function prepareMicroworldObject() {
     mw.fisherClassEmojis = parseFisherClassEmojis($('#fisher-class-emojis').val(), classNames);
     mw.fisherAdvantageEnabled = $('#enable-fisher-advantage').prop('checked');
     mw.fishValuePayGap = $('#fish-value-pay-gap').val();
+    mw.costCastReduction = $('#cost-cast-reduction').val();
+    mw.costDepartureReduction = $('#cost-departure-reduction').val();
+    mw.costSecondReduction = $('#cost-second-reduction').val();
     mw.advantageEmoji = $('#advantage-emoji').val();
     mw.disadvantageEmoji = $('#disadvantage-emoji').val();
     mw.redirectURL = $('#redirect-url').val();
@@ -642,6 +669,9 @@ function populatePage() {
     maybeDisableFisherClassControls(mw.params.fisherClassesEnabled || false);
     $('#enable-fisher-advantage').prop('checked', mw.params.fisherAdvantageEnabled || false);
     $('#fish-value-pay-gap').val(mw.params.fishValuePayGap || 0);
+    $('#cost-cast-reduction').val(mw.params.costCastReduction || 0);
+    $('#cost-departure-reduction').val(mw.params.costDepartureReduction || 0);
+    $('#cost-second-reduction').val(mw.params.costSecondReduction || 0);
     $('#advantage-emoji').val(mw.params.advantageEmoji || '↑');
     $('#disadvantage-emoji').val(mw.params.disadvantageEmoji || '↓');
     maybeDisableFisherAdvantageControls(mw.params.fisherAdvantageEnabled || false);

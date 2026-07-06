@@ -326,6 +326,24 @@ html
                 input#fish-value-pay-gap.form-control.to-disable(type='number', min='0.01', step='0.01', value='0.01')
           .row.fisher-advantage-option.hide
             .form-group
+              label.form-label.col-md-6(for='cost-cast-reduction')
+                a#cost-cast-reduction-tooltip(title='Reduction in the cost to attempt to fish for advantaged fishers', data-toggle='tooltip', data-placement='top') Cost to attempt to fish reduction
+              .col-md-6
+                input#cost-cast-reduction.form-control.to-disable(type='number', min='0', step='0.01', value='0.00')
+          .row.fisher-advantage-option.hide
+            .form-group
+              label.form-label.col-md-6(for='cost-departure-reduction')
+                a#cost-departure-reduction-tooltip(title='Reduction in the cost to set sail for advantaged fishers', data-toggle='tooltip', data-placement='top') Cost to set sail reduction
+              .col-md-6
+                input#cost-departure-reduction.form-control.to-disable(type='number', min='0', step='0.01', value='0.00')
+          .row.fisher-advantage-option.hide
+            .form-group
+              label.form-label.col-md-6(for='cost-second-reduction')
+                a#cost-second-reduction-tooltip(title='Reduction in the cost per second at sea for advantaged fishers', data-toggle='tooltip', data-placement='top') Cost per second at sea reduction
+              .col-md-6
+                input#cost-second-reduction.form-control.to-disable(type='number', min='0', step='0.01', value='0.00')
+          .row.fisher-advantage-option.hide
+            .form-group
               .col-md-10
                 label.form-label.checkbox
                   | Enable&nbsp;

@@ -399,4 +399,127 @@ describe('Engine - Fisher', function() {
       return done();
     });
   });
+
+  function makeOcean(params) {
+    return {
+      log: {
+        info: function() {},
+        error: function() {},
+      },
+      microworld: {
+        params: params,
+      },
+    };
+  }
+
+  describe('hasAdvantage()', function() {
+    it('should return false when fisher advantage is disabled', function(done) {
+      var ocean = makeOcean({ fisherAdvantageEnabled: false });
+      var f = new Fisher('Mr. Tuna', 'bot', { fHasAdvantage: true }, ocean);
+      f.hasAdvantage().should.equal(false);
+      return done();
+    });
+
+    it('should return false when the fisher does not have advantage', function(done) {
+      var ocean = makeOcean({ fisherAdvantageEnabled: true });
+      var f = new Fisher('Mr. Tuna', 'bot', { fHasAdvantage: false }, ocean);
+      f.hasAdvantage().should.equal(false);
+      return done();
+    });
+
+    it('should return true when advantage is enabled and the fisher has it', function(done) {
+      var ocean = makeOcean({ fisherAdvantageEnabled: true });
+      var f = new Fisher('Mr. Tuna', 'bot', { fHasAdvantage: true }, ocean);
+      f.hasAdvantage().should.equal(true);
+      return done();
+    });
+  });
+
+  describe('goToSea()', function() {
+    it('should charge the full departure cost to a fisher without advantage', function(done) {
+      var ocean = makeOcean({
+        fisherAdvantageEnabled: true,
+        costDeparture: 1.0,
+        costDepartureReduction: 0.4,
+      });
+      var f = new Fisher('Mr. Tuna', 'human', { fHasAdvantage: false }, ocean);
+      f.prepareFisherForSeason(0);
+      f.goToSea();
+      f.money.should.equal(-1.0);
+      return done();
+    });
+
+    it('should charge the reduced departure cost to an advantaged fisher', function(done) {
+      var ocean = makeOcean({
+        fisherAdvantageEnabled: true,
+        costDeparture: 1.0,
+        costDepartureReduction: 0.4,
+      });
+      var f = new Fisher('Mr. Tuna', 'human', { fHasAdvantage: true }, ocean);
+      f.prepareFisherForSeason(0);
+      f.goToSea();
+      f.money.should.equal(-0.6);
+      return done();
+    });
+  });
+
+  describe('tryToFish()', function() {
+    it('should charge the full cast cost to a fisher without advantage', function(done) {
+      var ocean = makeOcean({
+        fisherAdvantageEnabled: true,
+        costCast: 0.5,
+        costCastReduction: 0.2,
+      });
+      ocean.isSuccessfulCastAttempt = function() { return false; };
+      var f = new Fisher('Mr. Tuna', 'human', { fHasAdvantage: false }, ocean);
+      f.prepareFisherForSeason(0);
+      f.tryToFish();
+      f.money.should.equal(-0.5);
+      return done();
+    });
+
+    it('should charge the reduced cast cost to an advantaged fisher', function(done) {
+      var ocean = makeOcean({
+        fisherAdvantageEnabled: true,
+        costCast: 0.5,
+        costCastReduction: 0.2,
+      });
+      ocean.isSuccessfulCastAttempt = function() { return false; };
+      var f = new Fisher('Mr. Tuna', 'human', { fHasAdvantage: true }, ocean);
+      f.prepareFisherForSeason(0);
+      f.tryToFish();
+      f.money.should.equal(-0.3);
+      return done();
+    });
+  });
+
+  describe('runBot() per-second cost', function() {
+    it('should charge the full per-second cost to a fisher at sea without advantage', function(done) {
+      var ocean = makeOcean({
+        fisherAdvantageEnabled: true,
+        costSecond: 0.1,
+        costSecondReduction: 0.06,
+      });
+      var f = new Fisher('Mr. Tuna', 'human', { fHasAdvantage: false }, ocean);
+      f.prepareFisherForSeason(0);
+      f.status = 'At sea';
+      f.runBot();
+      f.money.should.equal(-0.1);
+      return done();
+    });
+
+    it('should charge the reduced per-second cost to an advantaged fisher at sea', function(done) {
+      var ocean = makeOcean({
+        fisherAdvantageEnabled: true,
+        costSecond: 0.1,
+        costSecondReduction: 0.06,
+      });
+      var f = new Fisher('Mr. Tuna', 'human', { fHasAdvantage: true }, ocean);
+      f.prepareFisherForSeason(0);
+      f.status = 'At sea';
+      f.runBot();
+      f.money.should.be.approximately(-0.04, 0.0001);
+      return done();
+    });
+  });
 });

@@ -176,19 +176,31 @@ exports.Fisher = function Fisher(name, type, params, o) {
     }
   };
 
+  this.hasAdvantage = function () {
+    return !!(this.ocean.microworld.params.fisherAdvantageEnabled &&
+      this.params && this.params.fHasAdvantage);
+  };
+
   this.goToSea = function () {
     this.status = 'At sea';
-    this.changeMoney(-this.ocean.microworld.params.costDeparture);
+    var costDeparture = this.ocean.microworld.params.costDeparture;
+    if (this.hasAdvantage()) {
+      costDeparture -= (this.ocean.microworld.params.costDepartureReduction || 0);
+    }
+    this.changeMoney(-costDeparture);
     this.ocean.log.info('Fisher ' + this.name + ' sailed to sea.');
   };
 
   this.tryToFish = function () {
-    this.changeMoney(-this.ocean.microworld.params.costCast);
+    var costCast = this.ocean.microworld.params.costCast;
+    if (this.hasAdvantage()) {
+      costCast -= (this.ocean.microworld.params.costCastReduction || 0);
+    }
+    this.changeMoney(-costCast);
     this.incrementCast();
     if (this.ocean.isSuccessfulCastAttempt()) {
       var fishValue = this.ocean.microworld.params.fishValue;
-      if (this.ocean.microworld.params.fisherAdvantageEnabled &&
-          this.params && this.params.fHasAdvantage) {
+      if (this.hasAdvantage()) {
         fishValue += (this.ocean.microworld.params.fishValuePayGap || 0);
       }
       this.changeMoney(fishValue);
@@ -206,7 +218,13 @@ exports.Fisher = function Fisher(name, type, params, o) {
   }
 
   this.runBot = function () {
-    if (this.status === 'At sea') this.changeMoney(-this.ocean.microworld.params.costSecond);
+    if (this.status === 'At sea') {
+      var costSecond = this.ocean.microworld.params.costSecond;
+      if (this.hasAdvantage()) {
+        costSecond -= (this.ocean.microworld.params.costSecondReduction || 0);
+      }
+      this.changeMoney(-costSecond);
+    }
 
     if (!this.isBot()) return;
 

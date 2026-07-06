@@ -370,23 +370,37 @@ function updateCosts() {
         $('#revenue-fish').hide();
     }
 
-    if (ocean.costDeparture !== 0) {
+    var hasAdvantage = ocean.fisherAdvantageEnabled && pParams.fHasAdvantage;
+
+    var displayCostDeparture = ocean.costDeparture;
+    if (hasAdvantage) {
+        displayCostDeparture -= (ocean.costDepartureReduction || 0);
+    }
+    if (displayCostDeparture !== 0) {
         $('#cost-departure').text(msgs.costs_costLeave + ' ' +
-            ocean.currencySymbol + ocean.costDeparture);
+            ocean.currencySymbol + displayCostDeparture);
     } else {
         $('#cost-departure').hide();
     }
 
-    if (ocean.costCast !== 0) {
+    var displayCostCast = ocean.costCast;
+    if (hasAdvantage) {
+        displayCostCast -= (ocean.costCastReduction || 0);
+    }
+    if (displayCostCast !== 0) {
         $('#cost-cast').text(msgs.costs_costCast + ' ' +
-            ocean.currencySymbol + ocean.costCast);
+            ocean.currencySymbol + displayCostCast);
     } else {
         $('#cost-cast').hide();
     }
 
-    if (ocean.costSecond !== 0) {
+    var displayCostSecond = ocean.costSecond;
+    if (hasAdvantage) {
+        displayCostSecond -= (ocean.costSecondReduction || 0);
+    }
+    if (displayCostSecond !== 0) {
         $('#cost-second').text(msgs.costs_costSecond + ' ' +
-            ocean.currencySymbol + ocean.costSecond);
+            ocean.currencySymbol + displayCostSecond);
     } else {
         $('#cost-second').hide();
     }
