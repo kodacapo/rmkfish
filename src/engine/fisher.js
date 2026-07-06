@@ -20,6 +20,9 @@ exports.Fisher = function Fisher(name, type, params, o) {
   this.startMoney = 0;
   this.money = 0;
   this.totalFishCaught = 0;
+  this.totalCasts = 0;
+  this.totalDepartures = 0;
+  this.totalSecondsAtSea = 0;
   this.status = 'At port';
   this.season = 0;
 
@@ -151,6 +154,7 @@ exports.Fisher = function Fisher(name, type, params, o) {
 
   this.incrementCast = function () {
     try {
+      this.totalCasts++;
       this.seasonData[this.season].actualCasts++;
     } catch (error) {
       this.ocean.log.error('Attempt to `incrementCast` failed for fisher ' + this.name + ' on season ' + this.season);
@@ -183,6 +187,7 @@ exports.Fisher = function Fisher(name, type, params, o) {
 
   this.goToSea = function () {
     this.status = 'At sea';
+    this.totalDepartures++;
     var costDeparture = this.ocean.microworld.params.costDeparture;
     if (this.hasAdvantage()) {
       costDeparture -= (this.ocean.microworld.params.costDepartureReduction || 0);
@@ -219,6 +224,7 @@ exports.Fisher = function Fisher(name, type, params, o) {
 
   this.runBot = function () {
     if (this.status === 'At sea') {
+      this.totalSecondsAtSea++;
       var costSecond = this.ocean.microworld.params.costSecond;
       if (this.hasAdvantage()) {
         costSecond -= (this.ocean.microworld.params.costSecondReduction || 0);

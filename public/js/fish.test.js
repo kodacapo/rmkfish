@@ -1055,6 +1055,64 @@ describe('Fish (jsdom)', () => {
       });
     });
 
+    describe('computeProfitGap()', () => {
+      beforeEach(() => {
+        window.ocean.fisherAdvantageEnabled = true;
+        window.ocean.fishValue = 3;
+        window.ocean.fishValuePayGap = 1;
+        window.ocean.costCast = 1;
+        window.ocean.costCastReduction = 0.5;
+        window.ocean.costDeparture = 1;
+        window.ocean.costDepartureReduction = 0.25;
+        window.ocean.costSecond = 0;
+        window.ocean.costSecondReduction = 0;
+      });
+
+      it('should compute a negative gap for a non-advantaged fisher (reproduces microworld YJ4HBN)', () => {
+        const fisher = {
+          params: { fHasAdvantage: false },
+          money: 9.00,
+          totalFishCaught: 5,
+          totalCasts: 5,
+          totalDepartures: 1,
+          totalSecondsAtSea: 0
+        };
+
+        const gap = window.computeProfitGap(fisher);
+
+        gap.should.equal('-7.75');
+      });
+
+      it('should compute the mirror-image positive gap for an advantaged fisher with the same activity', () => {
+        const fisher = {
+          params: { fHasAdvantage: true },
+          money: 16.75,
+          totalFishCaught: 5,
+          totalCasts: 5,
+          totalDepartures: 1,
+          totalSecondsAtSea: 0
+        };
+
+        const gap = window.computeProfitGap(fisher);
+
+        gap.should.equal('7.75');
+      });
+
+      it('should not throw when seasonData contains the season-0 null placeholder (reproduces live display bug)', () => {
+        const fisher = {
+          params: { fHasAdvantage: false },
+          money: 9.00,
+          totalFishCaught: 5,
+          totalCasts: 5,
+          totalDepartures: 1,
+          totalSecondsAtSea: 0,
+          seasonData: [null, { actualCasts: 5 }]
+        };
+
+        (() => window.computeProfitGap(fisher)).should.not.throw();
+      });
+    });
+
     describe('updateRulesText()', () => {
       it('should set rules text with line breaks converted to <br />', () => {
         window.ocean.preparationText = 'Line 1\nLine 2\nLine 3';

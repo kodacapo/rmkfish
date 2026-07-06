@@ -389,6 +389,9 @@ describe('Engine - Ocean', function() {
       st.fishers.length.should.equal(3);
       st.fishers[0].name.should.equal('bot 1');
       st.fishers[0].seasonData[1].fishCaught.should.equal(0);
+      st.fishers[0].totalCasts.should.equal(0);
+      st.fishers[0].totalDepartures.should.equal(0);
+      st.fishers[0].totalSecondsAtSea.should.equal(0);
       return done();
     });
   });

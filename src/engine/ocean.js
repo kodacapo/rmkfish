@@ -277,6 +277,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
         seasonData: this.fishers[i].seasonData,
         money: this.fishers[i].money,
         totalFishCaught: this.fishers[i].totalFishCaught,
+        totalCasts: this.fishers[i].totalCasts,
+        totalDepartures: this.fishers[i].totalDepartures,
+        totalSecondsAtSea: this.fishers[i].totalSecondsAtSea,
         status: this.fishers[i].status,
       });
     }

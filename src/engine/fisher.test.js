@@ -461,6 +461,17 @@ describe('Engine - Fisher', function() {
       f.money.should.equal(-0.6);
       return done();
     });
+
+    it('should increment totalDepartures each time the fisher sails', function(done) {
+      var ocean = makeOcean({ costDeparture: 0 });
+      var f = new Fisher('Mr. Tuna', 'human', {}, ocean);
+      f.prepareFisherForSeason(0);
+      f.goToSea();
+      f.goToPort();
+      f.goToSea();
+      f.totalDepartures.should.equal(2);
+      return done();
+    });
   });
 
   describe('tryToFish()', function() {
@@ -491,6 +502,17 @@ describe('Engine - Fisher', function() {
       f.money.should.equal(-0.3);
       return done();
     });
+
+    it('should increment totalCasts each time the fisher casts', function(done) {
+      var ocean = makeOcean({ costCast: 0 });
+      ocean.isSuccessfulCastAttempt = function() { return false; };
+      var f = new Fisher('Mr. Tuna', 'human', {}, ocean);
+      f.prepareFisherForSeason(0);
+      f.tryToFish();
+      f.tryToFish();
+      f.totalCasts.should.equal(2);
+      return done();
+    });
   });
 
   describe('runBot() per-second cost', function() {
@@ -519,6 +541,19 @@ describe('Engine - Fisher', function() {
       f.status = 'At sea';
       f.runBot();
       f.money.should.be.approximately(-0.04, 0.0001);
+      return done();
+    });
+
+    it('should increment totalSecondsAtSea only while at sea', function(done) {
+      var ocean = makeOcean({ costSecond: 0 });
+      var f = new Fisher('Mr. Tuna', 'human', {}, ocean);
+      f.prepareFisherForSeason(0);
+      f.status = 'At port';
+      f.runBot();
+      f.status = 'At sea';
+      f.runBot();
+      f.runBot();
+      f.totalSecondsAtSea.should.equal(2);
       return done();
     });
   });

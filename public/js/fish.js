@@ -44,21 +44,36 @@ function getEffectiveFishValue(fisher) {
     return base;
 }
 
-// Get the fish value used by the "other class" of fisher (with or without advantage).
-function getOtherClassFishValue(currentFisher) {
-    if (!ocean.fisherAdvantageEnabled) return ocean.fishValue;
-    var currentHasAdvantage = currentFisher.params && currentFisher.params.fHasAdvantage;
+// Get the fish value and costs used by the "other class" of fisher (with or without advantage).
+function getOtherClassParams(currentFisher) {
+    var currentHasAdvantage = ocean.fisherAdvantageEnabled &&
+        currentFisher.params && currentFisher.params.fHasAdvantage;
     if (currentHasAdvantage) {
-        return ocean.fishValue;
+        return {
+            fishValue: ocean.fishValue,
+            costCast: ocean.costCast,
+            costDeparture: ocean.costDeparture,
+            costSecond: ocean.costSecond
+        };
     } else {
-        return ocean.fishValue + (ocean.fishValuePayGap || 0);
+        return {
+            fishValue: ocean.fishValue + (ocean.fishValuePayGap || 0),
+            costCast: ocean.costCast - (ocean.costCastReduction || 0),
+            costDeparture: ocean.costDeparture - (ocean.costDepartureReduction || 0),
+            costSecond: ocean.costSecond - (ocean.costSecondReduction || 0)
+        };
     }
 }
 
-// Compute profit gap: actual money minus hypothetical money with other class's fish value
+// Compute profit gap: actual (net) money minus hypothetical (net) money the fisher
+// would have earned for the same fishing activity (casts, departures, seconds at
+// sea, fish caught) under the other class's fish value and costs.
 function computeProfitGap(fisher) {
-    var otherFishValue = getOtherClassFishValue(fisher);
-    var hypotheticalMoney = fisher.totalFishCaught * otherFishValue;
+    var other = getOtherClassParams(fisher);
+    var hypotheticalMoney = (fisher.totalFishCaught * other.fishValue) -
+        ((fisher.totalCasts || 0) * other.costCast) -
+        ((fisher.totalDepartures || 0) * other.costDeparture) -
+        ((fisher.totalSecondsAtSea || 0) * other.costSecond);
     return (fisher.money - hypotheticalMoney).toFixed(2);
 }
 
