@@ -6,6 +6,19 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var Run = require('../models/run-model').Run;
 var csvConvert = require('json-2-csv');
 
+// Per participant: number of disconnects, total seconds away (reconnects only),
+// and why they were lost, if they were
+function summarizeConnectionEvents(events) {
+  var byFisher = {};
+  events.forEach(function(e) {
+    var s = byFisher[e.participant] = byFisher[e.participant] || { disconnects: 0, secondsAway: 0, lost: '' };
+    if (e.event === 'disconnected') s.disconnects++;
+    if (e.event === 'reconnected') s.secondsAway += e.secondsAway || 0;
+    if (e.event === 'removed' || e.event === 'game ended') s.lost = e.event + ': ' + e.reason;
+  });
+  return byFisher;
+}
+
 // Turns list of nested object form of queried runs to a list of objects
 function flattenRunResults(runs) {
   var flattenArray = [];
@@ -18,6 +31,8 @@ function flattenRunResults(runs) {
     (runs[i].devices || []).forEach(function(d) {
       devicesByFisher[d.participant] = d;
     });
+    var connectionByFisher = summarizeConnectionEvents(runs[i].connectionEvents || []);
+    var endReason = runs[i].endReason || '';
     for (var j = 0; j < results.length; j++) {
       var fishers = results[j].fishers;
       var season = results[j].season;
@@ -56,6 +71,13 @@ function flattenRunResults(runs) {
         toPush['In-App Browser'] = device.inAppBrowser || '';
         toPush['Screen Size'] = device.screenWidth ? device.screenWidth + 'x' + device.screenHeight : '';
         toPush['User Agent'] = device.userAgent || '';
+
+        // Run totals per fisher, repeated on each season row like the device columns
+        var connection = connectionByFisher[fishers[k].name] || { disconnects: 0, secondsAway: 0, lost: '' };
+        toPush.Disconnects = connection.disconnects;
+        toPush['Seconds Away'] = connection.secondsAway;
+        toPush.Lost = connection.lost;
+        toPush['Run End Reason'] = endReason;
         flattenArray.push(toPush);
       }
     }
@@ -99,7 +121,7 @@ exports.list = function(req, res) {
 
   if (req.query.csv === 'true' && !req.query.mw) return res.sendStatus(400);
   if (req.query.csv === 'true' && req.query.mw) {
-    fields = { results: 1, microworld: 1, devices: 1 };
+    fields = { results: 1, microworld: 1, devices: 1, endReason: 1, connectionEvents: 1 };
   } else {
     fields = { _id: 1, time: 1, participants: 1 };
   }

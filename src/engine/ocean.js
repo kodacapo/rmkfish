@@ -28,6 +28,11 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   this.results = [];
   // Device records by participant ID; kept even if the participant later drops out
   this.devices = {};
+  // Disconnect handling (see the Disconnect Handling section below)
+  this.connectionEvents = [];   // saved with the run
+  this.disconnected = {};       // pId -> { since, deadline, timer } while in the grace period
+  this.lostParticipants = {};   // pId -> reason; these may not rejoin
+  this.endReason = null;
   this.om = om;
   this.catchIntentSeason = 0;
   this.catchIntentDisplaySeason = 0;
@@ -240,6 +245,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     :  this.microworld.params.seasonDelay;
   }
 
+  // The game can be paused for two reasons at once: a fisher pressed Pause
+  // (pausedBy), and/or a disconnected fisher is being waited for. It resumes
+  // only when neither applies.
   this.pause = function(pauseRequester) {
     if (this.isRunning() || this.isResting()) {
       this.log.info('Simulation paused by fisher ' + pauseRequester);
@@ -254,11 +262,154 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   this.resume = function(resumeRequester) {
     if (this.isPaused() && this.pausedBy === resumeRequester) {
       this.log.info('Simulation resumed by fisher ' + resumeRequester);
+      this.pausedBy = null;
+      this.resumeIfNothingHolds();
+    }
+  };
+
+  this.resumeIfNothingHolds = function() {
+    if (this.isPaused() && !this.pausedBy && !this.isDisconnectPauseActive()) {
       this.status = this.unpauseState;
       io.sockets.in(this.id).emit('resume');
       io.sockets.in(this.id).emit('status', this.getSimStatus());
     }
   };
+
+  ////////////////////////////////////////
+  // Disconnect Handling (microworld params disconnectHandlingEnabled,
+  // disconnectGracePeriod, disconnectDuringGrace, disconnectsAllowed,
+  // disconnectLostAction). Off by default: a dropped fisher is removed at once.
+  ////////////////////////////////////////
+
+  this.isGameInProgress = function() {
+    return this.isInInitialDelay() || this.isRunning() || this.isResting() || this.isPaused();
+  };
+
+  this.disconnectHandlingApplies = function() {
+    return !!this.microworld.params.disconnectHandlingEnabled && this.isGameInProgress();
+  };
+
+  this.recordConnectionEvent = function(pId, event, extra) {
+    var record = { participant: pId, event: event, time: new Date(), season: this.season, second: this.seconds };
+    for (var key in extra || {}) record[key] = extra[key];
+    this.connectionEvents.push(record);
+    this.log.info('Connection: fisher ' + pId + ' ' + event + (record.reason ? ' (' + record.reason + ')' : '') +
+      (record.secondsAway !== undefined ? ' after ' + record.secondsAway + ' s' : ''));
+  };
+
+  this.isFisherDisconnected = function(pId) {
+    return pId in this.disconnected;
+  };
+
+  this.isLost = function(pId) {
+    return pId in this.lostParticipants;
+  };
+
+  this.isDisconnectPauseActive = function() {
+    return this.microworld.params.disconnectDuringGrace === 'pause' && Object.keys(this.disconnected).length > 0;
+  };
+
+  this.fisherDisconnected = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null || this.isFisherDisconnected(pId)) return;
+    var params = this.microworld.params;
+    var fisher = this.fishers[idx];
+
+    fisher.disconnectCount = (fisher.disconnectCount || 0) + 1;
+    this.recordConnectionEvent(pId, 'disconnected', { count: fisher.disconnectCount });
+
+    // An absent fisher shouldn't keep paying for time at sea
+    if (fisher.status === 'At sea') {
+      fisher.goToPort();
+      this.recordConnectionEvent(pId, 'sent to port');
+    }
+
+    if (fisher.disconnectCount > params.disconnectsAllowed) {
+      this.loseFisher(pId, 'too many disconnects');
+      return;
+    }
+
+    var graceMs = params.disconnectGracePeriod * 1000;
+    this.disconnected[pId] = {
+      since: Date.now(),
+      deadline: Date.now() + graceMs,
+      timer: setTimeout(this.loseFisher.bind(this, pId, 'grace period expired'), graceMs),
+    };
+    this.updateDisconnectPause();
+    io.sockets.in(this.id).emit('status', this.getSimStatus());
+  };
+
+  this.fisherReconnected = function(pId) {
+    var away = this.disconnected[pId];
+    if (!away) return;
+    clearTimeout(away.timer);
+    delete this.disconnected[pId];
+    this.recordConnectionEvent(pId, 'reconnected', { secondsAway: Math.round((Date.now() - away.since) / 1000) });
+    this.updateDisconnectPause();
+    io.sockets.in(this.id).emit('status', this.getSimStatus());
+  };
+
+  // Pause (or keep paused) while anyone is being waited for, and tell the
+  // players how long the longest wait can still take
+  this.updateDisconnectPause = function() {
+    if (this.microworld.params.disconnectDuringGrace !== 'pause') return;
+    if (this.isDisconnectPauseActive()) {
+      if (!this.isPaused() && (this.isRunning() || this.isResting() || this.isInInitialDelay())) {
+        this.unpauseState = this.status;
+        this.status = 'paused';
+      }
+      var _this = this;
+      var deadline = Math.max.apply(null, Object.keys(this.disconnected).map(function(p) {
+        return _this.disconnected[p].deadline;
+      }));
+      this.disconnectPauseShown = true;
+      io.sockets.in(this.id).emit('disconnectPause', { secondsLeft: Math.ceil((deadline - Date.now()) / 1000) });
+    } else if (this.disconnectPauseShown) {
+      this.disconnectPauseShown = false;
+      io.sockets.in(this.id).emit('disconnectPauseOver');
+      this.resumeIfNothingHolds();
+    }
+  };
+
+  // The grace period ran out, or the fisher went over their allowed disconnects
+  this.loseFisher = function(pId, reason) {
+    var away = this.disconnected[pId];
+    if (away) {
+      clearTimeout(away.timer);
+      delete this.disconnected[pId];
+    }
+    if (this.isRemovable()) return;
+    this.lostParticipants[pId] = reason;
+
+    if (this.microworld.params.disconnectLostAction === 'remove') {
+      this.recordConnectionEvent(pId, 'removed', { reason: reason });
+      var simulationData = this.grabSimulationData();
+      simulationData.participants = [pId];
+      ioAdmin.in(this.microworld.experimenter._id.toString()).emit('simulationInterrupt', simulationData);
+      this.removeFisher(pId);
+      if (!this.isRemovable()) {
+        this.updateDisconnectPause();
+        io.sockets.in(this.id).emit('status', this.getSimStatus());
+      }
+    } else {
+      this.recordConnectionEvent(pId, 'game ended', { reason: reason });
+      this.endOcean('disconnect');
+    }
+  };
+
+  this.clearDisconnectTimers = function() {
+    for (var pId in this.disconnected) clearTimeout(this.disconnected[pId].timer);
+    this.disconnected = {};
+  };
+
+  // What a fisher rejoining a game in progress needs to rebuild their screen
+  this.getRejoinState = function() {
+    return { status: this.getSimStatus() };
+  };
+
+  ////////////////////////////////////////
+  // END Disconnect Handling
+  ////////////////////////////////////////
 
   this.getSimStatus = function() {
     var status = {
@@ -780,6 +931,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.endOcean = function(reason) {
     this.status = 'over';
+    this.endReason = reason;
+    this.clearDisconnectTimers();
     // No longer running: a dashboard opened from now on shouldn't list it. The
     // ocean itself stays until the purge, so late events can still find it.
     if (this.om && this.om.trackedSimulations) delete this.om.trackedSimulations[this.id];
@@ -796,6 +949,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       participants: this.getParticipants(),
       results: this.results,
       devices: this.getDevices(),
+      endReason: reason,
+      connectionEvents: this.connectionEvents,
       log: this.log.entries,
       microworld: this.microworld,
     };

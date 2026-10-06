@@ -31,6 +31,12 @@ function showStatusTableOptions() {
 
 function readyTooltips() {
     $('#early-end-tooltip').tooltip();
+    $('#hide-ocean-tooltip').tooltip();
+    $('#disconnect-handling-tooltip').tooltip();
+    $('#disconnect-grace-period-tooltip').tooltip();
+    $('#disconnect-during-grace-tooltip').tooltip();
+    $('#disconnects-allowed-tooltip').tooltip();
+    $('#disconnect-lost-action-tooltip').tooltip();
     $('#max-fish-tooltip').tooltip();
     $('#available-mystery-tooltip').tooltip();
     $('#reported-mystery-tooltip').tooltip();
@@ -243,6 +249,15 @@ function validate() {
 
     if (parseInt($('#season-delay').val(), 10) < 1) {
         errors.push('The delay between seasons must be at least one second.');
+    }
+
+    if ($('#enable-disconnect-handling').prop('checked')) {
+        if (!(parseInt($('#disconnect-grace-period').val(), 10) >= 1)) {
+            errors.push('The grace period to reconnect must be at least one second.');
+        }
+        if (!(parseInt($('#disconnects-allowed').val(), 10) >= 0)) {
+            errors.push('The number of disconnects allowed cannot be negative.');
+        }
     }
 
     if (parseFloat($('#fish-value').val()) < 0) {
@@ -509,6 +524,11 @@ function prepareMicroworldObject() {
     mw.forceAbortText = $('#force-abort-text').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.hideOcean = $('#hide-ocean').prop('checked');
+    mw.disconnectHandlingEnabled = $('#enable-disconnect-handling').prop('checked');
+    mw.disconnectGracePeriod = $('#disconnect-grace-period').val();
+    mw.disconnectDuringGrace = $('#disconnect-during-grace').val();
+    mw.disconnectsAllowed = $('#disconnects-allowed').val();
+    mw.disconnectLostAction = $('#disconnect-lost-action').val();
     mw.fishValue = $('#fish-value').val();
     mw.profitSeasonDisabled = $('#disable-profit-season').prop('checked');
     mw.profitTotalDisabled = $('#disable-profit-total').prop('checked');
@@ -689,6 +709,13 @@ function populatePage() {
     $('#force-abort-text').val(mw.params.forceAbortText || '');
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     $('#hide-ocean').prop('checked', mw.params.hideOcean || false);
+    // Older microworlds have none of these; the defaults match the model's
+    $('#enable-disconnect-handling').prop('checked', mw.params.disconnectHandlingEnabled || false);
+    $('#disconnect-grace-period').val(mw.params.disconnectGracePeriod || 30);
+    $('#disconnect-during-grace').val(mw.params.disconnectDuringGrace || 'pause');
+    $('#disconnects-allowed').val(mw.params.disconnectsAllowed !== undefined ? mw.params.disconnectsAllowed : 3);
+    $('#disconnect-lost-action').val(mw.params.disconnectLostAction || 'end');
+    showDisconnectOptions(mw.params.disconnectHandlingEnabled || false);
     $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled);
     $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled);
     $('#enable-profit-gap').prop('checked', !mw.params.profitGapDisabled);
@@ -749,6 +776,14 @@ function maybeDisableCatchIntentControls(enabledflg) {
         $('.catch-intention-option').removeClass('hide');
     } else {
         $('.catch-intention-option').addClass('hide');
+    }
+}
+
+function showDisconnectOptions(enabledflg) {
+    if (enabledflg) {
+        $('.disconnect-option').removeClass('hide');
+    } else {
+        $('.disconnect-option').addClass('hide');
     }
 }
 
@@ -987,6 +1022,9 @@ function prepareControls() {
         //Dis- or enable the other CatchIntention controls depending on whether the checkbox is checked.
         var enabledflg = $(this).is(':checked');
         maybeDisableCatchIntentControls(enabledflg);
+    });
+    $('#enable-disconnect-handling').on('click', function () {
+        showDisconnectOptions($(this).is(':checked'));
     });
     $('#enable-fisher-classes').on("click", function () {
         //Dis- or enable the fisher class controls depending on whether the checkbox is checked.

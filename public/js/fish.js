@@ -996,8 +996,11 @@ function endRun(trigger) {
     updateStatus();
 
     var overText;
+    hideDisconnectPause();
     if (trigger === 'time') {
         overText = ocean.endTimeText.replace(/\n/g, '<br />');
+    } else if (trigger === 'disconnect') {
+        overText = msgs.end_disconnect;
     } else {
         overText = ocean.endDepletionText.replace(/\n/g, '<br />');
     }
@@ -1083,6 +1086,69 @@ function resume() {
     $('#pause').show();
     $('#resume').hide();
 }
+
+////////////////////////////////////////
+//////////// Disconnect Handling (see src/engine/ocean.js)
+////////////////////////////////////////
+
+var disconnectCountdown = null;
+var disconnectPauseShown = false;
+
+// The game is paused while a disconnected player is given time to return
+function showDisconnectPause(data) {
+    if (!disconnectPauseShown && st.status !== 'paused') {
+        prePauseButtonsState.changeLocation = $('#changeLocation').attr('disabled');
+        prePauseButtonsState.attemptFish = $('#attempt-fish').attr('disabled');
+    }
+    disconnectPauseShown = true;
+    $('#changeLocation').attr('disabled', 'disabled');
+    $('#attempt-fish').attr('disabled', 'disabled');
+    $('#pause').hide();
+    $('#resume').hide();
+
+    var secondsLeft = data.secondsLeft;
+    var showMessage = function () {
+        $('#warning-alert').text(msgs.warning_playerDisconnected.replace('{seconds}', Math.max(secondsLeft, 0)));
+        $('#warning-alert').fadeIn();
+    };
+    if (disconnectCountdown) clearInterval(disconnectCountdown);
+    showMessage();
+    disconnectCountdown = setInterval(function () {
+        secondsLeft--;
+        showMessage();
+    }, 1000);
+}
+
+// The wait is over; the server sends 'resume' separately if play continues
+function hideDisconnectPause() {
+    if (disconnectCountdown) clearInterval(disconnectCountdown);
+    disconnectCountdown = null;
+    if (!disconnectPauseShown) return;
+    disconnectPauseShown = false;
+    clearWarnings();
+    // Still paused by a player's Pause button
+    if (st.status === 'paused') $('#resume').show();
+}
+
+// Back in a game already under way (after a reload or a dropped connection):
+// skip the rules and lobby, and rebuild the screen from the current state
+function rejoinGame(data) {
+    $('#rules-modal').modal('hide');
+    $('#lobby-status-box').hide();
+    if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
+    beginSeason(data.status);
+    resetLocation();
+    if (st.status !== 'running') {
+        $('#changeLocation').attr('disabled', 'disabled');
+    }
+    if (st.status === 'paused') {
+        $('#pause').hide();
+    }
+}
+
+////////////////////////////////////////
+//////////// END Disconnect Handling
+////////////////////////////////////////
 
 function drawFish(oContext, image, coords) {
     oContext.drawImage(image, coords[0], coords[1], 50, 50);
@@ -1211,6 +1277,9 @@ socket.on('abortPrompt', showAbortPrompt);
 socket.on('forceAbort', showForceAbortModal);
 socket.on('pause', pause);
 socket.on('resume', resume);
+socket.on('disconnectPause', showDisconnectPause);
+socket.on('disconnectPauseOver', hideDisconnectPause);
+socket.on('rejoined', rejoinGame);
 socket.on('start asking intent', startAskingIntendedCatch);
 socket.on('stop asking intent', stopAskingIntendedCatch);
 socket.on('joinError', function(data) {

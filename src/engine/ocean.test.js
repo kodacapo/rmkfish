@@ -678,6 +678,163 @@ describe('Engine - Ocean', function() {
     });
   });
 
+  describe('disconnect handling', function() {
+    var GRACE = 0.05; // seconds, so the tests run quickly
+
+    function enable(overrides) {
+      var params = {
+        disconnectHandlingEnabled: true,
+        disconnectGracePeriod: GRACE,
+        disconnectDuringGrace: 'pause',
+        disconnectsAllowed: 3,
+        disconnectLostAction: 'end',
+      };
+      for (var k in overrides || {}) params[k] = overrides[k];
+      for (var p in params) o.microworld.params[p] = params[p];
+    }
+
+    function events(pId) {
+      return o.connectionEvents.filter(function(e) { return !pId || e.participant === pId; })
+        .map(function(e) { return e.event; });
+    }
+
+    function human(pId) {
+      return o.fishers[o.findFisherIndex(pId)];
+    }
+
+    beforeEach(function() {
+      o.addFisher('p001');
+      o.addFisher('p002');
+      o.status = 'running';
+    });
+
+    afterEach(function() {
+      o.clearDisconnectTimers();
+    });
+
+    it('should not apply when switched off, or before the game starts', function() {
+      o.disconnectHandlingApplies().should.be.false();
+      enable();
+      o.disconnectHandlingApplies().should.be.true();
+      o.status = 'setup';
+      o.disconnectHandlingApplies().should.be.false();
+      o.status = 'over';
+      o.disconnectHandlingApplies().should.be.false();
+    });
+
+    it('should pause the game and send the absent fisher\'s boat to port', function() {
+      enable();
+      human('p001').status = 'At sea';
+      o.fisherDisconnected('p001');
+      o.status.should.equal('paused');
+      o.unpauseState.should.equal('running');
+      human('p001').status.should.equal('At port');
+      events('p001').should.eql(['disconnected', 'sent to port']);
+      o.isFisherDisconnected('p001').should.be.true();
+    });
+
+    it('should resume and record the time away when the fisher returns in time', function(done) {
+      enable();
+      o.fisherDisconnected('p001');
+      o.fisherReconnected('p001');
+      o.status.should.equal('running');
+      events('p001').should.eql(['disconnected', 'reconnected']);
+      o.connectionEvents[1].secondsAway.should.equal(0);
+      setTimeout(function() {
+        // The grace timer was cancelled: nothing more happens
+        o.isLost('p001').should.be.false();
+        o.status.should.equal('running');
+        done();
+      }, GRACE * 2000);
+    });
+
+    it('should keep the game paused until every absent fisher is back', function() {
+      enable();
+      o.fisherDisconnected('p001');
+      o.fisherDisconnected('p002');
+      o.fisherReconnected('p001');
+      o.status.should.equal('paused');
+      o.fisherReconnected('p002');
+      o.status.should.equal('running');
+    });
+
+    it('should end and record the game when the grace period runs out', function(done) {
+      enable({ disconnectLostAction: 'end' });
+      o.fisherDisconnected('p001');
+      setTimeout(function() {
+        o.status.should.equal('over');
+        o.endReason.should.equal('disconnect');
+        o.isLost('p001').should.be.true();
+        var ended = o.connectionEvents.filter(function(e) { return e.event === 'game ended'; })[0];
+        ended.reason.should.equal('grace period expired');
+        done();
+      }, GRACE * 2000);
+    });
+
+    it('should remove the fisher and play on when that is the chosen action', function(done) {
+      enable({ disconnectLostAction: 'remove' });
+      o.fisherDisconnected('p001');
+      setTimeout(function() {
+        should(o.findFisherIndex('p001')).be.null();
+        should(o.findFisherIndex('p002')).not.be.null();
+        o.isLost('p001').should.be.true();
+        o.status.should.equal('running');
+        events('p001').should.eql(['disconnected', 'removed']);
+        done();
+      }, GRACE * 2000);
+    });
+
+    it('should lose a fisher at once when they go over the disconnects allowed', function() {
+      enable({ disconnectsAllowed: 1, disconnectLostAction: 'remove' });
+      o.fisherDisconnected('p001');
+      o.fisherReconnected('p001');
+      o.fisherDisconnected('p001');
+      o.isLost('p001').should.be.true();
+      o.lostParticipants.p001.should.equal('too many disconnects');
+      o.status.should.equal('running');
+    });
+
+    it('should keep playing during the grace period when set to continue', function() {
+      enable({ disconnectDuringGrace: 'continue' });
+      o.fisherDisconnected('p001');
+      o.status.should.equal('running');
+      o.isFisherDisconnected('p001').should.be.true();
+      o.fisherReconnected('p001');
+      o.status.should.equal('running');
+    });
+
+    it('should stay paused for a Pause button press after the absent fisher returns', function() {
+      enable();
+      o.pause('p002');
+      o.fisherDisconnected('p001');
+      o.fisherReconnected('p001');
+      o.status.should.equal('paused');
+      o.resume('p002');
+      o.status.should.equal('running');
+    });
+
+    it('should not let the Pause button\'s owner resume while someone is being waited for', function() {
+      enable();
+      o.pause('p002');
+      o.fisherDisconnected('p001');
+      o.resume('p002');
+      o.status.should.equal('paused');
+      o.fisherReconnected('p001');
+      o.status.should.equal('running');
+    });
+
+    it('should stop the grace timers when the game ends', function(done) {
+      enable({ disconnectLostAction: 'remove' });
+      o.fisherDisconnected('p001');
+      o.endOcean('time');
+      setTimeout(function() {
+        o.isLost('p001').should.be.false();
+        o.endReason.should.equal('time');
+        done();
+      }, GRACE * 2000);
+    });
+  });
+
   describe('dashboard tracking', function() {
     it('should include the ocean ID in the simulation data sent to the dashboard', function() {
       o.grabSimulationData().oceanId.should.equal(o.id);

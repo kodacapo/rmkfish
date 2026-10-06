@@ -53,6 +53,21 @@ var runSchema = new Schema({
       recordedAt: Date,
     },
   ],
+  // Why the run ended: time, depletion, nohumans, or disconnect
+  endReason: String,
+  // Disconnects, reconnects and their consequences, in order (see ocean.js Disconnect Handling)
+  connectionEvents: [
+    {
+      participant: String,
+      event: String, // disconnected, sent to port, reconnected, removed, game ended
+      time: Date,
+      season: Number,
+      second: Number,
+      count: Number, // nth disconnect of this participant
+      secondsAway: Number, // on reconnect
+      reason: String, // for removed / game ended
+    },
+  ],
   log: [String],
   microworld: {},
 });

@@ -62,6 +62,12 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
       var ocean = this.oceans[oId];
       if (ocean.microworld._id.toString() !== mwId) continue;
 
+      // Lost after disconnecting: may not rejoin, nor start over in a new group
+      if (ocean.isLost(pId)) {
+        log.info('Fisher ' + pId + ' was lost from ocean ' + oId + ' and may not rejoin');
+        return cb(null, 'lost');
+      }
+
       // Reconnect: fisher is already in this ocean (e.g. browser refresh or second tab)
       if (ocean.findFisherIndex(pId) !== null) {
         log.info('Fisher ' + pId + ' reconnected to existing ocean ' + oId);

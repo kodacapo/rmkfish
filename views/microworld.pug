@@ -171,6 +171,44 @@ html
               label.form-label.col-md-6(for='catch-intent-prompt2') Catch intentions subprompt (optional)
               .col-md-6
                 input#catch-intent-prompt2.form-control.to-disable(type='text', autofocus='')
+          h3 Disconnects
+          .row
+            .form-group
+              .col-md-10
+                label.form-label.checkbox
+                  | Handle&nbsp;
+                  a#disconnect-handling-tooltip(title='When off, a participant whose connection drops during the game is removed at once. When on, they get time to reconnect (for example after reloading the page) and rejoin with their catch and profit intact.', data-toggle='tooltip', data-placement='top') disconnects
+                  input#enable-disconnect-handling.to-disable(type='checkbox', checked=false)
+          .row.disconnect-option.hide
+            .form-group
+              label.form-label.col-md-6(for='disconnect-grace-period') Grace period to&nbsp;
+                  a#disconnect-grace-period-tooltip(title='How long a disconnected participant has to reconnect. Keep it short if the game pauses: the other players are waiting.', data-toggle='tooltip', data-placement='top') reconnect
+                  |  (seconds)
+              .col-md-6
+                input#disconnect-grace-period.form-control.to-disable(type='number', min='1', step='1', value='30')
+          .row.disconnect-option.hide
+            .form-group
+              label.form-label.col-md-6(for='disconnect-during-grace') During the&nbsp;
+                  a#disconnect-during-grace-tooltip(title='Pause: everyone waits, and sees a message with a countdown. Continue: the game goes on and the others are not told; the absent participant catches nothing meanwhile.', data-toggle='tooltip', data-placement='top') grace period
+              .col-md-6
+                select#disconnect-during-grace.form-control.to-disable
+                  option(value='pause') Pause game
+                  option(value='continue') Continue game
+          .row.disconnect-option.hide
+            .form-group
+              label.form-label.col-md-6(for='disconnects-allowed')
+                a#disconnects-allowed-tooltip(title='How many times each participant may disconnect. One more than this, and they are lost straight away, with no grace period.', data-toggle='tooltip', data-placement='top') Disconnects allowed
+                |  per participant
+              .col-md-6
+                input#disconnects-allowed.form-control.to-disable(type='number', min='0', step='1', value='3')
+          .row.disconnect-option.hide
+            .form-group
+              label.form-label.col-md-6(for='disconnect-lost-action') When a participant&nbsp;
+                  a#disconnect-lost-action-tooltip(title='A participant is lost when the grace period runs out, or when they go over the disconnects allowed. They cannot rejoin. Ending the game saves the run with the reason recorded.', data-toggle='tooltip', data-placement='top') is lost
+              .col-md-6
+                select#disconnect-lost-action.form-control.to-disable
+                  option(value='end') End and record the game
+                  option(value='remove') Remove them and play on
           h3 Redirection
           .row
             .form-group

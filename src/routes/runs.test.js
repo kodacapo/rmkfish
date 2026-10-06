@@ -121,6 +121,13 @@ describe('Routes - Runs', () => {
           userAgent: 'test-agent',
         },
       ],
+      endReason: 'time',
+      connectionEvents: [
+        { participant: 'Fisher1', event: 'disconnected', season: 1, second: 5 },
+        { participant: 'Fisher1', event: 'reconnected', season: 1, second: 5, secondsAway: 12 },
+        { participant: 'Fisher1', event: 'disconnected', season: 2, second: 3 },
+        { participant: 'Fisher1', event: 'reconnected', season: 2, second: 3, secondsAway: 4 },
+      ],
     });
 
     // Create authenticated agent
@@ -265,6 +272,20 @@ describe('Routes - Runs', () => {
       });
       botRows.forEach(line => {
         line.should.not.match(/Samsung/);
+      });
+    });
+
+    it('CSV should summarise each fisher\'s disconnects and the run\'s end reason', async () => {
+      const mwId = testRun.microworld._id.toString();
+      const res = await agent.get(`/runs?csv=true&mw=${mwId}`);
+
+      const lines = res.text.trim().split('\n');
+      lines[0].should.match(/Disconnects,Seconds Away,Lost,Run End Reason/);
+      lines.filter(line => /Fisher1/.test(line)).forEach(line => {
+        line.should.match(/,2,16,,time$/);
+      });
+      lines.filter(line => /Fisher2/.test(line)).forEach(line => {
+        line.should.match(/,0,0,,time$/);
       });
     });
   });

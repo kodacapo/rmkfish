@@ -246,7 +246,15 @@ describe('Localization (jsdom)', () => {
       'login_title',
       'login_welcome',
       'end_over',
+      'end_disconnect',
+      'warning_playerDisconnected',
     ];
+
+    it('the disconnect countdown should keep its {seconds} placeholder in every language', () => {
+      supportedLanguages.forEach(lang => {
+        should(window.langs[lang].warning_playerDisconnected).match(/\{seconds\}/);
+      });
+    });
 
     it('all languages should have all required keys', () => {
       requiredKeys.forEach(key => {

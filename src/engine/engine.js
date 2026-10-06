@@ -16,7 +16,14 @@ exports.engine = function engine(io, ioAdmin) {
       clientOId = om.assignFisherToOcean(mwId, pId, pParams, enteredOcean);
     });
 
-    var enteredOcean = function(newOId) {
+    var enteredOcean = function(newOId, failure) {
+      if (failure === 'lost') {
+        log.info('Refused rejoin by ' + clientPId + ': lost from their game after disconnecting');
+        socket.emit('joinError', {
+          message: 'Your connection was lost for too long, so you cannot rejoin this game.',
+        });
+        return;
+      }
       if (!newOId) {
         log.error('Failed to enter ocean - microworld not found or error occurred');
         socket.emit('joinError', { message: 'Unable to join simulation. The experiment may no longer be available.' });
@@ -47,6 +54,19 @@ exports.engine = function engine(io, ioAdmin) {
           prevSocket.leave(myOId);
           log.debug('Displaced stale socket ' + prevSocketId + ' for ' + myPId + ' from room ' + myOId);
         }
+      }
+
+      // Back in a game that already started (reload, network drop, new tab):
+      // end the grace period, then rebuild the participant's screen
+      var joinedOcean = om.oceans[myOId];
+      if (joinedOcean.isFisherDisconnected(myPId)) {
+        joinedOcean.fisherReconnected(myPId);
+      }
+      if (joinedOcean.isGameInProgress()) {
+        socket.emit('rejoined', joinedOcean.getRejoinState());
+        if (joinedOcean.isDisconnectPauseActive()) joinedOcean.updateDisconnectPause();
+      } else if (joinedOcean.isRemovable()) {
+        socket.emit('end run', joinedOcean.endReason);
       }
 
       // Define handlers as named functions so we can remove them on disconnect
@@ -144,29 +164,28 @@ exports.engine = function engine(io, ioAdmin) {
         socket.off('deviceInfo', onDeviceInfo);
         socket.off('disconnect', onDisconnect);
 
-        // Check if ocean still exists before accessing its properties
-        if (om.oceans[myOId] && !om.oceans[myOId].isInSetup() && !om.oceans[myOId].isRemovable()) {
-          // disconnected before ocean i.e before simulation run has finished
-          // and setup phase is completed
-          var ocean = om.oceans[myOId];
-          var simulationData = ocean.grabSimulationData();
-          // replace participants gotten by calling grabSimulationData with the one currently disconnecting
-          simulationData.participants = [myPId];
-          ioAdmin.in(ocean.microworld.experimenter._id.toString()).emit('simulationInterrupt', simulationData);
-        }
-
-        // Only try to remove fisher if ocean still exists and this socket is still the active one
-        if (om.oceans[myOId]) {
-          if (!om.oceans[myOId].isCurrentSocket(myPId, socket.id)) {
-            log.debug('Stale socket disconnect for ' + myPId + ' in ocean ' + myOId + ' — skipping removal');
-          } else {
-            om.removeFisherFromOcean(myOId, myPId);
-            if (om.oceans[myOId] && om.oceans[myOId].isInSetup()) {
-              io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
-            }
-          }
-        } else {
+        var ocean = om.oceans[myOId];
+        if (!ocean) {
           log.debug('Disconnect event for participant ' + myPId + ' but ocean ' + myOId + ' no longer exists');
+        } else if (!ocean.isCurrentSocket(myPId, socket.id)) {
+          // Only the active socket counts: the participant has already reconnected elsewhere
+          log.debug('Stale socket disconnect for ' + myPId + ' in ocean ' + myOId + ' — skipping removal');
+        } else if (ocean.disconnectHandlingApplies()) {
+          // Grace period: the fisher stays in the game and may reconnect
+          ocean.fisherDisconnected(myPId);
+        } else {
+          if (ocean.isGameInProgress()) {
+            // Dropped mid-run with disconnect handling off: removed at once, as always
+            var simulationData = ocean.grabSimulationData();
+            simulationData.participants = [myPId];
+            ioAdmin.in(ocean.microworld.experimenter._id.toString()).emit('simulationInterrupt', simulationData);
+            ocean.recordConnectionEvent(myPId, 'disconnected');
+            ocean.recordConnectionEvent(myPId, 'removed', { reason: 'disconnect handling off' });
+          }
+          om.removeFisherFromOcean(myOId, myPId);
+          if (om.oceans[myOId] && om.oceans[myOId].isInSetup()) {
+            io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+          }
         }
 
         log.debug('Cleaned up socket handlers for participant ' + myPId);
@@ -203,4 +222,6 @@ exports.engine = function engine(io, ioAdmin) {
       log.info('Experimenter ' + expId + ' disconnected from dashboard');
     });
   });
+
+  return om; // for tests
 };

@@ -123,7 +123,8 @@ describe('Fish (jsdom)', () => {
               elements.forEach(el => el.setAttribute(name, val));
               return this;
             }
-            return element ? element.getAttribute(name) : null;
+            // Like jQuery: undefined (not null) for a missing attribute
+            return element && element.hasAttribute(name) ? element.getAttribute(name) : undefined;
           },
           prop: function(name, val) {
             if (val !== undefined) {
@@ -314,6 +315,8 @@ describe('Fish (jsdom)', () => {
         buttons_resume: 'Resume',
         warning_seasonStart: 'Season starting!',
         warning_seasonEnd: 'Season ending!',
+        warning_playerDisconnected: 'Player lost, waiting {seconds} s',
+        end_disconnect: 'Game ended: a player lost their connection.',
         lobby_fisherMissing: 'Fisher missing',
         lobby_fisherReady: 'Fisher ready and waiting',
         lobby_fisherReading: 'Fisher reading rules'
@@ -1613,6 +1616,48 @@ describe('Fish (jsdom)', () => {
         const overText = document.querySelector('#over-text');
         overText.innerHTML.should.match(/Fish depleted/);
         overText.innerHTML.should.match(/<br/);
+      });
+
+      it('should explain a game ended because a player was lost', () => {
+        window.endRun('disconnect');
+        document.querySelector('#over-text').innerHTML.should.equal(window.msgs.end_disconnect);
+      });
+    });
+
+    describe('disconnect pause', () => {
+      beforeEach(() => {
+        window.st = { status: 'running', fishers: [] };
+        document.querySelector('#changeLocation').removeAttribute('disabled');
+        document.querySelector('#attempt-fish').removeAttribute('disabled');
+      });
+
+      afterEach(() => {
+        window.hideDisconnectPause();
+      });
+
+      it('should show the countdown and block the game buttons', () => {
+        window.showDisconnectPause({ secondsLeft: 30 });
+        document.querySelector('#warning-alert').textContent.should.equal('Player lost, waiting 30 s');
+        document.querySelector('#changeLocation').hasAttribute('disabled').should.be.true();
+        document.querySelector('#attempt-fish').hasAttribute('disabled').should.be.true();
+        document.querySelector('#pause').style.display.should.equal('none');
+        document.querySelector('#resume').style.display.should.equal('none');
+      });
+
+      it('should count down once a second', (done) => {
+        window.showDisconnectPause({ secondsLeft: 30 });
+        setTimeout(() => {
+          document.querySelector('#warning-alert').textContent.should.equal('Player lost, waiting 29 s');
+          done();
+        }, 1100);
+      });
+
+      it('should restore the buttons it blocked when play resumes', () => {
+        window.showDisconnectPause({ secondsLeft: 30 });
+        window.hideDisconnectPause();
+        window.resume();
+        document.querySelector('#changeLocation').hasAttribute('disabled').should.be.false();
+        document.querySelector('#warning-alert').textContent.should.equal('');
       });
     });
 

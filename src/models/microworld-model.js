@@ -60,6 +60,12 @@ var microworldSchema = new Schema({
     maxTimeouts: { type: Number, default: 10 },
     enableRespawnWarning: Boolean,
     hideOcean: { type: Boolean, default: false },
+    // Disconnect handling; when off, a fisher who drops mid-game is removed at once
+    disconnectHandlingEnabled: { type: Boolean, default: false },
+    disconnectGracePeriod: { type: Number, default: 30 }, // seconds to reconnect
+    disconnectDuringGrace: { type: String, enum: ['pause', 'continue'], default: 'pause' },
+    disconnectsAllowed: { type: Number, default: 3 }, // per fisher
+    disconnectLostAction: { type: String, enum: ['end', 'remove'], default: 'end' },
     fishValue: Number,
     profitSeasonDisabled: Boolean,
     profitTotalDisabled: Boolean,

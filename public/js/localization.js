@@ -175,6 +175,16 @@ fr['warning_seasonEnd'] = 'Attention, cette saison de pêche va se terminer.';
 pt['warning_seasonEnd'] = 'Aviso: Esta temporada está prestes a acabar.';
 ko['warning_seasonEnd'] = '경고: 이번 어획기가 곧 종료됩니다.';
 
+// Shown while the game is paused for a disconnected player; {seconds} counts down
+en['warning_playerDisconnected'] = 'A player has lost their connection. Waiting for them to return: {seconds} s';
+cn['warning_playerDisconnected'] = '有玩家断开了连接。正在等待其返回：{seconds} 秒';
+ct['warning_playerDisconnected'] = '有玩家中斷了連線。正在等待其返回：{seconds} 秒';
+de['warning_playerDisconnected'] = 'Ein Spieler hat die Verbindung verloren. Warten auf seine Rückkehr: {seconds} s';
+es['warning_playerDisconnected'] = 'Un jugador ha perdido la conexión. Esperando su regreso: {seconds} s';
+fr['warning_playerDisconnected'] = 'Un joueur a perdu sa connexion. En attente de son retour : {seconds} s';
+pt['warning_playerDisconnected'] = 'Um jogador perdeu a conexão. Aguardando o retorno: {seconds} s';
+ko['warning_playerDisconnected'] = '한 플레이어의 연결이 끊어졌습니다. 돌아오기를 기다리는 중: {seconds}초';
+
 en['warning_seasonStart'] = 'Get ready: the next season is about to start.';
 cn['warning_seasonStart'] = '准备好：下个季节即将开始';
 ct['warning_seasonStart'] = '準備好：下個季節即將開始';
@@ -395,6 +405,16 @@ es['end_over'] = 'Esta simulación ha terminado.';
 fr['end_over'] = 'La simulation est terminée.';
 pt['end_over'] = 'A simulação acabou.';
 ko['end_over'] = '게임이 모두 종료되었습니다.';
+
+// The game ended because a player's connection was lost (disconnect handling)
+en['end_disconnect'] = 'The game has ended because a player lost their connection.';
+cn['end_disconnect'] = '由于一名玩家断开了连接，游戏已结束。';
+ct['end_disconnect'] = '由於一名玩家中斷了連線，遊戲已結束。';
+de['end_disconnect'] = 'Das Spiel wurde beendet, weil ein Spieler die Verbindung verloren hat.';
+es['end_disconnect'] = 'El juego ha terminado porque un jugador perdió la conexión.';
+fr['end_disconnect'] = 'La partie est terminée car un joueur a perdu sa connexion.';
+pt['end_disconnect'] = 'O jogo terminou porque um jogador perdeu a conexão.';
+ko['end_disconnect'] = '한 플레이어의 연결이 끊어져 게임이 종료되었습니다.';
 
 en['end_caught'] = 'You caught';
 cn['end_caught'] = '你捕捞了';
