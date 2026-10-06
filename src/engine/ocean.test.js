@@ -678,6 +678,32 @@ describe('Engine - Ocean', function() {
     });
   });
 
+  describe('recordDevice() and getDevices()', function() {
+    var ua = 'Mozilla/5.0 (Linux; Android 9; SM-A105F) Chrome/90.0 Mobile Safari/537.36';
+
+    it('should start with no devices', function() {
+      o.getDevices().should.eql([]);
+    });
+
+    it('should record one device per participant, keeping the latest', function() {
+      o.addFisher('p001');
+      o.recordDevice('p001', { userAgent: ua, deviceClass: 'desktop' });
+      o.recordDevice('p001', { userAgent: ua, deviceClass: 'phone' });
+      var devices = o.getDevices();
+      devices.length.should.equal(1);
+      devices[0].participant.should.equal('p001');
+      devices[0].deviceClass.should.equal('phone');
+      devices[0].model.should.equal('SM-A105F');
+    });
+
+    it('should keep the device of a participant who has left', function() {
+      o.addFisher('p001');
+      o.recordDevice('p001', { userAgent: ua });
+      o.removeFisher('p001');
+      o.getDevices().length.should.equal(1);
+    });
+  });
+
   describe('catchIntentIsEnabled()', function() {
     it('should return true if the catchIntentions parameter is true', function(done) {
       o.catchIntentIsEnabled().should.equal(false);

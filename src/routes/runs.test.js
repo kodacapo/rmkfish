@@ -104,6 +104,23 @@ describe('Routes - Runs', () => {
           ],
         },
       ],
+      devices: [
+        {
+          participant: 'Fisher1',
+          deviceClass: 'phone',
+          brand: 'Samsung',
+          model: 'SM-A105F',
+          os: 'Android',
+          osVersion: '9',
+          browser: 'Chrome',
+          browserVersion: '90.0',
+          inAppBrowser: 'WhatsApp',
+          touch: true,
+          screenWidth: 360,
+          screenHeight: 760,
+          userAgent: 'test-agent',
+        },
+      ],
     });
 
     // Create authenticated agent
@@ -228,6 +245,27 @@ describe('Routes - Runs', () => {
       // 2 fishers * 2 seasons = 4 data rows + 1 header row = 5 lines
       const lines = res.text.trim().split('\n');
       lines.length.should.equal(5);
+    });
+
+    it('CSV should contain device columns, filled for humans and empty for bots', async () => {
+      const mwId = testRun.microworld._id.toString();
+      const res = await agent.get(`/runs?csv=true&mw=${mwId}`);
+
+      const lines = res.text.trim().split('\n');
+      lines[0].should.match(/Device Class/);
+      lines[0].should.match(/Device Brand/);
+      lines[0].should.match(/Device Model/);
+      lines[0].should.match(/In-App Browser/);
+      lines[0].should.match(/User Agent/);
+      const humanRows = lines.filter(line => /Fisher1/.test(line));
+      const botRows = lines.filter(line => /Fisher2/.test(line));
+      humanRows.length.should.equal(2);
+      humanRows.forEach(line => {
+        line.should.match(/phone,Samsung,SM-A105F,Android,9,Chrome,90\.0,WhatsApp,360x760,test-agent/);
+      });
+      botRows.forEach(line => {
+        line.should.not.match(/Samsung/);
+      });
     });
   });
 

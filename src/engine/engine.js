@@ -115,6 +115,12 @@ exports.engine = function engine(io, ioAdmin) {
         }
       }
 
+      function onDeviceInfo(info) {
+        if (om.oceans[myOId]) {
+          om.oceans[myOId].recordDevice(myPId, info);
+        }
+      }
+
       function onAbortFish() {
         if (om.oceans[myOId]) {
           om.oceans[myOId].clearAllAbortTimers(myPId);
@@ -135,6 +141,7 @@ exports.engine = function engine(io, ioAdmin) {
         socket.off('proceedToLobby', onProceedToLobby);
         socket.off('keepWaiting', onKeepWaiting);
         socket.off('abortFish', onAbortFish);
+        socket.off('deviceInfo', onDeviceInfo);
         socket.off('disconnect', onDisconnect);
 
         // Check if ocean still exists before accessing its properties
@@ -177,6 +184,7 @@ exports.engine = function engine(io, ioAdmin) {
       socket.on('proceedToLobby', onProceedToLobby);
       socket.on('keepWaiting', onKeepWaiting);
       socket.on('abortFish', onAbortFish);
+      socket.on('deviceInfo', onDeviceInfo);
       socket.on('disconnect', onDisconnect);
     };
   });

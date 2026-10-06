@@ -623,8 +623,56 @@ function validateFisherAdvantage() {
     }
 }
 
+////////////////////////////////////////
+//////////// Device recording (saved with the run results; see src/engine/device-info.js)
+////////////////////////////////////////
+
+// phone / small tablet / large tablet by the screen's shorter side; anything
+// with a mouse or trackpad counts as desktop
+function getDeviceClass() {
+    var touchOnly = !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+    if (!touchOnly) return 'desktop';
+    var shortSide = Math.min(window.screen.width, window.screen.height);
+    if (shortSide < 600) return 'phone';
+    if (shortSide < 800) return 'small tablet';
+    return 'large tablet';
+}
+
+function collectDeviceInfo() {
+    return {
+        deviceClass: getDeviceClass(),
+        userAgent: navigator.userAgent,
+        touch: (navigator.maxTouchPoints || 0) > 0,
+        screenWidth: window.screen.width,
+        screenHeight: window.screen.height,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        pixelRatio: window.devicePixelRatio || 1,
+        language: navigator.language || '',
+    };
+}
+
+// Chrome-based browsers hide the phone model and real Android version from the
+// user agent, but reveal them through Client Hints on request
+function sendDeviceInfo() {
+    var info = collectDeviceInfo();
+    var uaData = navigator.userAgentData;
+    if (!uaData || !uaData.getHighEntropyValues) {
+        socket.emit('deviceInfo', info);
+        return;
+    }
+    uaData.getHighEntropyValues(['model', 'platformVersion']).then(function (hints) {
+        info.hintModel = hints.model || '';
+        info.hintPlatformVersion = hints.platformVersion || '';
+        socket.emit('deviceInfo', info);
+    }, function () {
+        socket.emit('deviceInfo', info);
+    });
+}
+
 function setupOcean(o) {
     ocean = o;
+    sendDeviceInfo();
     validateFisherClass();
     validateFisherAdvantage();
     displayRules();

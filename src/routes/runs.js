@@ -14,6 +14,10 @@ function flattenRunResults(runs) {
   for (var i = 0; i < runs.length; i++) {
     var results = runs[i].results;
     var parentalId = runs[i]._id.toString();
+    var devicesByFisher = {};
+    (runs[i].devices || []).forEach(function(d) {
+      devicesByFisher[d.participant] = d;
+    });
     for (var j = 0; j < results.length; j++) {
       var fishers = results[j].fishers;
       var season = results[j].season;
@@ -39,6 +43,19 @@ function flattenRunResults(runs) {
         toPush['Group Restraint'] = groupRestraint;
         toPush['Individual Efficiency'] = fishers[k].individualEfficiency;
         toPush['Group Efficiency'] = groupEfficiency;
+
+        // Device columns stay empty for bots and for runs saved before devices were recorded
+        var device = devicesByFisher[fishers[k].name] || {};
+        toPush['Device Class'] = device.deviceClass || '';
+        toPush['Device Brand'] = device.brand || '';
+        toPush['Device Model'] = device.model || '';
+        toPush.OS = device.os || '';
+        toPush['OS Version'] = device.osVersion || '';
+        toPush.Browser = device.browser || '';
+        toPush['Browser Version'] = device.browserVersion || '';
+        toPush['In-App Browser'] = device.inAppBrowser || '';
+        toPush['Screen Size'] = device.screenWidth ? device.screenWidth + 'x' + device.screenHeight : '';
+        toPush['User Agent'] = device.userAgent || '';
         flattenArray.push(toPush);
       }
     }
@@ -46,6 +63,7 @@ function flattenRunResults(runs) {
 
   return flattenArray;
 }
+exports.flattenRunResults = flattenRunResults;
 
 // Generates a CSV file containing the results of the queried runs
 function generateCSVRuns(runs, req, res) {
@@ -81,7 +99,7 @@ exports.list = function(req, res) {
 
   if (req.query.csv === 'true' && !req.query.mw) return res.sendStatus(400);
   if (req.query.csv === 'true' && req.query.mw) {
-    fields = { results: 1, microworld: 1 };
+    fields = { results: 1, microworld: 1, devices: 1 };
   } else {
     fields = { _id: 1, time: 1, participants: 1 };
   }

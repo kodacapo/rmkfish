@@ -1266,6 +1266,54 @@ describe('Fish (jsdom)', () => {
       };
     });
 
+    describe('device recording', () => {
+      function stubMatchMedia(touchOnly) {
+        window.matchMedia = () => ({ matches: touchOnly });
+      }
+
+      function stubScreen(width, height) {
+        Object.defineProperty(window.screen, 'width', { value: width, configurable: true });
+        Object.defineProperty(window.screen, 'height', { value: height, configurable: true });
+      }
+
+      afterEach(() => {
+        delete window.matchMedia;
+      });
+
+      it('should classify a device with a mouse as desktop', () => {
+        stubMatchMedia(false);
+        stubScreen(1920, 1080);
+        window.getDeviceClass().should.equal('desktop');
+      });
+
+      it('should classify touch-only devices by their shorter side', () => {
+        stubMatchMedia(true);
+        stubScreen(393, 873);
+        window.getDeviceClass().should.equal('phone');
+        stubScreen(1133, 744);
+        window.getDeviceClass().should.equal('small tablet');
+        stubScreen(820, 1180);
+        window.getDeviceClass().should.equal('large tablet');
+      });
+
+      it('should send device info when joining an ocean', () => {
+        window.setupOcean({
+          enablePause: true,
+          enableTutorial: true,
+          preparationText: 'Welcome!',
+          fishValue: 1.0,
+          costDeparture: 0.5,
+          costCast: 0.1,
+          costSecond: 0.0
+        });
+        const sent = window.mockSocketEmits.filter(e => e.event === 'deviceInfo');
+        sent.length.should.equal(1);
+        should(sent[0].data).have.properties(['deviceClass', 'userAgent', 'screenWidth', 'screenHeight',
+          'viewportWidth', 'viewportHeight', 'pixelRatio', 'touch', 'language']);
+        sent[0].data.userAgent.should.equal(window.navigator.userAgent);
+      });
+    });
+
     describe('setupOcean()', () => {
       it('should call all ocean setup functions', () => {
         const testOcean = {

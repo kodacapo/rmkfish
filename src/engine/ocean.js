@@ -1,5 +1,6 @@
 'use strict';
 
+var buildDeviceRecord = require('./device-info').buildDeviceRecord;
 var Fisher = require('./fisher').Fisher;
 var Microworld = require('../models/microworld-model').Microworld;
 var OceanLog = require('./ocean-log').OceanLog;
@@ -25,6 +26,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   this.reportedMysteryFish = 0;
   this.microworld = mw;
   this.results = [];
+  // Device records by participant ID; kept even if the participant later drops out
+  this.devices = {};
   this.om = om;
   this.catchIntentSeason = 0;
   this.catchIntentDisplaySeason = 0;
@@ -738,6 +741,19 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     return this.certainFish + this.mysteryFish > 0;
   };
 
+  this.recordDevice = function(pId, rawInfo) {
+    var record = buildDeviceRecord(pId, rawInfo);
+    this.devices[pId] = record;
+    this.log.info('Fisher ' + pId + ' device: ' + [record.deviceClass, record.brand, record.model,
+      record.os + ' ' + record.osVersion, record.browser + ' ' + record.browserVersion,
+      record.inAppBrowser].filter(Boolean).join(', '));
+  };
+
+  this.getDevices = function() {
+    var _this = this;
+    return Object.keys(this.devices).map(function(pId) { return _this.devices[pId]; });
+  };
+
   this.getParticipants = function() {
     var participants = [];
     for (var i in this.fishers) {
@@ -775,6 +791,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       time: this.time,
       participants: this.getParticipants(),
       results: this.results,
+      devices: this.getDevices(),
       log: this.log.entries,
       microworld: this.microworld,
     };
