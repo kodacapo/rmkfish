@@ -144,6 +144,9 @@ app.get('/explain-fisher-advantage', function (req, res) {
 app.get('/explain-clean-abort', function (req, res) {
   res.render('explain-clean-abort.pug');
 });
+app.get('/explain-disconnects', function (req, res) {
+  res.render('explain-disconnects.pug');
+});
 app.get('/new-welcome', function (req, res) {
   res.render('participant-access.pug');
 });

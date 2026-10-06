@@ -174,11 +174,13 @@ html
           h3 Disconnects
           .row
             .form-group
-              .col-md-10
+              .col-md-7
                 label.form-label.checkbox
                   | Handle&nbsp;
                   a#disconnect-handling-tooltip(title='When off, a participant whose connection drops during the game is removed at once. When on, they get time to reconnect (for example after reloading the page) and rejoin with their catch and profit intact.', data-toggle='tooltip', data-placement='top') disconnects
                   input#enable-disconnect-handling.to-disable(type='checkbox', checked=false)
+              .col-md-5
+                button#show-disconnects-explanation.btn.btn-info(type='button') EXPLAIN
           .row.disconnect-option.hide
             .form-group
               label.form-label.col-md-6(for='disconnect-grace-period') Grace period to&nbsp;
@@ -711,4 +713,11 @@ html
           #explain-clean-abort-content.modal-body Explanation of clean abort features
           .modal-footer
             button#done-clean-abort-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
+              | OK
+    #explain-disconnects-modal.modal.fade(role='dialog', aria-hidden='true')
+      .modal-dialog
+        .modal-content
+          #explain-disconnects-content.modal-body Explanation of disconnect handling
+          .modal-footer
+            button#done-disconnects-explanation.btn.btn-primary(data-dismiss='modal', aria-hidden='true')
               | OK

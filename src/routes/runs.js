@@ -59,7 +59,15 @@ function flattenRunResults(runs) {
         toPush['Individual Efficiency'] = fishers[k].individualEfficiency;
         toPush['Group Efficiency'] = groupEfficiency;
 
-        // Device columns stay empty for bots and for runs saved before devices were recorded
+        // Run totals per fisher, repeated on each season row
+        var connection = connectionByFisher[fishers[k].name] || { disconnects: 0, secondsAway: 0, lost: '' };
+        toPush.Disconnects = connection.disconnects;
+        toPush['Seconds Away'] = connection.secondsAway;
+        toPush.Lost = connection.lost;
+        toPush['Run End Reason'] = endReason;
+
+        // Device columns last (the CSV keeps this order). They stay empty for
+        // bots and for runs saved before devices were recorded
         var device = devicesByFisher[fishers[k].name] || {};
         toPush['Device Class'] = device.deviceClass || '';
         toPush['Device Brand'] = device.brand || '';
@@ -71,13 +79,6 @@ function flattenRunResults(runs) {
         toPush['In-App Browser'] = device.inAppBrowser || '';
         toPush['Screen Size'] = device.screenWidth ? device.screenWidth + 'x' + device.screenHeight : '';
         toPush['User Agent'] = device.userAgent || '';
-
-        // Run totals per fisher, repeated on each season row like the device columns
-        var connection = connectionByFisher[fishers[k].name] || { disconnects: 0, secondsAway: 0, lost: '' };
-        toPush.Disconnects = connection.disconnects;
-        toPush['Seconds Away'] = connection.secondsAway;
-        toPush.Lost = connection.lost;
-        toPush['Run End Reason'] = endReason;
         flattenArray.push(toPush);
       }
     }

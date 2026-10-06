@@ -280,13 +280,23 @@ describe('Routes - Runs', () => {
       const res = await agent.get(`/runs?csv=true&mw=${mwId}`);
 
       const lines = res.text.trim().split('\n');
-      lines[0].should.match(/Disconnects,Seconds Away,Lost,Run End Reason/);
+      lines[0].should.match(/Disconnects,Seconds Away,Lost,Run End Reason,Device Class/);
       lines.filter(line => /Fisher1/.test(line)).forEach(line => {
-        line.should.match(/,2,16,,time$/);
+        line.should.match(/,2,16,,time,phone,/);
       });
       lines.filter(line => /Fisher2/.test(line)).forEach(line => {
-        line.should.match(/,0,0,,time$/);
+        line.should.match(/,0,0,,time,,/);
       });
+    });
+
+    it('CSV should put the device columns last', async () => {
+      const mwId = testRun.microworld._id.toString();
+      const res = await agent.get(`/runs?csv=true&mw=${mwId}`);
+
+      const header = res.text.trim().split('\n')[0].split(',');
+      const deviceColumns = ['Device Class', 'Device Brand', 'Device Model', 'OS', 'OS Version',
+        'Browser', 'Browser Version', 'In-App Browser', 'Screen Size', 'User Agent'];
+      header.slice(-deviceColumns.length).should.eql(deviceColumns);
     });
   });
 

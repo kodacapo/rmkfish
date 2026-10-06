@@ -985,6 +985,7 @@ function setButtons() {
     $('#show-fisher-classes-explanation').click(showFisherClassesExplanationText);
     $('#show-fisher-advantage-explanation').click(showFisherAdvantageExplanationText);
     $('#show-clean-abort-explanation').click(showCleanAbortExplanationText);
+    $('#show-disconnects-explanation').click(showDisconnectsExplanationText);
 
     initDownloadAll();
 }
@@ -1160,6 +1161,15 @@ function showCleanAbortExplanationText() {
         $('#explain-clean-abort-modal').modal({ show: true });
     });
     $('#explain-clean-abort-modal').modal({ keyboard: false, backdrop: 'static' });
+}
+
+// DISCONNECT HANDLING FEATURE
+
+function showDisconnectsExplanationText() {
+    $('#explain-disconnects-content').load('/explain-disconnects', function () {
+        $('#explain-disconnects-modal').modal({ show: true });
+    });
+    $('#explain-disconnects-modal').modal({ keyboard: false, backdrop: 'static' });
 }
 
 // FISHER ADVANTAGE FEATURE
