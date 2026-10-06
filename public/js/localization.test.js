@@ -241,6 +241,7 @@ describe('Localization (jsdom)', () => {
       'buttons_goFishing',
       'buttons_goToSea',
       'buttons_castFish',
+      'buttons_catchFish',
       'buttons_return',
       'login_title',
       'login_welcome',
@@ -261,6 +262,7 @@ describe('Localization (jsdom)', () => {
     const iconButtons = [
       'buttons_goToSea',
       'buttons_castFish',
+      'buttons_catchFish',
       'buttons_return',
       'buttons_pause',
       'buttons_resume',

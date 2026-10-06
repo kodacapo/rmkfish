@@ -300,6 +300,7 @@ describe('Fish (jsdom)', () => {
         buttons_goToSea: 'Go to Sea',
         buttons_return: 'Return to Port',
         buttons_castFish: 'Cast',
+        buttons_catchFish: 'Catch',
         buttons_pause: 'Pause',
         buttons_resume: 'Resume',
         warning_seasonStart: 'Season starting!',
@@ -331,6 +332,7 @@ describe('Fish (jsdom)', () => {
         buttons_goToSea: 'Ir al Mar',
         buttons_return: 'Volver al Puerto',
         buttons_castFish: 'Lanzar',
+        buttons_catchFish: 'Pescar',
         buttons_pause: 'Pausar',
         buttons_resume: 'Reanudar',
         warning_seasonStart: '¡Comienza la temporada!',
@@ -814,6 +816,30 @@ describe('Fish (jsdom)', () => {
         window.loadLabels();
 
         document.querySelector('#fisher-header').textContent.should.equal(window.msgs.info_fisher);
+      });
+
+      it('should label the fish button "Attempt to fish" when the catch chance is below 100%', () => {
+        const originalOcean = window.ocean;
+        window.ocean = { chanceCatch: 0.8 };
+        window.loadLabels();
+        document.querySelector('#attempt-fish').innerHTML.should.equal(window.msgs.buttons_castFish);
+        window.ocean = originalOcean;
+      });
+
+      it('should label the fish button "Catch a fish" when the catch chance is 100%', () => {
+        const originalOcean = window.ocean;
+        window.ocean = { chanceCatch: 1 };
+        window.loadLabels();
+        document.querySelector('#attempt-fish').innerHTML.should.equal(window.msgs.buttons_catchFish);
+        window.ocean = originalOcean;
+      });
+
+      it('should use "Attempt to fish" before the microworld params arrive', () => {
+        const originalOcean = window.ocean;
+        window.ocean = undefined;
+        window.loadLabels();
+        document.querySelector('#attempt-fish').innerHTML.should.equal(window.msgs.buttons_castFish);
+        window.ocean = originalOcean;
       });
 
       it('should call updateCosts and updateStatus', () => {

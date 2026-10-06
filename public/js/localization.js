@@ -442,6 +442,16 @@ fr['buttons_castFish'] = 'Essayez de pêcher <i class="icon-fish-hook"></i>';
 pt['buttons_castFish'] = 'Pescar um peixe <i class="icon-fish-hook"></i>';
 ko['buttons_castFish'] = '낚시하기 <i class="icon-fish-hook"></i>';
 
+// Used instead of buttons_castFish when the chance of catching is 100%
+en['buttons_catchFish'] = 'Catch a fish <i class="icon-fish-hook"></i>';
+cn['buttons_catchFish'] = '捕一条鱼 <i class="icon-fish-hook"></i>';
+ct['buttons_catchFish'] = '捕一條魚 <i class="icon-fish-hook"></i>';
+de['buttons_catchFish'] = 'Einen Fisch fangen <i class="icon-fish-hook"></i>';
+es['buttons_catchFish'] = 'Pescar un pez <i class="icon-fish-hook"></i>';
+fr['buttons_catchFish'] = 'Pêcher un poisson <i class="icon-fish-hook"></i>';
+pt['buttons_catchFish'] = 'Pescar um peixe <i class="icon-fish-hook"></i>';
+ko['buttons_catchFish'] = '물고기 잡기 <i class="icon-fish-hook"></i>';
+
 en['buttons_return'] = 'Return to port <i class="icon-lighthouse"></i>';
 cn['buttons_return'] = '返航 <i class="icon-lighthouse"></i>';
 ct['buttons_return'] = '返航 <i class="icon-lighthouse"></i>';

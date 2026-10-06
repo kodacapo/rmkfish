@@ -253,10 +253,15 @@ function hideProfitColumns() {
 
 
 
+// With a 100% catch chance every cast succeeds, so the button says "Catch a fish"
+function isCatchCertain() {
+    return !!(ocean && ocean.chanceCatch >= 1);
+}
+
 function loadLabels() {
     $('#read-rules').text(msgs.buttons_goFishing);
     $('#changeLocation').html(msgs.buttons_goToSea);
-    $('#attempt-fish').html(msgs.buttons_castFish);
+    $('#attempt-fish').html(isCatchCertain() ? msgs.buttons_catchFish : msgs.buttons_castFish);
     $('#pause').html(msgs.buttons_pause);
     $('#resume').html(msgs.buttons_resume);
 
