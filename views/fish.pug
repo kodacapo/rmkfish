@@ -25,7 +25,7 @@ html
   body
     .container-fluid
       .row
-        .col-sm-6.clearfix
+        .col-sm-6.clearfix#game-column
           .row#status-box
               h2#status-label.lead.status-label.alert.alert-success.bootstro(data-bootstro-title="Season status" data-bootstro-content="This status bar indicates which season you are in, when the season has ended, and offers some simulation status information." data-bootstro-placement="bottom")
               h3#status-sub-label.status-label.alert.alert-info.bootstro(data-bootstro-title="Fish population status" data-bootstro-content="The fish population status shows the number of remaining fish in the ocean and indicates when fish are spawning between seasons." data-bootstro-placement="bottom")
@@ -93,7 +93,7 @@ html
             #cost-second.costs-label.alert.alert-info
             #cost-cast.costs-label.alert.alert-info
             #revenue-fish.costs-label.alert.alert-info
-        .col-sm-6
+        .col-sm-6#ocean-column
           .row#ocean-box.clearfix.bootstro(data-bootstro-title="Ocean window" data-bootstro-content="This window shows a pictorial representation of the ocean's fish population and updates as fish are caught." data-bootstro-placement="bottom")
             #warning-alert.alert.alert-danger
             #canvas-container.clearfix

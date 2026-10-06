@@ -59,25 +59,40 @@ html {
     border-color: $lightPrimaryColor;
     color: $fishRemainingColor;
     margin: 1px;
+    // Overfishing warning when the ocean is hidden (fish.js updateRespawnWarning)
+    &.respawn-warning {
+      background-color: $warningDarkPrimaryColor;
+      border-color: $warningDarkPrimaryColor;
+      color: $textPrimaryColor;
+    }
   }
+}
+
+// Season messages; shown over the ocean, or under the fish count when the
+// ocean is hidden (fish.js applyOceanVisibility)
+#warning-alert {
+  display: none;
+  text-align: center;
+  font-size: 15px;
+  font-size: 1.5rem;
+  background-color: $warningDarkPrimaryColor;
+  border-color: $warningDarkPrimaryColor;
+  color: $textPrimaryColor;
+}
+
+#status-box #warning-alert {
+  margin: 1px;
 }
 
 #ocean-box {
   position: relative;
   #warning-alert {
-    display: none;
     position: absolute;
     top: 100px;
     left: 0;
     right: 0;
     margin-left: auto;
     margin-right: auto;
-    text-align: center;
-    font-size: 15px;
-    font-size: 1.5rem;
-    background-color: $warningDarkPrimaryColor;
-    border-color: $warningDarkPrimaryColor;
-    color: $textPrimaryColor;
   }
 }
 

@@ -15,14 +15,19 @@ var ocean;
 var prePauseButtonsState = {};
 
 var oCanvas, oContext;
+// Ocean images load only when the microworld shows the ocean (see applyOceanVisibility)
 var underwater = new Image();
-underwater.src = 'public/img/underwater.jpg';
 var underwaterDying = new Image();
-underwaterDying.src = 'public/img/underwater-dying.jpg';
 var fishImage = new Image();
-fishImage.src = 'public/img/certain-fish.png';
 var mysteryFishImage = new Image();
-mysteryFishImage.src = 'public/img/mystery-fish.png';
+
+function loadOceanImages() {
+    if (underwater.src) return;
+    underwater.src = 'public/img/underwater.jpg';
+    underwaterDying.src = 'public/img/underwater-dying.jpg';
+    fishImage.src = 'public/img/certain-fish.png';
+    mysteryFishImage.src = 'public/img/mystery-fish.png';
+}
 
 var st = { status: 'loading' };
 
@@ -673,6 +678,7 @@ function sendDeviceInfo() {
 function setupOcean(o) {
     ocean = o;
     sendDeviceInfo();
+    applyOceanVisibility();
     validateFisherClass();
     validateFisherAdvantage();
     displayRules();
@@ -1082,13 +1088,57 @@ function drawFish(oContext, image, coords) {
     oContext.drawImage(image, coords[0], coords[1], 50, 50);
 }
 
+////////////////////////////////////////
+//////////// Hide Ocean Feature (microworld param hideOcean)
+////////////////////////////////////////
+
+function isOceanHidden() {
+    return !!(ocean && ocean.hideOcean);
+}
+
+// With the ocean hidden: centre the game column, move the season messages
+// under the fish count, and drop the ocean from the tutorial
+function applyOceanVisibility() {
+    if (!isOceanHidden()) {
+        loadOceanImages();
+        return;
+    }
+    $('#ocean-column').hide();
+    $('#game-column').addClass('col-sm-offset-3');
+    $('#ocean-box').removeClass('bootstro');
+    $('#warning-alert').insertAfter('#status-sub-label');
+}
+
+function isGameUnderway() {
+    return st.status === 'running' || st.status === 'resting' || st.status === 'paused' || st.status === 'over';
+}
+
+// Overfishing: too few fish left to regrow to the maximum
+function isRespawnWarningActive() {
+    return !!(ocean && ocean.enableRespawnWarning && isGameUnderway() &&
+        (st.certainFish + st.mysteryFish) * ocean.spawnFactor <= ocean.maxFish);
+}
+
+// The ocean shows the warning by changing its picture; without the ocean,
+// the fish count turns red instead (no text, mirroring the picture)
+function updateRespawnWarning() {
+    $('#status-sub-label').toggleClass('respawn-warning', isOceanHidden() && isRespawnWarningActive());
+}
+
+////////////////////////////////////////
+//////////// END Hide Ocean Feature
+////////////////////////////////////////
+
 function drawOcean() {
+    updateRespawnWarning();
+    if (isOceanHidden()) return;
+
     oCanvas = document.getElementById('ocean-canvas');
     oContext = oCanvas.getContext('2d');
 
-    if (st.status === 'running' || st.status === 'resting' || st.status === 'paused' || st.status === 'over') {
+    if (isGameUnderway()) {
         // background
-        if (ocean.enableRespawnWarning && (st.certainFish + st.mysteryFish) * ocean.spawnFactor <= ocean.maxFish) {
+        if (isRespawnWarningActive()) {
             oContext.drawImage(underwaterDying, 0, 0, 700, 460);
         } else {
             oContext.drawImage(underwater, 0, 0, 700, 460);

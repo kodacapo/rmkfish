@@ -143,6 +143,15 @@ describe('Fish (jsdom)', () => {
           hasClass: function(className) {
             return element ? element.classList.contains(className) : false;
           },
+          toggleClass: function(className, state) {
+            elements.forEach(el => el.classList.toggle(className, state));
+            return this;
+          },
+          insertAfter: function(target) {
+            const targetEl = document.querySelector(target);
+            if (targetEl) elements.forEach(el => targetEl.after(el));
+            return this;
+          },
           show: function() {
             elements.forEach(el => el.style.display = '');
             return this;
@@ -1264,6 +1273,80 @@ describe('Fish (jsdom)', () => {
         endTimeText: 'Time is up!\nGame over.',
         endDepletionText: 'Fish depleted!\nGame over.'
       };
+    });
+
+    describe('hide ocean', () => {
+      beforeEach(() => {
+        // Fresh copy of the page structure the feature touches
+        ['game-column', 'ocean-column', 'status-box', 'status-sub-label', 'ocean-box', 'warning-alert'].forEach(id => {
+          document.querySelectorAll('#' + id).forEach(el => el.remove());
+        });
+        const game = document.createElement('div');
+        game.id = 'game-column';
+        game.innerHTML = '<div id="status-box"><h3 id="status-sub-label"></h3></div>';
+        const oceanCol = document.createElement('div');
+        oceanCol.id = 'ocean-column';
+        oceanCol.innerHTML = '<div id="ocean-box" class="bootstro"><div id="warning-alert"></div></div>';
+        document.body.appendChild(game);
+        document.body.appendChild(oceanCol);
+        window.st = { status: 'running', certainFish: 5, mysteryFish: 0 };
+      });
+
+      it('should leave the layout alone when the ocean is shown', () => {
+        window.ocean = { hideOcean: false };
+        window.applyOceanVisibility();
+        document.querySelector('#ocean-column').style.display.should.equal('');
+        document.querySelector('#ocean-box').classList.contains('bootstro').should.be.true();
+        document.querySelector('#warning-alert').parentElement.id.should.equal('ocean-box');
+      });
+
+      it('should hide the ocean column, centre the game and move the season messages', () => {
+        window.ocean = { hideOcean: true };
+        window.applyOceanVisibility();
+        document.querySelector('#ocean-column').style.display.should.equal('none');
+        document.querySelector('#game-column').classList.contains('col-sm-offset-3').should.be.true();
+        document.querySelector('#ocean-box').classList.contains('bootstro').should.be.false();
+        document.querySelector('#warning-alert').previousElementSibling.id.should.equal('status-sub-label');
+      });
+
+      it('should turn the fish count red when overfishing and the ocean is hidden', () => {
+        window.ocean = { hideOcean: true, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
+        window.drawOcean();
+        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.true();
+      });
+
+      it('should clear the red fish count once there are enough fish', () => {
+        window.ocean = { hideOcean: true, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
+        window.drawOcean();
+        window.st.certainFish = 15;
+        window.drawOcean();
+        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
+      });
+
+      it('should not turn the fish count red when the warning is off', () => {
+        window.ocean = { hideOcean: true, enableRespawnWarning: false, spawnFactor: 2, maxFish: 20 };
+        window.drawOcean();
+        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
+      });
+
+      it('should not turn the fish count red when the ocean shows the warning', () => {
+        window.ocean = { hideOcean: false, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
+        window.updateRespawnWarning();
+        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
+      });
+
+      it('should not touch the canvas when the ocean is hidden', () => {
+        window.ocean = { hideOcean: true };
+        const originalGetById = window.document.getElementById;
+        let canvasRequested = false;
+        window.document.getElementById = id => {
+          if (id === 'ocean-canvas') canvasRequested = true;
+          return originalGetById.call(window.document, id);
+        };
+        window.drawOcean();
+        window.document.getElementById = originalGetById;
+        canvasRequested.should.be.false();
+      });
     });
 
     describe('device recording', () => {

@@ -438,6 +438,13 @@ html
                 label.form-label.checkbox
                   | Warn when overfishing
                   input#change-ocean-colour.to-disable(type='checkbox')
+          .row
+            .form-group
+              .col-md-10
+                label.form-label.checkbox
+                  | Hide the&nbsp;
+                  a#hide-ocean-tooltip(title='Do NOT show the ocean picture. Season messages appear under the fish count instead, and the overfishing warning turns the fish count red.', data-toggle='tooltip', data-placement='top') ocean image
+                  input#hide-ocean.to-disable(type='checkbox')
           h3 Status Table Behaviour
           .row
             .col-md-10

@@ -59,6 +59,7 @@ var microworldSchema = new Schema({
     forceAbortText: String,
     maxTimeouts: { type: Number, default: 10 },
     enableRespawnWarning: Boolean,
+    hideOcean: { type: Boolean, default: false },
     fishValue: Number,
     profitSeasonDisabled: Boolean,
     profitTotalDisabled: Boolean,

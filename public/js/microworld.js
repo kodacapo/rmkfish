@@ -508,6 +508,7 @@ function prepareMicroworldObject() {
     mw.abortLobbyWaitText = $('#abort-lobby-wait-text').val();
     mw.forceAbortText = $('#force-abort-text').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
+    mw.hideOcean = $('#hide-ocean').prop('checked');
     mw.fishValue = $('#fish-value').val();
     mw.profitSeasonDisabled = $('#disable-profit-season').prop('checked');
     mw.profitTotalDisabled = $('#disable-profit-total').prop('checked');
@@ -687,6 +688,7 @@ function populatePage() {
     $('#abort-lobby-wait-text').val(mw.params.abortLobbyWaitText || '');
     $('#force-abort-text').val(mw.params.forceAbortText || '');
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
+    $('#hide-ocean').prop('checked', mw.params.hideOcean || false);
     $('#disable-profit-season').prop('checked', mw.params.profitSeasonDisabled);
     $('#disable-profit-total').prop('checked', mw.params.profitTotalDisabled);
     $('#enable-profit-gap').prop('checked', !mw.params.profitGapDisabled);
