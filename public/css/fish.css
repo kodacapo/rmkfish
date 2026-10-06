@@ -41,9 +41,8 @@ html {
   margin: 1px;
 }
 #status-box #status-sub-label.respawn-warning {
-  background-color: #D32F2F;
-  border-color: #D32F2F;
-  color: #FFFFFF;
+  color: #D32F2F;
+  font-weight: bold;
 }
 
 #warning-alert {

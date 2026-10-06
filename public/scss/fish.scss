@@ -60,10 +60,10 @@ html {
     color: $fishRemainingColor;
     margin: 1px;
     // Overfishing warning when the ocean is hidden (fish.js updateRespawnWarning)
+    // (kept subtle, like the darker ocean picture it replaces)
     &.respawn-warning {
-      background-color: $warningDarkPrimaryColor;
-      border-color: $warningDarkPrimaryColor;
-      color: $textPrimaryColor;
+      color: $warningDarkPrimaryColor;
+      font-weight: bold;
     }
   }
 }
