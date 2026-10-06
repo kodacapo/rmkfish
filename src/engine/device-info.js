@@ -73,12 +73,12 @@ function parseBrowser(ua) {
 
 function parseOs(ua) {
   if (/Android/.test(ua)) return { name: 'Android', version: match(ua, /Android ([\d.]+)/) };
-  if (/(iPhone|iPad|iPod)/.test(ua)) {
-    return { name: 'iOS', version: match(ua, / OS ([\d_]+)/).replace(/_/g, '.') };
-  }
+  // Apple freezes the OS version in the user agent (iOS at 18.x since iOS 26,
+  // macOS at 10.15.7), so it is left blank here; see buildDeviceRecord for iOS
+  if (/(iPhone|iPad|iPod)/.test(ua)) return { name: 'iOS', version: '' };
   if (/CrOS/.test(ua)) return { name: 'ChromeOS', version: '' };
   if (/Windows NT/.test(ua)) return { name: 'Windows', version: match(ua, /Windows NT ([\d.]+)/) };
-  if (/Mac OS X/.test(ua)) return { name: 'macOS', version: match(ua, /Mac OS X ([\d_.]+)/).replace(/_/g, '.') };
+  if (/Mac OS X/.test(ua)) return { name: 'macOS', version: '' };
   if (/Linux/.test(ua)) return { name: 'Linux', version: '' };
   return { name: 'Other', version: '' };
 }
@@ -109,6 +109,11 @@ exports.buildDeviceRecord = function(participant, raw) {
   var model = cleanString(raw.hintModel) || parseModel(ua);
   var osVersion = os.name === 'Android' && cleanString(raw.hintPlatformVersion) ?
     cleanString(raw.hintPlatformVersion) : os.version;
+  // Safari's major version matches the iOS major version (not the point
+  // release); other iPhone browsers give no usable iOS version
+  if (os.name === 'iOS' && browser.name === 'Safari' && browser.version) {
+    osVersion = browser.version.split('.')[0];
+  }
 
   var deviceClass = cleanString(raw.deviceClass);
   if (DEVICE_CLASSES.indexOf(deviceClass) === -1) deviceClass = '';

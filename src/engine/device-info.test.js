@@ -54,11 +54,28 @@ describe('Engine - Device info', function() {
       '(KHTML, like Gecko) Mobile/15E148 Instagram 320.0').inAppBrowser.should.equal('Instagram');
   });
 
-  it('should parse iPhone Safari', function() {
+  it('should parse iPhone Safari, taking the iOS major version from Safari\'s', function() {
+    // Real device: iOS 26.7.1 reports a frozen "OS 18_7" and Safari 26.6.2
+    var d = record('Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 ' +
+      '(KHTML, like Gecko) Version/26.6.2 Mobile/15E148 Safari/604.1');
+    d.os.should.equal('iOS');
+    d.osVersion.should.equal('26');
+    d.browserVersion.should.equal('26.6.2');
+  });
+
+  it('should leave the iOS version blank for other iPhone browsers', function() {
+    var d = record('Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 ' +
+      '(KHTML, like Gecko) FxiOS/157.0 Mobile/15E148 Safari/605.1.15');
+    d.os.should.equal('iOS');
+    d.osVersion.should.equal('');
+    d.browser.should.equal('Firefox');
+  });
+
+  it('should parse iPhone Safari details', function() {
     var d = record('Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 ' +
       '(KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1');
     d.os.should.equal('iOS');
-    d.osVersion.should.equal('17.4.1');
+    d.osVersion.should.equal('17');
     d.browser.should.equal('Safari');
     d.browserVersion.should.equal('17.4');
     d.model.should.equal('iPhone');
@@ -88,8 +105,10 @@ describe('Engine - Device info', function() {
     d.os.should.equal('Windows');
     d.osVersion.should.equal('10.0');
     d.model.should.equal('');
-    record('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
-      'Version/17.4 Safari/605.1.15').os.should.equal('macOS');
+    var mac = record('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
+      'Version/27.0 Safari/605.1.15');
+    mac.os.should.equal('macOS');
+    mac.osVersion.should.equal(''); // frozen at 10.15.7 by every Mac browser
   });
 
   it('should keep screen details and the raw user agent', function() {
