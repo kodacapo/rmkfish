@@ -447,7 +447,14 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.attemptToFish = function(pId) {
     var idx = this.findFisherIndex(pId);
-    if (idx !== null) this.fishers[idx].tryToFish();
+    // Ignore attempts that arrive late (e.g. over a slow network) after the
+    // season has ended, during a pause, or after the fisher returned to port
+    if (idx !== null && this.isRunning() && this.fishers[idx].status === 'At sea') {
+      this.fishers[idx].tryToFish();
+    } else if (idx !== null) {
+      this.log.info('Ignoring fishing attempt by ' + pId + ' (ocean: ' + this.status +
+        ', fisher: ' + this.fishers[idx].status + ').');
+    }
     io.sockets.in(this.id).emit('status', this.getSimStatus());
     return;
   };
@@ -465,7 +472,12 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   
   this.goToSea = function(pId) {
     var idx = this.findFisherIndex(pId);
-    if (idx !== null) this.fishers[idx].goToSea();
+    // Same as attemptToFish: a late departure must not carry over into the rest period
+    if (idx !== null && this.isRunning()) {
+      this.fishers[idx].goToSea();
+    } else if (idx !== null) {
+      this.log.info('Ignoring departure by ' + pId + ' (ocean: ' + this.status + ').');
+    }
     io.sockets.in(this.id).emit('status', this.getSimStatus());
     return;
   };

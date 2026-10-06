@@ -572,6 +572,7 @@ describe('Engine - Ocean', function() {
       o.fishers[2].prepareFisherForSeason(1);
       o.fishers[3].prepareFisherForSeason(1);
       o.status = 'running';
+      o.fishers[3].status = 'At sea';
       o.attemptToFish('p001');
       o.certainFish.should.equal(9);
       o.fishers[3].totalFishCaught.should.equal(1);
@@ -594,6 +595,7 @@ describe('Engine - Ocean', function() {
       o.fishers[2].prepareFisherForSeason(1);
       o.fishers[3].prepareFisherForSeason(1);
       o.status = 'running';
+      o.fishers[3].status = 'At sea';
       o.attemptToFish('p001');
       o.certainFish.should.equal(10);
       o.fishers[3].totalFishCaught.should.equal(0);
@@ -617,6 +619,7 @@ describe('Engine - Ocean', function() {
       o.fishers[2].prepareFisherForSeason(1);
       o.fishers[3].prepareFisherForSeason(1);
       o.status = 'running';
+      o.fishers[3].status = 'At sea';
       o.attemptToFish('p001');
       o.certainFish.should.equal(0);
       o.fishers[3].totalFishCaught.should.equal(0);
@@ -626,6 +629,52 @@ describe('Engine - Ocean', function() {
       o.fishers[3].seasonData[1].startMoney.should.equal(0);
       o.fishers[3].seasonData[1].endMoney.should.equal(-0.1);
       return done();
+    });
+  });
+
+  describe('late actions (e.g. delayed by network latency)', function() {
+    beforeEach(function() {
+      o.addFisher('p001');
+      o.readRules('p001');
+      o.microworld.params.chanceCatch = 1.0;
+      o.season = 1;
+      o.setAvailableFish();
+      for (var i = 0; i < 4; i++) o.fishers[i].prepareFisherForSeason(1);
+    });
+
+    ['resting', 'paused', 'over', 'initial delay'].forEach(function(status) {
+      it('should ignore a fishing attempt while the ocean is ' + status, function() {
+        o.status = status;
+        o.fishers[3].status = 'At sea';
+        o.attemptToFish('p001');
+        o.certainFish.should.equal(10);
+        o.fishers[3].money.should.equal(0);
+        o.fishers[3].totalCasts.should.equal(0);
+        o.fishers[3].seasonData[1].actualCasts.should.equal(0);
+      });
+
+      it('should ignore a departure while the ocean is ' + status, function() {
+        o.status = status;
+        o.goToSea('p001');
+        o.fishers[3].status.should.equal('At port');
+        o.fishers[3].money.should.equal(0);
+        o.fishers[3].totalDepartures.should.equal(0);
+      });
+    });
+
+    it('should ignore a fishing attempt by a fisher at port', function() {
+      o.status = 'running';
+      o.attemptToFish('p001');
+      o.certainFish.should.equal(10);
+      o.fishers[3].money.should.equal(0);
+      o.fishers[3].totalCasts.should.equal(0);
+    });
+
+    it('should allow a departure while the season is running', function() {
+      o.status = 'running';
+      o.goToSea('p001');
+      o.fishers[3].status.should.equal('At sea');
+      o.fishers[3].totalDepartures.should.equal(1);
     });
   });
 
