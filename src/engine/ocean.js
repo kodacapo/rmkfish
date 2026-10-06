@@ -504,6 +504,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.grabSimulationData = function() {
     var simulationData = {};
+    simulationData.oceanId = this.id;
     simulationData.expId = this.microworld.experimenter._id.toString();
     simulationData.code = this.microworld.code;
     simulationData.participants = this.getHumansInOcean();
@@ -779,6 +780,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.endOcean = function(reason) {
     this.status = 'over';
+    // No longer running: a dashboard opened from now on shouldn't list it. The
+    // ocean itself stays until the purge, so late events can still find it.
+    if (this.om && this.om.trackedSimulations) delete this.om.trackedSimulations[this.id];
     ioAdmin.in(this.microworld.experimenter._id.toString()).emit('simulationDone', this.grabSimulationData());
     io.sockets.in(this.id).emit('end run', reason);
 

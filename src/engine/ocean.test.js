@@ -678,6 +678,23 @@ describe('Engine - Ocean', function() {
     });
   });
 
+  describe('dashboard tracking', function() {
+    it('should include the ocean ID in the simulation data sent to the dashboard', function() {
+      o.grabSimulationData().oceanId.should.equal(o.id);
+    });
+
+    it('should stop listing a run as running as soon as it ends', function() {
+      var om = { trackedSimulations: {} };
+      var tracked = new Ocean(mw, io, ioAdmin, om);
+      om.trackedSimulations[tracked.id] = tracked.grabSimulationData();
+      om.trackedSimulations.other = { code: 'OTHER' };
+      tracked.endOcean('time');
+      should.not.exist(om.trackedSimulations[tracked.id]);
+      should.exist(om.trackedSimulations.other);
+      tracked.isRemovable().should.be.true();
+    });
+  });
+
   describe('recordDevice() and getDevices()', function() {
     var ua = 'Mozilla/5.0 (Linux; Android 9; SM-A105F) Chrome/90.0 Mobile Safari/537.36';
 
