@@ -1005,12 +1005,21 @@ describe('Fish (jsdom)', () => {
         revenue.style.display.should.not.equal('none');
       });
 
-      it('should hide fish value when the notice is not enabled (the default)', () => {
+      it('should show fish value when the setting is missing (older microworlds)', () => {
         delete window.ocean.showFishValueNotice;
         window.ocean.fishValue = 3.0;
         window.updateCosts();
 
+        document.querySelector('#revenue-fish').style.display.should.not.equal('none');
+      });
+
+      it('should hide fish value when the notice is switched off', () => {
+        window.ocean.showFishValueNotice = false;
+        window.ocean.fishValue = 3.0;
+        window.updateCosts();
+
         document.querySelector('#revenue-fish').style.display.should.equal('none');
+        window.ocean.showFishValueNotice = true;
       });
 
       it('should hide fish value when zero', () => {

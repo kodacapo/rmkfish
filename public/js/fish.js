@@ -459,7 +459,8 @@ function updateCosts() {
     if (ocean.fisherAdvantageEnabled && pParams.fHasAdvantage) {
         displayFishValue += (ocean.fishValuePayGap || 0);
     }
-    if (ocean.showFishValueNotice && displayFishValue !== 0) {
+    // Shown unless the microworld switches it off (older microworlds don't have the setting)
+    if (ocean.showFishValueNotice !== false && displayFishValue !== 0) {
         $('#revenue-fish').text(msgs.costs_fishValue + ' ' +
             ocean.currencySymbol + displayFishValue).show();
     } else {

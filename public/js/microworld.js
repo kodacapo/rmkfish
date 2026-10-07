@@ -713,7 +713,8 @@ function populatePage() {
     $('#force-abort-text').val(mw.params.forceAbortText || '');
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     $('#hide-ocean').prop('checked', mw.params.hideOcean || false);
-    $('#show-fish-value-notice').prop('checked', mw.params.showFishValueNotice || false);
+    // On unless switched off (older microworlds don't have the setting)
+    $('#show-fish-value-notice').prop('checked', mw.params.showFishValueNotice !== false);
     $('#show-game-clock').prop('checked', mw.params.showGameClock || false);
     // Older microworlds have none of these; the defaults match the model's
     $('#enable-disconnect-handling').prop('checked', mw.params.disconnectHandlingEnabled || false);
