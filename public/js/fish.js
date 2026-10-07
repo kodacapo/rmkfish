@@ -403,7 +403,7 @@ function updateCosts() {
     if (ocean.fisherAdvantageEnabled && pParams.fHasAdvantage) {
         displayFishValue += (ocean.fishValuePayGap || 0);
     }
-    if (displayFishValue !== 0) {
+    if (ocean.showFishValueNotice && displayFishValue !== 0) {
         $('#revenue-fish').text(msgs.costs_fishValue + ' ' +
             ocean.currencySymbol + displayFishValue).show();
     } else {
@@ -661,7 +661,12 @@ function sortFisherTable() {
 }
 
 function makeUnpausable() {
-    if (!ocean.enablePause) $('#pause').hide();
+    if (!ocean.enablePause) {
+        // Hide the whole column and let the other two buttons share its space
+        $('#pause').hide();
+        $('#pause-col').hide();
+        $('.control-col').removeClass('col-xs-4').addClass('col-xs-6');
+    }
 }
 
 function hideTutorial() {

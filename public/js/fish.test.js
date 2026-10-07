@@ -987,7 +987,8 @@ describe('Fish (jsdom)', () => {
     });
 
     describe('updateCosts()', () => {
-      it('should show fish value when non-zero', () => {
+      it('should show fish value when non-zero and the notice is enabled', () => {
+        window.ocean.showFishValueNotice = true;
         window.ocean.fishValue = 3.0;
         window.updateCosts();
 
@@ -996,7 +997,16 @@ describe('Fish (jsdom)', () => {
         revenue.style.display.should.not.equal('none');
       });
 
+      it('should hide fish value when the notice is not enabled (the default)', () => {
+        delete window.ocean.showFishValueNotice;
+        window.ocean.fishValue = 3.0;
+        window.updateCosts();
+
+        document.querySelector('#revenue-fish').style.display.should.equal('none');
+      });
+
       it('should hide fish value when zero', () => {
+        window.ocean.showFishValueNotice = true;
         window.ocean.fishValue = 0;
         window.updateCosts();
 
@@ -1187,6 +1197,24 @@ describe('Fish (jsdom)', () => {
         window.makeUnpausable();
 
         pause.style.display.should.not.equal('none');
+      });
+
+      it('should give the other two buttons the pause column\'s space', () => {
+        document.querySelectorAll('#control-box').forEach(el => el.remove());
+        const box = document.createElement('div');
+        box.id = 'control-box';
+        box.innerHTML = '<div class="col-xs-4 control-col"></div><div class="col-xs-4 control-col"></div>' +
+          '<div class="col-xs-4" id="pause-col"></div>';
+        document.body.appendChild(box);
+
+        window.ocean.enablePause = false;
+        window.makeUnpausable();
+
+        document.querySelector('#pause-col').style.display.should.equal('none');
+        document.querySelectorAll('#control-box .col-xs-6').length.should.equal(2);
+        document.querySelectorAll('#control-box .control-col.col-xs-4').length.should.equal(0);
+        box.remove();
+        window.ocean.enablePause = true;
       });
     });
 

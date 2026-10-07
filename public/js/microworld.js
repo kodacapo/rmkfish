@@ -32,6 +32,7 @@ function showStatusTableOptions() {
 function readyTooltips() {
     $('#early-end-tooltip').tooltip();
     $('#hide-ocean-tooltip').tooltip();
+    $('#show-fish-value-notice-tooltip').tooltip();
     $('#disconnect-handling-tooltip').tooltip();
     $('#disconnect-grace-period-tooltip').tooltip();
     $('#disconnect-during-grace-tooltip').tooltip();
@@ -524,6 +525,7 @@ function prepareMicroworldObject() {
     mw.forceAbortText = $('#force-abort-text').val();
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.hideOcean = $('#hide-ocean').prop('checked');
+    mw.showFishValueNotice = $('#show-fish-value-notice').prop('checked');
     mw.disconnectHandlingEnabled = $('#enable-disconnect-handling').prop('checked');
     mw.disconnectGracePeriod = $('#disconnect-grace-period').val();
     mw.disconnectDuringGrace = $('#disconnect-during-grace').val();
@@ -709,6 +711,7 @@ function populatePage() {
     $('#force-abort-text').val(mw.params.forceAbortText || '');
     $('#change-ocean-colour').prop('checked', mw.params.enableRespawnWarning);
     $('#hide-ocean').prop('checked', mw.params.hideOcean || false);
+    $('#show-fish-value-notice').prop('checked', mw.params.showFishValueNotice || false);
     // Older microworlds have none of these; the defaults match the model's
     $('#enable-disconnect-handling').prop('checked', mw.params.disconnectHandlingEnabled || false);
     $('#disconnect-grace-period').val(mw.params.disconnectGracePeriod || 30);
