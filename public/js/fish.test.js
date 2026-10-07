@@ -882,7 +882,7 @@ describe('Fish (jsdom)', () => {
         window.updateStatus();
 
         const status = document.querySelector('#status-label');
-        status.innerHTML.should.equal(window.msgs.status_wait);
+        status.textContent.should.equal(window.msgs.status_wait);
       });
 
       it('should display running status with season number', () => {
@@ -923,7 +923,7 @@ describe('Fish (jsdom)', () => {
         window.updateStatus();
 
         const status = document.querySelector('#status-label');
-        status.innerHTML.should.equal(window.msgs.status_spawning);
+        status.textContent.should.equal(window.msgs.status_spawning);
       });
 
       it('should display paused status', () => {
@@ -931,7 +931,7 @@ describe('Fish (jsdom)', () => {
         window.updateStatus();
 
         const status = document.querySelector('#status-label');
-        status.innerHTML.should.equal(window.msgs.status_paused);
+        status.textContent.should.equal(window.msgs.status_paused);
       });
 
       it('should display over status', () => {
@@ -939,7 +939,7 @@ describe('Fish (jsdom)', () => {
         window.updateStatus();
 
         const status = document.querySelector('#status-label');
-        status.innerHTML.should.equal(window.msgs.end_over);
+        status.textContent.should.equal(window.msgs.end_over);
       });
     });
 
@@ -1784,7 +1784,13 @@ describe('Fish (jsdom)', () => {
     });
 
     describe('status bar', () => {
-      const line1 = () => document.querySelector('#status-label').innerHTML;
+      // Line 1 as "message | clock" (the clock is a separate box on the right)
+      const line1 = () => {
+        const label = document.querySelector('#status-label');
+        const text = label.querySelector('.status-text').textContent;
+        const clock = label.querySelector('.status-clock');
+        return clock ? text + ' | ' + clock.textContent : text;
+      };
       const line2 = () => document.querySelector('#status-sub-label');
 
       beforeEach(() => {
@@ -1806,7 +1812,7 @@ describe('Fish (jsdom)', () => {
         window.ocean.showGameClock = true;
         window.st = { status: 'running', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
         window.updateStatus();
-        line1().should.equal('Season 2 · 00:42');
+        line1().should.equal('Season 2 | 00:42');
       });
 
       it('should show no clock when the microworld hides it (the default)', () => {
@@ -1819,7 +1825,7 @@ describe('Fish (jsdom)', () => {
         window.ocean.showGameClock = true;
         window.st = { status: 'paused', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
         window.updateStatus();
-        line1().should.equal('Paused · 00:42');
+        line1().should.equal('Paused | 00:42');
       });
 
       it('should count down to resuming in line 2, then go back to the fish count', () => {

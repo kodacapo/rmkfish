@@ -51,6 +51,23 @@ html {
     border-color: $darkPrimaryColor;
     color: $textPrimaryColor;
     margin: 1px;
+    // The message centred in the space left of the clock (fish.js updateStatus)
+    display: flex;
+    align-items: center;
+    .status-text {
+      flex: 1;
+      text-align: center;
+    }
+    .status-clock {
+      margin-left: 10px;
+      padding: 2px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      border-radius: 4px;
+      font-size: 16px;
+      font-size: 1.6rem;
+      font-variant-numeric: tabular-nums; // digits don't jiggle as they change
+      white-space: nowrap;
+    }
   }
   #status-sub-label {
     font-size: 20px;

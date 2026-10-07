@@ -364,11 +364,12 @@ function clearNotice(kind) {
     renderStatusLine2();
 }
 
-// Time left in the current phase, e.g. " · 00:42", if the microworld shows a clock
+// Time left in the current phase, e.g. "00:42", if the microworld shows a
+// clock and the phase has one; '' otherwise
 function clockText() {
     if (!ocean || !ocean.showGameClock) return '';
     if (typeof st.phaseLength !== 'number' || typeof st.seconds !== 'number') return '';
-    return ' · ' + formatMmSs(Math.max(0, st.phaseLength - st.seconds));
+    return formatMmSs(Math.max(0, st.phaseLength - st.seconds));
 }
 
 function fishCountHtml() {
@@ -409,22 +410,28 @@ function renderStatusLine2() {
 
 function updateStatus() {
     var statusText = '';
+    var clock = '';
     if (st.status === 'loading') {
         statusText = msgs.status_wait;
     } else if (st.status === 'initial delay') {
-        statusText = msgs.status_starting + clockText();
+        statusText = msgs.status_starting;
+        clock = clockText();
     } else if (st.status === 'running') {
-        statusText = msgs.status_season + st.season + clockText();
+        statusText = msgs.status_season + st.season;
+        clock = clockText();
     } else if (st.status === 'resting') {
-        statusText = msgs.status_spawning + clockText();
+        statusText = msgs.status_spawning;
+        clock = clockText();
     } else if (st.status === 'paused') {
-        // The clock shows where it stopped
-        statusText = msgs.status_paused + clockText();
+        statusText = msgs.status_paused;
+        clock = clockText(); // shows where it stopped
     } else if (st.status === 'over') {
         statusText = msgs.end_over;
     }
     checkCatchIntentDisplay(st.catchIntentDisplaySeason);
-    $('#status-label').html(statusText);
+    // The message centred on the left; the clock, if any, in its own box on the right
+    $('#status-label').html('<span class="status-text">' + statusText + '</span>' +
+        (clock ? '<span class="status-clock">' + clock + '</span>' : ''));
 
     // The server counts down before play resumes after a pause
     if (typeof st.resumingIn === 'number' && st.resumingIn > 0) {
