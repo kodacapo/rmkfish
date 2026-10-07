@@ -291,7 +291,19 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   };
 
   this.recordConnectionEvent = function(pId, event, extra) {
-    var record = { participant: pId, event: event, time: new Date(), season: this.season, second: this.seconds };
+    // During a pause, the phase is what the game was doing when it paused
+    var phase = this.isPaused() ? this.unpauseState : this.status;
+    var record = {
+      participant: pId,
+      event: event,
+      time: new Date(),
+      season: this.season,
+      second: this.seconds,
+      phase: phase,
+      // The break between seasons (and the countdown before season 1) leads
+      // up to the next season, so events there count toward that season
+      resultsSeason: phase === 'resting' || phase === 'initial delay' ? this.season + 1 : this.season,
+    };
     for (var key in extra || {}) record[key] = extra[key];
     this.connectionEvents.push(record);
     this.log.info('Connection: fisher ' + pId + ' ' + event + (record.reason ? ' (' + record.reason + ')' : '') +

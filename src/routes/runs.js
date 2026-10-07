@@ -6,17 +6,42 @@ var ObjectId = require('mongoose').Types.ObjectId;
 var Run = require('../models/run-model').Run;
 var csvConvert = require('json-2-csv');
 
-// Per participant: number of disconnects, total seconds away (reconnects only),
-// and why they were lost, if they were
-function summarizeConnectionEvents(events) {
-  var byFisher = {};
+// Per participant and season: number of disconnects, seconds away (counted
+// for the season the disconnect happened in, once they are back), and why
+// they were lost, if they were. A disconnect during the break before a season
+// counts toward that season (resultsSeason). Events after a participant's
+// last season row (e.g. lost during the break before a season they never
+// played) go on that last row, so nothing goes missing from the CSV.
+function summarizeConnectionEvents(events, lastSeasonByFisher) {
+  var summary = {}; // participant -> season -> { disconnects, secondsAway, lost }
+  var disconnectSeason = {}; // participant -> season of their latest disconnect
   events.forEach(function(e) {
-    var s = byFisher[e.participant] = byFisher[e.participant] || { disconnects: 0, secondsAway: 0, lost: '' };
-    if (e.event === 'disconnected') s.disconnects++;
+    var season = e.resultsSeason !== undefined && e.resultsSeason !== null ? e.resultsSeason : e.season;
+    var last = lastSeasonByFisher[e.participant];
+    if (last !== undefined && season > last) season = last;
+    if (e.event === 'reconnected' && disconnectSeason[e.participant] !== undefined) {
+      season = disconnectSeason[e.participant];
+    }
+    var forFisher = summary[e.participant] = summary[e.participant] || {};
+    var s = forFisher[season] = forFisher[season] || { disconnects: 0, secondsAway: 0, lost: '' };
+    if (e.event === 'disconnected') {
+      s.disconnects++;
+      disconnectSeason[e.participant] = season;
+    }
     if (e.event === 'reconnected') s.secondsAway += e.secondsAway || 0;
     if (e.event === 'removed' || e.event === 'game ended') s.lost = e.event + ': ' + e.reason;
   });
-  return byFisher;
+  return summary;
+}
+
+function lastSeasonPerFisher(results) {
+  var last = {};
+  results.forEach(function(r) {
+    r.fishers.forEach(function(f) {
+      if (last[f.name] === undefined || r.season > last[f.name]) last[f.name] = r.season;
+    });
+  });
+  return last;
 }
 
 // Turns list of nested object form of queried runs to a list of objects
@@ -31,7 +56,7 @@ function flattenRunResults(runs) {
     (runs[i].devices || []).forEach(function(d) {
       devicesByFisher[d.participant] = d;
     });
-    var connectionByFisher = summarizeConnectionEvents(runs[i].connectionEvents || []);
+    var connectionByFisher = summarizeConnectionEvents(runs[i].connectionEvents || [], lastSeasonPerFisher(results));
     var endReason = runs[i].endReason || '';
     for (var j = 0; j < results.length; j++) {
       var fishers = results[j].fishers;
@@ -59,8 +84,9 @@ function flattenRunResults(runs) {
         toPush['Individual Efficiency'] = fishers[k].individualEfficiency;
         toPush['Group Efficiency'] = groupEfficiency;
 
-        // Run totals per fisher, repeated on each season row
-        var connection = connectionByFisher[fishers[k].name] || { disconnects: 0, secondsAway: 0, lost: '' };
+        // This fisher's disconnects in this season; the end reason is the run's
+        var connection = (connectionByFisher[fishers[k].name] || {})[season] ||
+          { disconnects: 0, secondsAway: 0, lost: '' };
         toPush.Disconnects = connection.disconnects;
         toPush['Seconds Away'] = connection.secondsAway;
         toPush.Lost = connection.lost;

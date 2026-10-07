@@ -63,6 +63,8 @@ var runSchema = new Schema({
       time: Date,
       season: Number,
       second: Number,
+      phase: String, // what the game was doing: initial delay, running, resting
+      resultsSeason: Number, // the season this counts toward (a break counts toward the next)
       count: Number, // nth disconnect of this participant
       secondsAway: Number, // on reconnect
       reason: String, // for removed / game ended

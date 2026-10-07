@@ -852,6 +852,38 @@ describe('Engine - Ocean', function() {
     });
   });
 
+  describe('recordConnectionEvent()', function() {
+    function record(status, season, unpauseState) {
+      o.status = status;
+      o.season = season;
+      o.unpauseState = unpauseState;
+      o.recordConnectionEvent('p001', 'disconnected');
+      return o.connectionEvents[o.connectionEvents.length - 1];
+    }
+
+    it('should count an event during a season toward that season', function() {
+      var e = record('running', 1);
+      e.phase.should.equal('running');
+      e.resultsSeason.should.equal(1);
+    });
+
+    it('should count an event in the break between seasons toward the next season', function() {
+      var e = record('resting', 1);
+      e.phase.should.equal('resting');
+      e.resultsSeason.should.equal(2);
+    });
+
+    it('should count the countdown before the first season toward season 1', function() {
+      record('initial delay', 0).resultsSeason.should.equal(1);
+    });
+
+    it('should use what the game was doing before a pause', function() {
+      var e = record('paused', 1, 'resting');
+      e.phase.should.equal('resting');
+      e.resultsSeason.should.equal(2);
+    });
+  });
+
   describe('recordDevice() and getDevices()', function() {
     var ua = 'Mozilla/5.0 (Linux; Android 9; SM-A105F) Chrome/90.0 Mobile Safari/537.36';
 

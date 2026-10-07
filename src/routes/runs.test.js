@@ -123,10 +123,12 @@ describe('Routes - Runs', () => {
       ],
       endReason: 'time',
       connectionEvents: [
-        { participant: 'Fisher1', event: 'disconnected', season: 1, second: 5 },
-        { participant: 'Fisher1', event: 'reconnected', season: 1, second: 5, secondsAway: 12 },
-        { participant: 'Fisher1', event: 'disconnected', season: 2, second: 3 },
-        { participant: 'Fisher1', event: 'reconnected', season: 2, second: 3, secondsAway: 4 },
+        // Like a real test run: away 13 s mid-season 1, then 17 s during the
+        // break after season 1, which counts toward season 2
+        { participant: 'Fisher1', event: 'disconnected', season: 1, phase: 'running', resultsSeason: 1 },
+        { participant: 'Fisher1', event: 'reconnected', season: 1, phase: 'running', resultsSeason: 1, secondsAway: 13 },
+        { participant: 'Fisher1', event: 'disconnected', season: 1, phase: 'resting', resultsSeason: 2 },
+        { participant: 'Fisher1', event: 'reconnected', season: 1, phase: 'resting', resultsSeason: 2, secondsAway: 17 },
       ],
     });
 
@@ -281,12 +283,56 @@ describe('Routes - Runs', () => {
 
       const lines = res.text.trim().split('\n');
       lines[0].should.match(/Disconnects,Seconds Away,Lost,Run End Reason,Device Class/);
-      lines.filter(line => /Fisher1/.test(line)).forEach(line => {
-        line.should.match(/,2,16,,time,phone,/);
-      });
+      const fisher1 = lines.filter(line => /Fisher1/.test(line));
+      fisher1.length.should.equal(2);
+      fisher1[0].should.match(/,1,13,,time,phone,/); // season 1
+      fisher1[1].should.match(/,1,17,,time,phone,/); // season 2 (the break before it)
       lines.filter(line => /Fisher2/.test(line)).forEach(line => {
         line.should.match(/,0,0,,time,,/);
       });
+    });
+
+    it('should put a loss on the row of the season it happened in', () => {
+      const flatten = require('./runs').flattenRunResults;
+      const run = {
+        _id: 'r1',
+        endReason: 'time',
+        results: [1, 2, 3].map(season => ({
+          season: season,
+          fishers: (season < 3 ? ['A', 'B'] : ['B']).map(name => ({ name: name, type: 'human' })),
+        })),
+        connectionEvents: [
+          { participant: 'A', event: 'disconnected', season: 2, phase: 'running', resultsSeason: 2 },
+          { participant: 'A', event: 'removed', season: 2, phase: 'running', resultsSeason: 2,
+            reason: 'grace period expired' },
+          // B is lost during the break before a season B never gets to play
+          { participant: 'B', event: 'disconnected', season: 3, phase: 'resting', resultsSeason: 4 },
+          { participant: 'B', event: 'game ended', season: 3, phase: 'resting', resultsSeason: 4,
+            reason: 'too many disconnects' },
+        ],
+      };
+      const rows = flatten(run);
+      const row = (name, season) => rows.filter(r => r.Fisher === name && r.Season === season)[0];
+      row('A', 1).Lost.should.equal('');
+      row('A', 2).Lost.should.equal('removed: grace period expired');
+      row('A', 2).Disconnects.should.equal(1);
+      // Past B's last row: kept on that last row rather than dropped
+      row('B', 3).Lost.should.equal('game ended: too many disconnects');
+      row('B', 3).Disconnects.should.equal(1);
+    });
+
+    it('should still read events saved before resultsSeason existed', () => {
+      const flatten = require('./runs').flattenRunResults;
+      const rows = flatten({
+        _id: 'r2',
+        results: [{ season: 1, fishers: [{ name: 'A', type: 'human' }] }],
+        connectionEvents: [
+          { participant: 'A', event: 'disconnected', season: 1 },
+          { participant: 'A', event: 'reconnected', season: 1, secondsAway: 5 },
+        ],
+      });
+      rows[0].Disconnects.should.equal(1);
+      rows[0]['Seconds Away'].should.equal(5);
     });
 
     it('CSV should put the device columns last', async () => {

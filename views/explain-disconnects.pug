@@ -58,14 +58,17 @@ html(lang='en')
     p.
         Every disconnect, return, removal and game end is saved with the run, with the
         season and second it happened in. This also happens when the feature is off.
-        The CSV export has four columns for it:
+        The CSV export has four columns for it. The first three are per season: a
+        disconnect during the break between seasons counts toward the season that follows.
     dl
         dt Disconnects
-        dd How many times the participant's connection dropped.
+        dd How many times the participant's connection dropped in that season.
         dt Seconds Away
-        dd Total time away, counting only the times they came back.
+        dd Time away in that season, counting only the times they came back.
         dt Lost
-        dd Whether and why the participant was lost, for example "removed: grace period expired".
+        dd.
+            Whether and why the participant was lost in that season, for example
+            "removed: grace period expired".
         dt Run End Reason
         dd.
             Why the run ended: time (all seasons played), depletion (no fish left),
