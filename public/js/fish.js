@@ -341,59 +341,115 @@ function displayRules() {
     $('#rules-modal').modal({ keyboard: false, backdrop: 'static' });
 }
 
+////////////////////////////////////////
+//////////// Status bar
+//////////// Line 1 (#status-label): the phase, plus the clock if the microworld shows it.
+//////////// Line 2 (#status-sub-label): the fish count and the like, or a notice: a
+//////////// warning that needs the participant's attention soon, on a red background.
+////////////////////////////////////////
+
+// The notice on line 2, if any: { kind, text }. Kinds: 'season' (season
+// starting/ending), 'disconnect' (waiting for a player), 'resuming'. One at a
+// time; the latest wins, and each kind clears only its own.
+var currentNotice = null;
+
+function showNotice(kind, text) {
+    currentNotice = { kind: kind, text: text };
+    renderStatusLine2();
+}
+
+function clearNotice(kind) {
+    if (!currentNotice || (kind && currentNotice.kind !== kind)) return;
+    currentNotice = null;
+    renderStatusLine2();
+}
+
+// Time left in the current phase, e.g. " · 00:42", if the microworld shows a clock
+function clockText() {
+    if (!ocean || !ocean.showGameClock) return '';
+    if (typeof st.phaseLength !== 'number' || typeof st.seconds !== 'number') return '';
+    return ' · ' + formatMmSs(Math.max(0, st.phaseLength - st.seconds));
+}
+
+function fishCountHtml() {
+    if (typeof st.certainFish !== 'number') return '';
+    if (st.reportedMysteryFish > 0) {
+        return st.certainFish + msgs.status_fishTo + (st.certainFish + st.reportedMysteryFish) +
+            '<i class="icon-fish"></i>' + msgs.status_fishRemaining;
+    }
+    return st.certainFish + '<i class="icon-fish"></i>' + msgs.status_fishRemaining;
+}
+
+// Line 2 without a notice; null hides it
+function statusLine2Html() {
+    if (st.status === 'loading') return msgs.status_subWait + ' <i class="icon-spin animate-spin"></i>';
+    if (st.status === 'initial delay') return msgs.status_getReady;
+    if (st.status === 'resting') return msgs.status_subSpawning;
+    if (st.status === 'running' || st.status === 'paused') return fishCountHtml();
+    return null;
+}
+
+function renderStatusLine2() {
+    var $line = $('#status-sub-label');
+    if (currentNotice) {
+        $line.text(currentNotice.text);
+        $line.addClass('status-notice');
+        $line.show();
+        return;
+    }
+    $line.removeClass('status-notice');
+    var html = statusLine2Html();
+    if (html === null) {
+        $line.hide();
+    } else {
+        $line.html(html);
+        $line.show();
+    }
+}
+
 function updateStatus() {
     var statusText = '';
     if (st.status === 'loading') {
         statusText = msgs.status_wait;
-        $("#status-sub-label").html(msgs.status_subWait + ' <i class="icon-spin animate-spin"></i>');
+    } else if (st.status === 'initial delay') {
+        statusText = msgs.status_starting + clockText();
     } else if (st.status === 'running') {
-        statusText = msgs.status_season + st.season;
-        var subLabel = ''
-        if (st.reportedMysteryFish > 0) {
-            subLabel += st.certainFish +
-                msgs.status_fishTo + (st.certainFish + st.reportedMysteryFish) + '<i class="icon-fish"></i>' +
-                msgs.status_fishRemaining;
-        } else {
-            subLabel += st.certainFish + '<i class="icon-fish"></i>' + msgs.status_fishRemaining;
-        }
-
-        $("#status-sub-label").html(subLabel);
-        $("#status-sub-label").show();
+        statusText = msgs.status_season + st.season + clockText();
     } else if (st.status === 'resting') {
-        statusText = msgs.status_spawning;
-        $("#status-sub-label").html(msgs.status_subSpawning);
+        statusText = msgs.status_spawning + clockText();
     } else if (st.status === 'paused') {
-        statusText = msgs.status_paused;
+        // The clock shows where it stopped
+        statusText = msgs.status_paused + clockText();
     } else if (st.status === 'over') {
         statusText = msgs.end_over;
-        $("#status-sub-label").hide();
-    } else {
     }
     checkCatchIntentDisplay(st.catchIntentDisplaySeason);
-
     $('#status-label').html(statusText);
+
+    // The server counts down before play resumes after a pause
+    if (typeof st.resumingIn === 'number' && st.resumingIn > 0) {
+        // Nothing holds the game any more; Resume would do nothing now
+        manualPauseActive = false;
+        $('#resume').hide();
+        showNotice('resuming', msgs.warning_resuming.replace('{seconds}', st.resumingIn));
+    } else {
+        clearNotice('resuming');
+        renderStatusLine2();
+    }
 }
+
 function updateWarning(warn) {
     if (warn === 'start') {
-        if (!st.season || st.season === 0) {
-            $('#warning-alert').text(msgs.status_getReady);
-            $('#warning-alert').fadeIn();
-        } else {
-            $('#warning-alert').text(msgs.warning_seasonStart);
-            $('#warning-alert').fadeIn();
-        }
+        showNotice('season', !st.season ? msgs.status_getReady : msgs.warning_seasonStart);
     } else if (warn === 'end') {
-        $('#warning-alert').text(msgs.warning_seasonEnd);
-        $('#warning-alert').fadeIn();
+        showNotice('season', msgs.warning_seasonEnd);
     } else {
-        $('#warning-alert').text('');
-        $('#warning-alert').fadeOut();
+        clearNotice('season');
     }
 }
 
 function clearWarnings() {
-    $('#warning-alert').text('');
-    $('#warning-alert').fadeOut();
+    clearNotice();
 }
 
 function updateCosts() {
@@ -1030,8 +1086,11 @@ function warnSeasonEnd() {
 function receiveStatus(data) {
     st = data;
     updateStatus();
-    updateFishers();
-    sortFisherTable();
+    // Before season 1 (the countdown) there is no season data for the table yet
+    if (st.season > 0) {
+        updateFishers();
+        sortFisherTable();
+    }
     drawOcean();
 }
 
@@ -1137,7 +1196,12 @@ function requestResume() {
     socket.emit('requestResume', pId);
 }
 
+// A player's Pause button is holding the game (as opposed to a disconnect,
+// or the countdown before play resumes)
+var manualPauseActive = false;
+
 function pause() {
+    manualPauseActive = true;
     prePauseButtonsState.changeLocation = $('#changeLocation').attr('disabled');
     prePauseButtonsState.attemptFish = $('#attempt-fish').attr('disabled');
     $('#changeLocation').attr('disabled', 'disabled');
@@ -1147,6 +1211,7 @@ function pause() {
 }
 
 function resume() {
+    manualPauseActive = false;
     if (prePauseButtonsState.changeLocation === undefined) $('#changeLocation').removeAttr('disabled');
     if (prePauseButtonsState.attemptFish === undefined) $('#attempt-fish').removeAttr('disabled');
     if (!ocean || ocean.enablePause) $('#pause').show();
@@ -1174,8 +1239,7 @@ function showDisconnectPause(data) {
 
     var secondsLeft = data.secondsLeft;
     var showMessage = function () {
-        $('#warning-alert').text(msgs.warning_playerDisconnected.replace('{seconds}', Math.max(secondsLeft, 0)));
-        $('#warning-alert').fadeIn();
+        showNotice('disconnect', msgs.warning_playerDisconnected.replace('{seconds}', Math.max(secondsLeft, 0)));
     };
     if (disconnectCountdown) clearInterval(disconnectCountdown);
     showMessage();
@@ -1191,9 +1255,9 @@ function hideDisconnectPause() {
     disconnectCountdown = null;
     if (!disconnectPauseShown) return;
     disconnectPauseShown = false;
-    clearWarnings();
-    // Still paused by a player's Pause button
-    if (st.status === 'paused') $('#resume').show();
+    clearNotice('disconnect');
+    // Still paused by a player's Pause button (not just counting down to resume)
+    if (manualPauseActive && ocean.enablePause) $('#resume').show();
 }
 
 // Back in a game already under way (after a reload or a dropped connection):
@@ -1202,6 +1266,13 @@ function rejoinGame(data) {
     $('#rules-modal').modal('hide');
     $('#lobby-status-box').hide();
     if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
+    if (data.status.status === 'initial delay') {
+        // Before season 1 there is no season data to show yet
+        st = data.status;
+        disableButtons();
+        updateStatus();
+        return;
+    }
     beginSeason(data.status);
     resetLocation();
     if (st.status !== 'running') {
@@ -1250,8 +1321,8 @@ function isOceanHidden() {
     return !!(ocean && ocean.hideOcean);
 }
 
-// With the ocean hidden: centre the game column, move the season messages
-// under the fish count, and drop the ocean from the tutorial
+// With the ocean hidden: centre the game column and drop the ocean from the
+// tutorial (notices are in the status bar either way)
 function applyOceanVisibility() {
     if (!isOceanHidden()) {
         loadOceanImages();
@@ -1260,7 +1331,6 @@ function applyOceanVisibility() {
     $('#ocean-column').hide();
     $('#game-column').addClass('col-sm-offset-3');
     $('#ocean-box').removeClass('bootstro');
-    $('#warning-alert').insertAfter('#status-sub-label');
 }
 
 function isGameUnderway() {

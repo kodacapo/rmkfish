@@ -250,11 +250,14 @@ describe('Localization (jsdom)', () => {
       'end_lost',
       'end_removed',
       'warning_playerDisconnected',
+      'warning_resuming',
+      'status_starting',
     ];
 
     it('the disconnect countdown should keep its {seconds} placeholder in every language', () => {
       supportedLanguages.forEach(lang => {
         should(window.langs[lang].warning_playerDisconnected).match(/\{seconds\}/);
+        should(window.langs[lang].warning_resuming).match(/\{seconds\}/);
       });
     });
 

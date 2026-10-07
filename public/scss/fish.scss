@@ -65,35 +65,19 @@ html {
       color: $warningDarkPrimaryColor;
       font-weight: bold;
     }
+    // A notice that needs attention soon (season ending, waiting for a
+    // player, resuming) replaces the line's content (fish.js showNotice).
+    // After .respawn-warning, so its white text wins over the red.
+    &.status-notice {
+      background-color: $warningDarkPrimaryColor;
+      border-color: $warningDarkPrimaryColor;
+      color: $textPrimaryColor;
+    }
   }
-}
-
-// Season messages; shown over the ocean, or under the fish count when the
-// ocean is hidden (fish.js applyOceanVisibility)
-#warning-alert {
-  display: none;
-  text-align: center;
-  font-size: 15px;
-  font-size: 1.5rem;
-  background-color: $warningDarkPrimaryColor;
-  border-color: $warningDarkPrimaryColor;
-  color: $textPrimaryColor;
-}
-
-#status-box #warning-alert {
-  margin: 1px;
 }
 
 #ocean-box {
   position: relative;
-  #warning-alert {
-    position: absolute;
-    top: 100px;
-    left: 0;
-    right: 0;
-    margin-left: auto;
-    margin-right: auto;
-  }
 }
 
 #catch-intent-dialog {

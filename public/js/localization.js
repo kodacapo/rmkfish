@@ -185,6 +185,26 @@ fr['warning_playerDisconnected'] = 'Un joueur a perdu sa connexion. En attente d
 pt['warning_playerDisconnected'] = 'Um jogador perdeu a conexão. Aguardando o retorno: {seconds} s';
 ko['warning_playerDisconnected'] = '한 플레이어의 연결이 끊어졌습니다. 돌아오기를 기다리는 중: {seconds}초';
 
+// Shown when a pause is over, before play continues; {seconds} counts down
+en['warning_resuming'] = 'Get ready: the game resumes in {seconds} s';
+cn['warning_resuming'] = '请准备：游戏将在 {seconds} 秒后继续';
+ct['warning_resuming'] = '請準備：遊戲將在 {seconds} 秒後繼續';
+de['warning_resuming'] = 'Achtung: Das Spiel geht in {seconds} s weiter';
+es['warning_resuming'] = 'Prepárese: el juego continúa en {seconds} s';
+fr['warning_resuming'] = 'Attention : la partie reprend dans {seconds} s';
+pt['warning_resuming'] = 'Prepare-se: o jogo continua em {seconds} s';
+ko['warning_resuming'] = '준비하세요: {seconds}초 후 게임이 계속됩니다';
+
+// Status bar during the countdown before the first season
+en['status_starting'] = 'The game is starting';
+cn['status_starting'] = '游戏即将开始';
+ct['status_starting'] = '遊戲即將開始';
+de['status_starting'] = 'Das Spiel beginnt';
+es['status_starting'] = 'El juego está por comenzar';
+fr['status_starting'] = 'La partie va commencer';
+pt['status_starting'] = 'O jogo está começando';
+ko['status_starting'] = '게임이 곧 시작됩니다';
+
 en['warning_seasonStart'] = 'Get ready: the next season is about to start.';
 cn['warning_seasonStart'] = '准备好：下个季节即将开始';
 ct['warning_seasonStart'] = '準備好：下個季節即將開始';

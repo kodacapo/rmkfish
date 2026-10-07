@@ -34,6 +34,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   this.lostParticipants = {};   // pId -> reason; these may not rejoin
   this.playersAtStart = [];     // humans in the game when it started (set in getOceanReady)
   this.endReason = null;
+  this.resumingIn = null;       // seconds left before play resumes after a pause
   this.om = om;
   this.catchIntentSeason = 0;
   this.catchIntentDisplaySeason = 0;
@@ -268,12 +269,55 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     }
   };
 
+  // Once nothing holds the pause, play resumes after a countdown as long as
+  // the microworld's initial delay, so everyone sees "Resuming in N" first.
+  // The game loop runs the countdown (advanceResumeCountdown).
   this.resumeIfNothingHolds = function() {
-    if (this.isPaused() && !this.pausedBy && !this.isDisconnectPauseActive()) {
-      this.status = this.unpauseState;
-      io.sockets.in(this.id).emit('resume');
+    if (this.isPaused() && !this.pausedBy && !this.isDisconnectPauseActive() && this.resumingIn === null) {
+      var countdown = Math.max(0, Math.round(this.microworld.params.initialDelay || 0));
+      if (countdown === 0) {
+        this.finishResume();
+        return;
+      }
+      this.resumingIn = countdown;
+      this.log.info('Resuming in ' + countdown + ' s.');
       io.sockets.in(this.id).emit('status', this.getSimStatus());
     }
+  };
+
+  // Called every second by the game loop while paused
+  this.advanceResumeCountdown = function() {
+    if (this.resumingIn === null) return;
+    if (this.pausedBy || this.isDisconnectPauseActive()) {
+      // Paused again (Pause button, or another player dropped): start over later
+      this.resumingIn = null;
+      io.sockets.in(this.id).emit('status', this.getSimStatus());
+      return;
+    }
+    this.resumingIn -= 1;
+    if (this.resumingIn <= 0) {
+      this.finishResume();
+    } else {
+      io.sockets.in(this.id).emit('status', this.getSimStatus());
+    }
+  };
+
+  this.finishResume = function() {
+    this.resumingIn = null;
+    this.status = this.unpauseState;
+    io.sockets.in(this.id).emit('resume');
+    io.sockets.in(this.id).emit('status', this.getSimStatus());
+  };
+
+  // Length in seconds of the phase the game is in (or was in before a pause),
+  // for the participants' clock
+  this.getPhaseLength = function() {
+    var phase = this.isPaused() ? this.unpauseState : this.status;
+    var params = this.microworld.params;
+    if (phase === 'initial delay') return params.initialDelay;
+    if (phase === 'running') return params.seasonDuration;
+    if (phase === 'resting') return params.seasonDelay;
+    return null;
   };
 
   ////////////////////////////////////////
@@ -438,6 +482,10 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       reportedMysteryFish: this.reportedMysteryFish,
       catchIntentSeason: this.catchIntentSeason,
       catchIntentDisplaySeason: this.catchIntentDisplaySeason,
+      // For the clock: seconds into the current phase, and its length
+      seconds: this.seconds,
+      phaseLength: this.getPhaseLength(),
+      resumingIn: this.resumingIn,
       fishers: [],
     };
 
@@ -801,6 +849,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       }
     } else if (this.isInInitialDelay()) {
       delay = this.microworld.params.initialDelay;
+      // For the participants' clock ("Starting in ...")
+      io.sockets.in(this.id).emit('status', this.getSimStatus());
       this.log.debug('Ocean loop - initial delay: ' + this.seconds + ' of ' + delay + ' seconds.');
 
       if (this.seconds + this.warnSeconds >= delay) {
@@ -860,6 +910,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       }
     } else if (this.isPaused()) {
       this.log.debug('Ocean loop - paused.');
+      this.advanceResumeCountdown();
     } else {
       // over
       this.log.debug('Ocean loop - over: Stopping.');

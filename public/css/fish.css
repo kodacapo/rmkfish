@@ -44,31 +44,14 @@ html {
   color: #D32F2F;
   font-weight: bold;
 }
-
-#warning-alert {
-  display: none;
-  text-align: center;
-  font-size: 15px;
-  font-size: 1.5rem;
+#status-box #status-sub-label.status-notice {
   background-color: #D32F2F;
   border-color: #D32F2F;
   color: #FFFFFF;
 }
 
-#status-box #warning-alert {
-  margin: 1px;
-}
-
 #ocean-box {
   position: relative;
-}
-#ocean-box #warning-alert {
-  position: absolute;
-  top: 100px;
-  left: 0;
-  right: 0;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 #catch-intent-dialog {

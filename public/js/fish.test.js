@@ -943,46 +943,54 @@ describe('Fish (jsdom)', () => {
       });
     });
 
+    // Warnings are notices in line 2 of the status bar, on red (.status-notice)
     describe('updateWarning()', () => {
+      const line2 = () => document.querySelector('#status-sub-label');
+
+      beforeEach(() => {
+        window.clearWarnings();
+        window.st = { status: 'running', season: 1, certainFish: 7, reportedMysteryFish: 0 };
+      });
+
       it('should show start warning for first season', () => {
         window.st.season = 0;
         window.updateWarning('start');
 
-        const warning = document.querySelector('#warning-alert');
-        warning.textContent.should.equal(window.msgs.status_getReady);
+        line2().textContent.should.equal(window.msgs.status_getReady);
+        line2().classList.contains('status-notice').should.be.true();
       });
 
       it('should show start warning for subsequent seasons', () => {
         window.st.season = 2;
         window.updateWarning('start');
 
-        const warning = document.querySelector('#warning-alert');
-        warning.textContent.should.equal(window.msgs.warning_seasonStart);
+        line2().textContent.should.equal(window.msgs.warning_seasonStart);
       });
 
       it('should show end warning', () => {
         window.updateWarning('end');
 
-        const warning = document.querySelector('#warning-alert');
-        warning.textContent.should.equal(window.msgs.warning_seasonEnd);
+        line2().textContent.should.equal(window.msgs.warning_seasonEnd);
+        line2().classList.contains('status-notice').should.be.true();
       });
 
-      it('should clear warning with other input', () => {
+      it('should go back to the fish count when the warning is cleared', () => {
+        window.updateWarning('end');
         window.updateWarning('something else');
 
-        const warning = document.querySelector('#warning-alert');
-        warning.textContent.should.equal('');
+        line2().classList.contains('status-notice').should.be.false();
+        line2().textContent.should.match(/^7/);
       });
     });
 
     describe('clearWarnings()', () => {
-      it('should clear warning text', () => {
-        const warning = document.querySelector('#warning-alert');
-        warning.textContent = 'Some warning';
+      it('should clear any notice', () => {
+        window.st = { status: 'running', season: 1, certainFish: 7, reportedMysteryFish: 0 };
+        window.updateWarning('end');
 
         window.clearWarnings();
 
-        warning.textContent.should.equal('');
+        document.querySelector('#status-sub-label').classList.contains('status-notice').should.be.false();
       });
     });
 
@@ -1332,13 +1340,12 @@ describe('Fish (jsdom)', () => {
         document.querySelector('#warning-alert').parentElement.id.should.equal('ocean-box');
       });
 
-      it('should hide the ocean column, centre the game and move the season messages', () => {
+      it('should hide the ocean column and centre the game', () => {
         window.ocean = { hideOcean: true };
         window.applyOceanVisibility();
         document.querySelector('#ocean-column').style.display.should.equal('none');
         document.querySelector('#game-column').classList.contains('col-sm-offset-3').should.be.true();
         document.querySelector('#ocean-box').classList.contains('bootstro').should.be.false();
-        document.querySelector('#warning-alert').previousElementSibling.id.should.equal('status-sub-label');
       });
 
       it('should turn the fish count red when overfishing and the ocean is hidden', () => {
@@ -1742,7 +1749,8 @@ describe('Fish (jsdom)', () => {
 
       it('should show the countdown and block the game buttons', () => {
         window.showDisconnectPause({ secondsLeft: 30 });
-        document.querySelector('#warning-alert').textContent.should.equal('Player lost, waiting 30 s');
+        document.querySelector('#status-sub-label').textContent.should.equal('Player lost, waiting 30 s');
+        document.querySelector('#status-sub-label').classList.contains('status-notice').should.be.true();
         document.querySelector('#changeLocation').hasAttribute('disabled').should.be.true();
         document.querySelector('#attempt-fish').hasAttribute('disabled').should.be.true();
         document.querySelector('#pause').style.display.should.equal('none');
@@ -1752,7 +1760,7 @@ describe('Fish (jsdom)', () => {
       it('should count down once a second', (done) => {
         window.showDisconnectPause({ secondsLeft: 30 });
         setTimeout(() => {
-          document.querySelector('#warning-alert').textContent.should.equal('Player lost, waiting 29 s');
+          document.querySelector('#status-sub-label').textContent.should.equal('Player lost, waiting 29 s');
           done();
         }, 1100);
       });
@@ -1762,7 +1770,67 @@ describe('Fish (jsdom)', () => {
         window.hideDisconnectPause();
         window.resume();
         document.querySelector('#changeLocation').hasAttribute('disabled').should.be.false();
-        document.querySelector('#warning-alert').textContent.should.equal('');
+        document.querySelector('#status-sub-label').classList.contains('status-notice').should.be.false();
+      });
+    });
+
+    describe('status bar', () => {
+      const line1 = () => document.querySelector('#status-label').innerHTML;
+      const line2 = () => document.querySelector('#status-sub-label');
+
+      beforeEach(() => {
+        window.clearWarnings();
+        window.msgs.status_starting = 'Starting';
+        window.msgs.status_season = 'Season ';
+        window.msgs.status_paused = 'Paused';
+        window.msgs.warning_resuming = 'Resuming in {seconds} s';
+        window.ocean.showGameClock = false;
+      });
+
+      it('should say the game is starting during the countdown, not "wait in the lobby"', () => {
+        window.st = { status: 'initial delay', season: 0, seconds: 2, phaseLength: 5 };
+        window.updateStatus();
+        line1().should.equal('Starting');
+      });
+
+      it('should show the time left when the microworld shows a clock', () => {
+        window.ocean.showGameClock = true;
+        window.st = { status: 'running', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
+        window.updateStatus();
+        line1().should.equal('Season 2 · 00:42');
+      });
+
+      it('should show no clock when the microworld hides it (the default)', () => {
+        window.st = { status: 'running', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
+        window.updateStatus();
+        line1().should.equal('Season 2');
+      });
+
+      it('should show the stopped clock while paused', () => {
+        window.ocean.showGameClock = true;
+        window.st = { status: 'paused', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
+        window.updateStatus();
+        line1().should.equal('Paused · 00:42');
+      });
+
+      it('should count down to resuming in line 2, then go back to the fish count', () => {
+        window.st = { status: 'paused', season: 2, certainFish: 5, reportedMysteryFish: 0, resumingIn: 3 };
+        window.updateStatus();
+        line2().textContent.should.equal('Resuming in 3 s');
+        line2().classList.contains('status-notice').should.be.true();
+
+        window.st = { status: 'running', season: 2, certainFish: 5, reportedMysteryFish: 0, resumingIn: null };
+        window.updateStatus();
+        line2().classList.contains('status-notice').should.be.false();
+        line2().textContent.should.match(/^5/);
+      });
+
+      it('should not let a cleared resume countdown remove a disconnect notice', () => {
+        window.showDisconnectPause({ secondsLeft: 30 });
+        window.st = { status: 'paused', season: 2, certainFish: 5, resumingIn: null };
+        window.updateStatus();
+        line2().textContent.should.equal('Player lost, waiting 30 s');
+        window.hideDisconnectPause();
       });
     });
 

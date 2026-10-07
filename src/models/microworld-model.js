@@ -61,6 +61,7 @@ var microworldSchema = new Schema({
     enableRespawnWarning: Boolean,
     hideOcean: { type: Boolean, default: false },
     showFishValueNotice: { type: Boolean, default: false }, // "Each fish earns you ..."
+    showGameClock: { type: Boolean, default: false }, // time left in the season/break, in the status bar
     // Disconnect handling; when off, a fisher who drops mid-game is removed at once
     disconnectHandlingEnabled: { type: Boolean, default: false },
     disconnectGracePeriod: { type: Number, default: 30 }, // seconds to reconnect

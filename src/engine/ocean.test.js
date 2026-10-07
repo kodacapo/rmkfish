@@ -7,6 +7,11 @@ var mongoose = require('mongoose');
 var Ocean = require('./ocean').Ocean;
 var o, io, ioAdmin, mw;
 
+// Play resumes after a countdown run by the game loop; run it to the end
+function finishResume(ocean) {
+  for (var i = 0; i < 100 && ocean.resumingIn !== null; i++) ocean.advanceResumeCountdown();
+}
+
 describe('Engine - Ocean', function() {
   beforeEach(function(done) {
     io = require('../app').io;
@@ -342,8 +347,63 @@ describe('Engine - Ocean', function() {
       o.status.should.equal('paused');
 
       o.resume('MrPause');
+      // Counts down for the initial delay (5 s here) first
+      o.status.should.equal('paused');
+      o.resumingIn.should.equal(5);
+      finishResume(o);
       o.status.should.equal('running');
       return done();
+    });
+
+    it('should count down one second per loop tick before resuming', function() {
+      o.status = 'running';
+      o.pause('MrPause');
+      o.resume('MrPause');
+      o.advanceResumeCountdown();
+      o.resumingIn.should.equal(4);
+      o.getSimStatus().resumingIn.should.equal(4);
+      o.advanceResumeCountdown();
+      o.advanceResumeCountdown();
+      o.advanceResumeCountdown();
+      o.status.should.equal('paused');
+      o.advanceResumeCountdown();
+      o.status.should.equal('running');
+      should(o.resumingIn).be.null();
+    });
+
+    it('should resume at once when the initial delay is 0', function() {
+      o.microworld.params.initialDelay = 0;
+      o.status = 'running';
+      o.pause('MrPause');
+      o.resume('MrPause');
+      o.status.should.equal('running');
+    });
+
+    it('should cancel the countdown if the game is paused again', function() {
+      o.addFisher('p001');
+      o.microworld.params.disconnectHandlingEnabled = true;
+      o.microworld.params.disconnectDuringGrace = 'pause';
+      o.microworld.params.disconnectGracePeriod = 30;
+      o.microworld.params.disconnectsAllowed = 3;
+      o.status = 'running';
+      o.pause('MrPause');
+      o.resume('MrPause');
+      o.fisherDisconnected('p001'); // someone drops during the countdown
+      o.advanceResumeCountdown();
+      should(o.resumingIn).be.null();
+      o.status.should.equal('paused');
+      o.clearDisconnectTimers();
+    });
+
+    it('should report the phase length for the clock, also while paused', function() {
+      o.status = 'running';
+      o.getSimStatus().phaseLength.should.equal(10); // seasonDuration
+      o.pause('MrPause');
+      o.getSimStatus().phaseLength.should.equal(10);
+      o.status = 'resting';
+      o.getSimStatus().phaseLength.should.equal(5); // seasonDelay
+      o.status = 'initial delay';
+      o.getSimStatus().phaseLength.should.equal(5); // initialDelay
     });
 
     it('should not return to the status prior to paused if the request comes from someone else', function(done) {
@@ -366,6 +426,7 @@ describe('Engine - Ocean', function() {
         o.status = 'running';
         o.pause('MrPause');
         o.resume('MrPause');
+        finishResume(o);
       });
 
       io.sockets.on('connection', function(socket) {
@@ -691,6 +752,9 @@ describe('Engine - Ocean', function() {
       };
       for (var k in overrides || {}) params[k] = overrides[k];
       for (var p in params) o.microworld.params[p] = params[p];
+      // These tests are about who is waited for; the resume countdown that
+      // follows (as long as the initial delay) is tested under pause()/resume()
+      o.microworld.params.initialDelay = 0;
     }
 
     function events(pId) {
