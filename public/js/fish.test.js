@@ -1789,6 +1789,58 @@ describe('Fish (jsdom)', () => {
         pauseBtn.style.display.should.equal('');
         resumeBtn.style.display.should.equal('none');
       });
+
+      it('should keep the pause button hidden when pausing is disabled', () => {
+        const pauseBtn = document.querySelector('#pause');
+        pauseBtn.style.display = 'none';
+        window.ocean.enablePause = false;
+        window.prePauseButtonsState = {};
+
+        window.resume();
+
+        pauseBtn.style.display.should.equal('none');
+        window.ocean.enablePause = true;
+      });
+    });
+
+    describe('listen()', () => {
+      it('should log, not throw, when a handler fails, so the connection keeps working', () => {
+        const originalSocket = window.socket;
+        const originalError = window.console.error;
+        let registered;
+        let logged = '';
+        window.socket = { on: (event, fn) => { registered = fn; } };
+        window.console.error = (msg) => { logged += msg; };
+
+        window.listen('status', () => { throw new Error('boom'); });
+        (() => registered({})).should.not.throw();
+        logged.should.match(/status/);
+
+        window.socket = originalSocket;
+        window.console.error = originalError;
+      });
+
+      it('should pass the message data through to the handler', () => {
+        const originalSocket = window.socket;
+        let registered;
+        let received;
+        window.socket = { on: (event, fn) => { registered = fn; } };
+
+        window.listen('status', (data) => { received = data; });
+        registered({ season: 2 });
+        received.season.should.equal(2);
+
+        window.socket = originalSocket;
+      });
+    });
+
+    describe('sortFisherTable()', () => {
+      it('should do nothing, not throw, before the table is set up', () => {
+        // A status update can reach a rejoining page before the table is set
+        // up; an error here used to stall the page's connection
+        window.ocean.oceanOrder = 'ocean_order_desc_fish_season';
+        (() => window.sortFisherTable()).should.not.throw();
+      });
     });
 
     describe('requestPause()', () => {

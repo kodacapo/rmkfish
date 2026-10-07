@@ -4,6 +4,20 @@
 var lang = $.url().param('lang');
 var msgs;
 var socket = io.connect();
+
+// Register a server-message handler. An error escaping a handler can stall
+// the whole connection (right after connecting, messages arrive bundled and
+// the rest of the bundle, and all later traffic, is lost), so log it instead.
+function listen(event, handler) {
+    socket.on(event, function () {
+        try {
+            return handler.apply(this, arguments);
+        } catch (err) {
+            console.error('Error handling "' + event + '" from the server:', err);
+        }
+    });
+}
+
 var mwId = $.url().param('mwid');
 var pId = $.url().param('pid');
 var pParams = {
@@ -590,6 +604,11 @@ function updateFishers() {
 
 function sortFisherTable() {
     var $container = $("#fishers-tbody");
+    // MixItUp throws if called before initializeMixItUp(). That happens when a
+    // status update reaches a rejoining page before 'rejoined' does, and the
+    // error then stalled the page's whole connection (no more messages either
+    // way). Until the table is set up there is nothing to sort anyway.
+    if (!$container.mixItUp || !$container.mixItUp('isLoaded')) return;
     if (ocean.oceanOrder === "ocean_order_user_top") {
         $container.mixItUp('insert', 1, $("tr#f0"));
     }
@@ -1087,7 +1106,7 @@ function pause() {
 function resume() {
     if (prePauseButtonsState.changeLocation === undefined) $('#changeLocation').removeAttr('disabled');
     if (prePauseButtonsState.attemptFish === undefined) $('#attempt-fish').removeAttr('disabled');
-    $('#pause').show();
+    if (!ocean || ocean.enablePause) $('#pause').show();
     $('#resume').hide();
 }
 
@@ -1290,36 +1309,36 @@ function startTutorial() {
 // and the server must not seat this page in a new group
 var hasJoinedOcean = false;
 
-socket.on('connect', function () {
+listen('connect', function () {
     socket.emit('enterOcean', mwId, pId, pParams, hasJoinedOcean);
 });
 
 window.addEventListener('pagehide', onPageHide);
 window.addEventListener('pageshow', onPageShow);
 
-socket.on('ocean', setupOcean);
-socket.on('initial delay', warnInitialDelay);
-socket.on('begin season', beginSeason);
-socket.on('status', receiveStatus);
-socket.on('warn season start', warnSeasonStart);
-socket.on('warn season end', warnSeasonEnd);
-socket.on('end season', endSeason);
-socket.on('end run', endRun);
-socket.on('lobbyStatus', receiveLobbyStatus);
-socket.on('abortPrompt', showAbortPrompt);
-socket.on('forceAbort', showForceAbortModal);
-socket.on('pause', pause);
-socket.on('resume', resume);
-socket.on('disconnectPause', showDisconnectPause);
-socket.on('disconnectPauseOver', hideDisconnectPause);
-socket.on('rejoined', rejoinGame);
-socket.on('start asking intent', startAskingIntendedCatch);
-socket.on('stop asking intent', stopAskingIntendedCatch);
-socket.on('joinError', function(data) {
+listen('ocean', setupOcean);
+listen('initial delay', warnInitialDelay);
+listen('begin season', beginSeason);
+listen('status', receiveStatus);
+listen('warn season start', warnSeasonStart);
+listen('warn season end', warnSeasonEnd);
+listen('end season', endSeason);
+listen('end run', endRun);
+listen('lobbyStatus', receiveLobbyStatus);
+listen('abortPrompt', showAbortPrompt);
+listen('forceAbort', showForceAbortModal);
+listen('pause', pause);
+listen('resume', resume);
+listen('disconnectPause', showDisconnectPause);
+listen('disconnectPauseOver', hideDisconnectPause);
+listen('rejoined', rejoinGame);
+listen('start asking intent', startAskingIntendedCatch);
+listen('stop asking intent', stopAskingIntendedCatch);
+listen('joinError', function(data) {
     alert(data.message);
 });
 
-socket.on('displaced', function() {
+listen('displaced', function() {
     if (lobbyTimer) { clearInterval(lobbyTimer); lobbyTimer = null; }
     clearAbortCountdown();
     clearForceAbortCountdown();
