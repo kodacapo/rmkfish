@@ -306,11 +306,12 @@ function loadLabels() {
     updateStatus();
 }
 
+// The rows MixItUp shows: a selector, so each filter run checks the rows'
+// current state (a fixed set of rows would keep a departed fisher's row)
+var ACTIVE_FISHER_ROWS = 'tr[active-fisher]';
+
 function initializeMixItUp() {
     var $container = $("#fishers-tbody");
-    var $activeFishers = $('#fishers-tbody tr').filter(function () {
-        return $(this).attr('active-fisher');
-    });
     $container.mixItUp({
         selectors: {
             target: 'tr'
@@ -319,7 +320,7 @@ function initializeMixItUp() {
             display: 'table-row'
         },
         load: {
-            filter: $activeFishers
+            filter: ACTIVE_FISHER_ROWS
         }
     });
 }
@@ -611,13 +612,20 @@ function updateFishers() {
             cleared = true;
         }
     }
-    if (cleared) refilterFisherTable();
+    if (cleared) fisherTableNeedsRefilter = true;
 }
 
-function refilterFisherTable() {
-    var $container = $('#fishers-tbody');
-    if (!$container.mixItUp || !$container.mixItUp('isLoaded')) return;
-    $container.mixItUp('filter', $('#fishers-tbody tr[active-fisher]'));
+// MixItUp keeps showing the rows it showed last until it is told to filter
+// again, and it drops requests that arrive while it is busy animating (a sort
+// runs every second). So after a fisher leaves, ask for a refilter on every
+// update until MixItUp's callback confirms that one actually ran.
+var fisherTableNeedsRefilter = false;
+
+function refilterFisherTableIfNeeded($container) {
+    if (!fisherTableNeedsRefilter) return;
+    $container.mixItUp('filter', ACTIVE_FISHER_ROWS, true, function () {
+        fisherTableNeedsRefilter = false;
+    });
 }
 
 
@@ -628,6 +636,7 @@ function sortFisherTable() {
     // error then stalled the page's whole connection (no more messages either
     // way). Until the table is set up there is nothing to sort anyway.
     if (!$container.mixItUp || !$container.mixItUp('isLoaded')) return;
+    refilterFisherTableIfNeeded($container);
     if (ocean.oceanOrder === "ocean_order_user_top") {
         $container.mixItUp('insert', 1, $("tr#f0"));
     }

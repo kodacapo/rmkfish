@@ -1896,6 +1896,24 @@ describe('Fish (jsdom)', () => {
         document.querySelector('#f2').hasAttribute('active-fisher').should.be.false();
         document.querySelector('#f2').style.display.should.equal('none');
         document.querySelector('#f0').hasAttribute('active-fisher').should.be.true();
+        window.fisherTableNeedsRefilter.should.be.true();
+      });
+
+      it('should keep asking MixItUp to refilter until a refilter has actually run', () => {
+        const calls = [];
+        let finish = null;
+        // MixItUp drops requests while busy: the first is never completed
+        const busy = { mixItUp: (cmd, filter, animate, cb) => { calls.push(filter); } };
+        const idle = { mixItUp: (cmd, filter, animate, cb) => { calls.push(filter); finish = cb; } };
+
+        window.fisherTableNeedsRefilter = true;
+        window.refilterFisherTableIfNeeded(busy);
+        window.fisherTableNeedsRefilter.should.be.true();
+        window.refilterFisherTableIfNeeded(idle);
+        finish();
+        window.fisherTableNeedsRefilter.should.be.false();
+        window.refilterFisherTableIfNeeded(idle);
+        calls.should.eql(['tr[active-fisher]', 'tr[active-fisher]']);
       });
     });
 
