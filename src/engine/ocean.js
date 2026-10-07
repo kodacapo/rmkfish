@@ -269,13 +269,19 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     }
   };
 
-  // Once nothing holds the pause, play resumes after a countdown as long as
-  // the microworld's initial delay, so everyone sees "Resuming in N" first.
-  // The game loop runs the countdown (advanceResumeCountdown).
+  // Once nothing holds the pause, play resumes after a countdown, so everyone
+  // sees "the game resumes in N s" first: the microworld's initial delay,
+  // but at least 2 and at most 5 seconds. The game loop runs the countdown
+  // (advanceResumeCountdown).
+  this.resumeCountdownSeconds = function() {
+    var initialDelay = Math.round(this.microworld.params.initialDelay || 0);
+    return Math.max(2, Math.min(5, initialDelay));
+  };
+
   this.resumeIfNothingHolds = function() {
     if (this.isPaused() && !this.pausedBy && !this.isDisconnectPauseActive() && this.resumingIn === null) {
-      var countdown = Math.max(0, Math.round(this.microworld.params.initialDelay || 0));
-      if (countdown === 0) {
+      var countdown = this.resumeCountdownSeconds();
+      if (countdown <= 0) {
         this.finishResume();
         return;
       }

@@ -371,12 +371,11 @@ describe('Engine - Ocean', function() {
       should(o.resumingIn).be.null();
     });
 
-    it('should resume at once when the initial delay is 0', function() {
-      o.microworld.params.initialDelay = 0;
-      o.status = 'running';
-      o.pause('MrPause');
-      o.resume('MrPause');
-      o.status.should.equal('running');
+    it('should count down the initial delay, but at least 2 and at most 5 seconds', function() {
+      [[0, 2], [1, 2], [2, 2], [3, 3], [5, 5], [8, 5], [30, 5], [undefined, 2]].forEach(function(c) {
+        o.microworld.params.initialDelay = c[0];
+        o.resumeCountdownSeconds().should.equal(c[1], 'initial delay ' + c[0]);
+      });
     });
 
     it('should cancel the countdown if the game is paused again', function() {
@@ -753,8 +752,8 @@ describe('Engine - Ocean', function() {
       for (var k in overrides || {}) params[k] = overrides[k];
       for (var p in params) o.microworld.params[p] = params[p];
       // These tests are about who is waited for; the resume countdown that
-      // follows (as long as the initial delay) is tested under pause()/resume()
-      o.microworld.params.initialDelay = 0;
+      // follows is tested under pause()/resume(), so skip it here
+      o.resumeCountdownSeconds = function() { return 0; };
     }
 
     function events(pId) {
