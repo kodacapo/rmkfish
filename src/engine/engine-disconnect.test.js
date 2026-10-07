@@ -23,8 +23,9 @@ describe('Engine - Disconnect handling', function() {
     socket.sent = [];
     // Record what the server sends to this participant
     var emit = socket.emit.bind(socket);
-    socket.emit = function(event, data) {
+    socket.emit = function(event, data, extra) {
       socket.sent.push({ event: event, data: data });
+      if (event === 'ocean') socket.sentOcean = extra;
       return emit.apply(null, arguments);
     };
     socket.join = function() {};
@@ -98,6 +99,8 @@ describe('Engine - Disconnect handling', function() {
       ids.length.should.equal(1);
       ocean = om.oceans[ids[0]];
       ocean.fishers.length.should.equal(2);
+      // Joined before the game started: the rules screen is wanted
+      socketA.sentOcean.rejoining.should.be.false();
       // Hold the game in a manual pause: in progress, but the clock stands still
       ocean.unpauseState = 'running';
       ocean.status = 'paused';
@@ -117,6 +120,9 @@ describe('Engine - Disconnect handling', function() {
     ocean.isFisherDisconnected('h1').should.be.false();
     ocean.isCurrentSocket('h1', 'A2').should.be.true();
     sent(socketA2, 'rejoined').length.should.equal(1);
+    // ...and told up front, so the page never opens the rules screen
+    sent(socketA2, 'ocean')[0].should.have.property('data');
+    socketA2.sentOcean.rejoining.should.be.true();
     sent(socketA2, 'rejoined')[0].data.status.status.should.equal('paused');
     Object.keys(om.oceans).length.should.equal(1);
     socketA = socketA2;

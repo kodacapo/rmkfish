@@ -1409,6 +1409,38 @@ describe('Fish (jsdom)', () => {
       });
     });
 
+    describe('rules screen on joining', () => {
+      let rulesShown;
+      const params = {
+        enablePause: true, enableTutorial: true, preparationText: 'Rules',
+        fishValue: 1.0, costDeparture: 0.5, costCast: 0.1, costSecond: 0.0
+      };
+
+      beforeEach(() => {
+        document.querySelectorAll('#rules-modal').forEach(el => el.remove());
+        const modal = document.createElement('div');
+        modal.id = 'rules-modal';
+        rulesShown = 0;
+        modal.modal = () => { rulesShown++; };
+        document.body.appendChild(modal);
+      });
+
+      it('should show the rules to a participant joining a new game', () => {
+        window.setupOcean(params, { rejoining: false });
+        rulesShown.should.equal(1);
+      });
+
+      it('should show the rules when no join state is sent (older server)', () => {
+        window.setupOcean(params);
+        rulesShown.should.equal(1);
+      });
+
+      it('should not show the rules to a participant rejoining a game under way', () => {
+        window.setupOcean(params, { rejoining: true });
+        rulesShown.should.equal(0);
+      });
+    });
+
     describe('setupOcean()', () => {
       it('should call all ocean setup functions', () => {
         const testOcean = {

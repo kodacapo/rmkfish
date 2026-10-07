@@ -675,14 +675,17 @@ function sendDeviceInfo() {
     });
 }
 
-function setupOcean(o) {
+function setupOcean(o, joinState) {
     ocean = o;
     hasJoinedOcean = true;
     sendDeviceInfo();
     applyOceanVisibility();
     validateFisherClass();
     validateFisherAdvantage();
-    displayRules();
+    // Rejoining a game under way: no rules screen (rejoinGame rebuilds the
+    // game screen). Opening it here and closing it on 'rejoined' doesn't work:
+    // Bootstrap ignores a close while the modal is still fading in.
+    if (!(joinState && joinState.rejoining)) displayRules();
     loadLabels();
     updateCosts();
     makeUnpausable();

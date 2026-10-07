@@ -47,7 +47,10 @@ exports.engine = function engine(io, ioAdmin) {
       var prevSocketId = om.oceans[myOId].getSocketId(myPId);
 
       socket.join(myOId);
-      socket.emit('ocean', om.oceans[myOId].getParams());
+      // A game already under way (or over) means this page is rejoining: it
+      // must not open the rules screen (see fish.js setupOcean)
+      var alreadyStarted = om.oceans[myOId].isGameInProgress() || om.oceans[myOId].isRemovable();
+      socket.emit('ocean', om.oceans[myOId].getParams(), { rejoining: alreadyStarted });
       io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
 
       // Update ownership first so any incoming disconnect from the old socket
