@@ -175,15 +175,16 @@ fr['warning_seasonEnd'] = 'Attention, cette saison de pêche va se terminer.';
 pt['warning_seasonEnd'] = 'Aviso: Esta temporada está prestes a acabar.';
 ko['warning_seasonEnd'] = '경고: 이번 어획기가 곧 종료됩니다.';
 
-// Shown while the game is paused for a disconnected player; {seconds} counts down
-en['warning_playerDisconnected'] = 'A player has lost their connection. Waiting for them to return: {seconds} s';
-cn['warning_playerDisconnected'] = '有玩家断开了连接。正在等待其返回：{seconds} 秒';
-ct['warning_playerDisconnected'] = '有玩家中斷了連線。正在等待其返回：{seconds} 秒';
-de['warning_playerDisconnected'] = 'Ein Spieler hat die Verbindung verloren. Warten auf seine Rückkehr: {seconds} s';
-es['warning_playerDisconnected'] = 'Un jugador ha perdido la conexión. Esperando su regreso: {seconds} s';
-fr['warning_playerDisconnected'] = 'Un joueur a perdu sa connexion. En attente de son retour : {seconds} s';
-pt['warning_playerDisconnected'] = 'Um jogador perdeu a conexão. Aguardando o retorno: {seconds} s';
-ko['warning_playerDisconnected'] = '한 플레이어의 연결이 끊어졌습니다. 돌아오기를 기다리는 중: {seconds}초';
+// Shown while the game is paused for a disconnected player; {seconds} counts down.
+// \n is a line break (the notice line shows line breaks)
+en['warning_playerDisconnected'] = 'A player has lost their connection.\nWaiting for them to return: {seconds} s';
+cn['warning_playerDisconnected'] = '有玩家断开了连接。\n正在等待其返回：{seconds} 秒';
+ct['warning_playerDisconnected'] = '有玩家中斷了連線。\n正在等待其返回：{seconds} 秒';
+de['warning_playerDisconnected'] = 'Ein Spieler hat die Verbindung verloren.\nWarten auf seine Rückkehr: {seconds} s';
+es['warning_playerDisconnected'] = 'Un jugador ha perdido la conexión.\nEsperando su regreso: {seconds} s';
+fr['warning_playerDisconnected'] = 'Un joueur a perdu sa connexion.\nEn attente de son retour : {seconds} s';
+pt['warning_playerDisconnected'] = 'Um jogador perdeu a conexão.\nAguardando o retorno: {seconds} s';
+ko['warning_playerDisconnected'] = '한 플레이어의 연결이 끊어졌습니다.\n돌아오기를 기다리는 중: {seconds}초';
 
 // Shown when a pause is over, before play continues; {seconds} counts down
 en['warning_resuming'] = 'Get ready: the game resumes in {seconds} s';
