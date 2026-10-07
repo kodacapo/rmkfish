@@ -3,6 +3,36 @@
 var log = require('winston');
 var OceanManager = require('./ocean-manager').OceanManager;
 
+// Why a returning participant may not rejoin (from OceanManager.assignFisherToOcean).
+// The page shows its own translation of each code (fish.js: end_<code>); the
+// message is the fallback.
+var REFUSALS = {
+  lost: {
+    log: 'lost from their game after disconnecting',
+    message: 'Your connection was lost for too long, so you cannot rejoin this game.',
+  },
+  removed: {
+    log: 'removed from their game, which is still under way',
+    message: 'You were disconnected from your game and removed from it, so you cannot rejoin.',
+  },
+};
+
+// A participant back in a game that already started (reload, network drop,
+// new tab): end their grace period, then rebuild their screen, or show the
+// end of a game that is over
+function restoreRejoiningFisher(socket, ocean, pId) {
+  if (ocean.isFisherDisconnected(pId)) {
+    ocean.fisherReconnected(pId);
+  }
+  if (ocean.isGameInProgress()) {
+    socket.emit('rejoined', ocean.getRejoinState());
+    // Still waiting for someone else: show this participant the countdown too
+    if (ocean.isDisconnectPauseActive()) ocean.updateDisconnectPause();
+  } else if (ocean.isRemovable()) {
+    socket.emit('end run', ocean.endReason);
+  }
+}
+
 exports.engine = function engine(io, ioAdmin) {
   log.info('Starting engine');
   var om = new OceanManager(io, ioAdmin);
@@ -21,19 +51,9 @@ exports.engine = function engine(io, ioAdmin) {
         socket.emit('end run', info && info.endReason);
         return;
       }
-      if (failure === 'removed') {
-        socket.emit('joinError', {
-          code: 'removed', // the page shows its own translation (end_removed)
-          message: 'You were disconnected from your game and removed from it, so you cannot rejoin.',
-        });
-        return;
-      }
-      if (failure === 'lost') {
-        log.info('Refused rejoin by ' + clientPId + ': lost from their game after disconnecting');
-        socket.emit('joinError', {
-          code: 'lost', // the page shows its own translation (end_lost)
-          message: 'Your connection was lost for too long, so you cannot rejoin this game.',
-        });
+      if (REFUSALS[failure]) {
+        log.info('Refused rejoin by ' + clientPId + ': ' + REFUSALS[failure].log);
+        socket.emit('joinError', { code: failure, message: REFUSALS[failure].message });
         return;
       }
       if (!newOId) {
@@ -71,18 +91,7 @@ exports.engine = function engine(io, ioAdmin) {
         }
       }
 
-      // Back in a game that already started (reload, network drop, new tab):
-      // end the grace period, then rebuild the participant's screen
-      var joinedOcean = om.oceans[myOId];
-      if (joinedOcean.isFisherDisconnected(myPId)) {
-        joinedOcean.fisherReconnected(myPId);
-      }
-      if (joinedOcean.isGameInProgress()) {
-        socket.emit('rejoined', joinedOcean.getRejoinState());
-        if (joinedOcean.isDisconnectPauseActive()) joinedOcean.updateDisconnectPause();
-      } else if (joinedOcean.isRemovable()) {
-        socket.emit('end run', joinedOcean.endReason);
-      }
+      if (alreadyStarted) restoreRejoiningFisher(socket, om.oceans[myOId], myPId);
 
       // Define handlers as named functions so we can remove them on disconnect
       // This prevents memory leaks from accumulated event listeners
