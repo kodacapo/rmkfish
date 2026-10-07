@@ -416,6 +416,26 @@ fr['end_disconnect'] = 'La partie est terminée car un joueur a perdu sa connexi
 pt['end_disconnect'] = 'O jogo terminou porque um jogador perdeu a conexão.';
 ko['end_disconnect'] = '한 플레이어의 연결이 끊어져 게임이 종료되었습니다.';
 
+// Shown to a participant who comes back after being lost from their game
+en['end_lost'] = 'Your connection was lost for too long, so you cannot rejoin this game.';
+cn['end_lost'] = '您的连接中断时间过长，因此无法重新加入本局游戏。';
+ct['end_lost'] = '您的連線中斷時間過長，因此無法重新加入本局遊戲。';
+de['end_lost'] = 'Ihre Verbindung war zu lange unterbrochen, daher können Sie diesem Spiel nicht wieder beitreten.';
+es['end_lost'] = 'Su conexión estuvo interrumpida demasiado tiempo, por lo que no puede volver a unirse a este juego.';
+fr['end_lost'] = 'Votre connexion a été interrompue trop longtemps : vous ne pouvez pas rejoindre cette partie.';
+pt['end_lost'] = 'Sua conexão ficou interrompida por tempo demais, por isso você não pode voltar a este jogo.';
+ko['end_lost'] = '연결이 너무 오래 끊어져 이 게임에 다시 참여할 수 없습니다.';
+
+// Shown to a participant who comes back after being removed from a game still under way
+en['end_removed'] = 'You were disconnected from your game and removed from it, so you cannot rejoin.';
+cn['end_removed'] = '您与游戏的连接已断开并已被移出游戏，因此无法重新加入。';
+ct['end_removed'] = '您與遊戲的連線已中斷並已被移出遊戲，因此無法重新加入。';
+de['end_removed'] = 'Ihre Verbindung zum Spiel wurde getrennt und Sie wurden aus dem Spiel entfernt. Sie können nicht wieder beitreten.';
+es['end_removed'] = 'Se desconectó del juego y fue retirado de él, por lo que no puede volver a unirse.';
+fr['end_removed'] = 'Vous avez été déconnecté de la partie et en avez été retiré : vous ne pouvez pas la rejoindre.';
+pt['end_removed'] = 'Você foi desconectado do jogo e removido dele, por isso não pode voltar.';
+ko['end_removed'] = '게임 연결이 끊어져 게임에서 제외되었으므로 다시 참여할 수 없습니다.';
+
 en['end_caught'] = 'You caught';
 cn['end_caught'] = '你捕捞了';
 ct['end_caught'] = '你捕撈了';

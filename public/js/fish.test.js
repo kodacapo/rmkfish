@@ -97,6 +97,7 @@ describe('Fish (jsdom)', () => {
         const elements = Array.from(document.querySelectorAll(selector));
         const element = elements[0] || null;
         return {
+          length: elements.length,
           text: function(val) {
             if (val !== undefined) {
               elements.forEach(el => el.textContent = val);
@@ -1803,6 +1804,21 @@ describe('Fish (jsdom)', () => {
       });
     });
 
+    describe('refused on rejoining', () => {
+      it('should end the game screen with the reason, in the participant\'s language', () => {
+        window.msgs.end_lost = 'Lost: cannot rejoin (translated)';
+        window.showRejoinRefused({ code: 'lost', message: 'English text' });
+        document.querySelector('#over-text').innerHTML.should.equal('Lost: cannot rejoin (translated)');
+        window.st.status.should.equal('over');
+        document.querySelector('#over-modal').getAttribute('data-modal-shown').should.equal('true');
+      });
+
+      it('should fall back to the server\'s text, safely, without a known code', () => {
+        window.showRejoinRefused({ message: 'Plain <b>text</b>' });
+        document.querySelector('#over-text').innerHTML.should.equal('Plain &lt;b&gt;text&lt;/b&gt;');
+      });
+    });
+
     describe('listen()', () => {
       it('should log, not throw, when a handler fails, so the connection keeps working', () => {
         const originalSocket = window.socket;
@@ -1840,6 +1856,46 @@ describe('Fish (jsdom)', () => {
         // up; an error here used to stall the page's connection
         window.ocean.oceanOrder = 'ocean_order_desc_fish_season';
         (() => window.sortFisherTable()).should.not.throw();
+      });
+    });
+
+    describe('a fisher leaving mid-game', () => {
+      const fisher = (name, pDisplay) => ({
+        name: name, params: { pDisplay: pDisplay }, status: 'At port', totalFishCaught: 0, money: 0,
+        seasonData: [{ catchIntent: 0, nextCatchIntent: 0, fishCaught: 0, endMoney: 0 }]
+      });
+
+      beforeEach(() => {
+        // A real table, as in fish.pug, replacing loose f* elements from other tests
+        document.querySelectorAll('[id^="f0"],[id^="f1"],[id^="f2"],[id^="f3"],#fishers-tbody')
+          .forEach(el => el.remove());
+        const cells = ['status', 'name', 'catch-intent', 'fish-season', 'fish-total',
+          'profit-season', 'profit-total', 'profit-gap'];
+        const rows = [0, 1, 2, 3].map(i => '<tr id="f' + i + '">' +
+          cells.map(c => '<td id="f' + i + '-' + c + '"></td>').join('') + '</tr>').join('');
+        const table = document.createElement('table');
+        table.innerHTML = '<tbody id="fishers-tbody">' + rows + '</tbody>';
+        document.body.appendChild(table);
+
+        window.pId = 'me';
+        window.msgs.info_you = 'You';
+        window.myCatchIntentDisplaySeason = 0;
+        window.queryParams = {};
+        window.ocean = { showFishers: true, showFisherNames: true, profitGapDisabled: true };
+      });
+
+      it('should stop listing a fisher who has left', () => {
+        window.st = { season: 0, fishers: [fisher('me', 'Me'), fisher('a', 'Alice'), fisher('b', 'Bob')] };
+        window.updateFishers();
+        document.querySelector('#f2').hasAttribute('active-fisher').should.be.true();
+
+        // Alice is removed: Bob moves up to row 1, and row 2 is no longer used
+        window.st = { season: 0, fishers: [fisher('me', 'Me'), fisher('b', 'Bob')] };
+        window.updateFishers();
+        document.querySelector('#f1-name').textContent.should.equal('Bob');
+        document.querySelector('#f2').hasAttribute('active-fisher').should.be.false();
+        document.querySelector('#f2').style.display.should.equal('none');
+        document.querySelector('#f0').hasAttribute('active-fisher').should.be.true();
       });
     });
 

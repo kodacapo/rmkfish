@@ -23,6 +23,7 @@ exports.engine = function engine(io, ioAdmin) {
       }
       if (failure === 'removed') {
         socket.emit('joinError', {
+          code: 'removed', // the page shows its own translation (end_removed)
           message: 'You were disconnected from your game and removed from it, so you cannot rejoin.',
         });
         return;
@@ -30,6 +31,7 @@ exports.engine = function engine(io, ioAdmin) {
       if (failure === 'lost') {
         log.info('Refused rejoin by ' + clientPId + ': lost from their game after disconnecting');
         socket.emit('joinError', {
+          code: 'lost', // the page shows its own translation (end_lost)
           message: 'Your connection was lost for too long, so you cannot rejoin this game.',
         });
         return;

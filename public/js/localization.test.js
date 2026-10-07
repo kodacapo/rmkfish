@@ -247,6 +247,8 @@ describe('Localization (jsdom)', () => {
       'login_welcome',
       'end_over',
       'end_disconnect',
+      'end_lost',
+      'end_removed',
       'warning_playerDisconnected',
     ];
 

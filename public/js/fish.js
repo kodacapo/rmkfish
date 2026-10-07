@@ -599,6 +599,25 @@ function updateFishers() {
             j++;
         }
     }
+
+    // Rows no longer in use because a fisher left mid-game: hide them and
+    // take them out of the table's filter, or the departed fisher stays listed
+    var cleared = false;
+    var lastRow = $('#fishers-tbody tr').length - 1;
+    for (var k = j; k <= lastRow; k++) {
+        if ($('#f' + k).attr('active-fisher')) {
+            $('#f' + k).removeAttr('active-fisher');
+            $('#f' + k).hide();
+            cleared = true;
+        }
+    }
+    if (cleared) refilterFisherTable();
+}
+
+function refilterFisherTable() {
+    var $container = $('#fishers-tbody');
+    if (!$container.mixItUp || !$container.mixItUp('isLoaded')) return;
+    $container.mixItUp('filter', $('#fishers-tbody tr[active-fisher]'));
 }
 
 
@@ -1011,15 +1030,7 @@ function endSeason(data) {
 }
 
 function endRun(trigger) {
-    resetLocation();
-    st.status = 'over';
-
-    disableButtons();
-    clearWarnings();
-    updateStatus();
-
     var overText;
-    hideDisconnectPause();
     if (trigger === 'time') {
         overText = ocean.endTimeText.replace(/\n/g, '<br />');
     } else if (trigger === 'disconnect') {
@@ -1027,6 +1038,24 @@ function endRun(trigger) {
     } else {
         overText = ocean.endDepletionText.replace(/\n/g, '<br />');
     }
+    showGameOver(overText);
+}
+
+// A page that was in a game and is refused on reconnecting (lost after a
+// disconnect, or removed) ends the same way as a finished game, with the reason
+function showRejoinRefused(data) {
+    var text = (data.code && msgs['end_' + data.code]) || $('<span>').text(data.message).html();
+    showGameOver(text);
+}
+
+function showGameOver(overText) {
+    resetLocation();
+    st.status = 'over';
+
+    disableButtons();
+    clearWarnings();
+    updateStatus();
+    hideDisconnectPause();
 
     socket.disconnect();
     $('#over-text').html(overText);
@@ -1335,7 +1364,11 @@ listen('rejoined', rejoinGame);
 listen('start asking intent', startAskingIntendedCatch);
 listen('stop asking intent', stopAskingIntendedCatch);
 listen('joinError', function(data) {
-    alert(data.message);
+    if (hasJoinedOcean) {
+        showRejoinRefused(data);
+    } else {
+        alert(data.message);
+    }
 });
 
 listen('displaced', function() {
