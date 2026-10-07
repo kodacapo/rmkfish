@@ -271,8 +271,10 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   // Once nothing holds the pause, play resumes after a countdown, so everyone
   // sees "the game resumes in N s" first: the microworld's initial delay,
-  // but at least 2 and at most 5 seconds. The game loop runs the countdown
-  // (advanceResumeCountdown).
+  // but at least 2 and at most 5 seconds. The minimum is for the other
+  // players: a reconnecting player knows the game is about to go on, but
+  // the others, who were waiting, need a moment's warning that the pause is
+  // over. The game loop runs the countdown (advanceResumeCountdown).
   this.resumeCountdownSeconds = function() {
     var initialDelay = Math.round(this.microworld.params.initialDelay || 0);
     return Math.max(2, Math.min(5, initialDelay));
