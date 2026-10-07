@@ -141,6 +141,13 @@ describe('Engine - Disconnect handling', function() {
     }, GRACE * 2000);
   });
 
+  it('should remember who was in the game when it started', function() {
+    // The test skipped the real start (getOceanReady), so set it as that would
+    ocean.playersAtStart = ['h1', 'h2'];
+    ocean.hasPlayed('h1').should.be.true();
+    ocean.hasPlayed('nobody').should.be.false();
+  });
+
   it('should remove a dropped participant at once when handling is off', function() {
     ocean.microworld.params.disconnectHandlingEnabled = false;
     // Between seasons: h1 is the last human, and no season was really started
@@ -151,5 +158,72 @@ describe('Engine - Disconnect handling', function() {
     var h1 = ocean.connectionEvents.filter(function(e) { return e.participant === 'h1'; });
     h1.map(function(e) { return e.event; }).should.eql(['disconnected', 'reconnected', 'disconnected', 'removed']);
     h1[3].reason.should.equal('disconnect handling off');
+  });
+
+  it('should show "game over", not a new game, to a page reconnecting after its game ended', function(done) {
+    // h1 was the last human, so the game has ended
+    ocean.isRemovable().should.be.true();
+    var socket = createMockSocket('A3');
+    io.sockets.emit('connection', socket);
+    socket.emit('enterOcean', mwId, 'h1', {}, true);
+    setTimeout(function() {
+      sent(socket, 'end run').length.should.equal(1);
+      sent(socket, 'end run')[0].data.should.equal('nohumans');
+      sent(socket, 'ocean').length.should.equal(0);
+      Object.keys(om.oceans).length.should.equal(1);
+      done();
+    }, 100);
+  });
+
+  it('should still let a fresh visit with the same ID start a new game', function(done) {
+    var socket = createMockSocket('A4');
+    io.sockets.emit('connection', socket);
+    socket.emit('enterOcean', mwId, 'h1', {}, false);
+    setTimeout(function() {
+      sent(socket, 'ocean').length.should.equal(1);
+      Object.keys(om.oceans).length.should.equal(2);
+      done();
+    }, 300);
+  });
+});
+
+describe('Ocean manager - reconnecting pages', function() {
+  var OceanManager = require('./ocean-manager').OceanManager;
+  var om;
+
+  function stubOcean(options) {
+    return {
+      microworld: { _id: 'mw1' },
+      isLost: function() { return false; },
+      findFisherIndex: function() { return null; },
+      hasRoom: function() { return false; },
+      hasPlayed: function(p) { return p === 'h1'; },
+      isRemovable: function() { return options.over; },
+      endReason: options.over ? 'time' : null,
+    };
+  }
+
+  beforeEach(function() {
+    var room = { emit: function() {} };
+    var io = { sockets: { in: function() { return room; } }, in: function() { return room; } };
+    om = new OceanManager(io, io);
+  });
+
+  it('should refuse a page removed from a game still in progress', function(done) {
+    om.oceans.o1 = stubOcean({ over: false });
+    om.assignFisherToOcean('mw1', 'h1', {}, function(oId, failure) {
+      should(oId).be.null();
+      failure.should.equal('removed');
+      done();
+    }, true);
+  });
+
+  it('should send a page whose game ended to "game over"', function(done) {
+    om.oceans.o1 = stubOcean({ over: true });
+    om.assignFisherToOcean('mw1', 'h1', {}, function(oId, failure, info) {
+      failure.should.equal('gameOver');
+      info.endReason.should.equal('time');
+      done();
+    }, true);
   });
 });

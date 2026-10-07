@@ -677,6 +677,7 @@ function sendDeviceInfo() {
 
 function setupOcean(o) {
     ocean = o;
+    hasJoinedOcean = true;
     sendDeviceInfo();
     applyOceanVisibility();
     validateFisherClass();
@@ -1282,8 +1283,12 @@ function startTutorial() {
     });
 }
 
+// True once this page has been in a game: a later 'connect' is a reconnect,
+// and the server must not seat this page in a new group
+var hasJoinedOcean = false;
+
 socket.on('connect', function () {
-    socket.emit('enterOcean', mwId, pId, pParams);
+    socket.emit('enterOcean', mwId, pId, pParams, hasJoinedOcean);
 });
 
 window.addEventListener('pagehide', onPageHide);

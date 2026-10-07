@@ -53,7 +53,10 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
     return matched.length > 0 ? matched[0] : validClasses[0];
   }
 
-  this.assignFisherToOcean = function (mwId, pId, pParams, cb) {
+  // isRejoin: the participant's page was already in a game and has reconnected
+  // (browser auto-reconnect, or back from the back/forward cache), as opposed
+  // to a fresh visit
+  this.assignFisherToOcean = function (mwId, pId, pParams, cb, isRejoin) {
     var oKeys = Object.keys(this.oceans);
     var oId = null;
 
@@ -80,6 +83,22 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
           ocean.addFisher(pId, pParams);
           return cb(oId);
         }
+      }
+    }
+
+    // A reconnecting page whose game has ended, or which was removed from a
+    // game still in progress, must not be seated in a new group. (A fresh
+    // visit may start a new game, e.g. to reuse test IDs.)
+    if (isRejoin) {
+      for (var j in oKeys) {
+        var played = this.oceans[oKeys[j]];
+        if (!played || played.microworld._id.toString() !== mwId || !played.hasPlayed(pId)) continue;
+        if (played.isRemovable()) {
+          log.info('Fisher ' + pId + ' reconnected after their game in ocean ' + oKeys[j] + ' ended');
+          return cb(null, 'gameOver', { endReason: played.endReason });
+        }
+        log.info('Fisher ' + pId + ' reconnected after being removed from ocean ' + oKeys[j]);
+        return cb(null, 'removed');
       }
     }
 

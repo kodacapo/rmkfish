@@ -11,12 +11,22 @@ exports.engine = function engine(io, ioAdmin) {
     var clientOId;
     var clientPId;
 
-    socket.on('enterOcean', function(mwId, pId, pParams) {
+    socket.on('enterOcean', function(mwId, pId, pParams, isRejoin) {
       clientPId = pId;
-      clientOId = om.assignFisherToOcean(mwId, pId, pParams, enteredOcean);
+      clientOId = om.assignFisherToOcean(mwId, pId, pParams, enteredOcean, !!isRejoin);
     });
 
-    var enteredOcean = function(newOId, failure) {
+    var enteredOcean = function(newOId, failure, info) {
+      if (failure === 'gameOver') {
+        socket.emit('end run', info && info.endReason);
+        return;
+      }
+      if (failure === 'removed') {
+        socket.emit('joinError', {
+          message: 'You were disconnected from your game and removed from it, so you cannot rejoin.',
+        });
+        return;
+      }
       if (failure === 'lost') {
         log.info('Refused rejoin by ' + clientPId + ': lost from their game after disconnecting');
         socket.emit('joinError', {

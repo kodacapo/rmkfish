@@ -32,6 +32,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   this.connectionEvents = [];   // saved with the run
   this.disconnected = {};       // pId -> { since, deadline, timer } while in the grace period
   this.lostParticipants = {};   // pId -> reason; these may not rejoin
+  this.playersAtStart = [];     // humans in the game when it started (set in getOceanReady)
   this.endReason = null;
   this.om = om;
   this.catchIntentSeason = 0;
@@ -303,6 +304,10 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.isLost = function(pId) {
     return pId in this.lostParticipants;
+  };
+
+  this.hasPlayed = function(pId) {
+    return this.playersAtStart.indexOf(pId) !== -1;
   };
 
   this.isDisconnectPauseActive = function() {
@@ -669,6 +674,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     }
     var expId = this.microworld.experimenter._id.toString();
     this.status = 'initial delay';
+    this.playersAtStart = this.getHumansInOcean();
     this.log.info('All fishers ready to start.');
     io.sockets.in(this.id).emit('initial delay');
 

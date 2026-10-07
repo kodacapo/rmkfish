@@ -1382,6 +1382,15 @@ describe('Fish (jsdom)', () => {
         window.getDeviceClass().should.equal('large tablet');
       });
 
+      it('should remember it has been in a game, so a reconnect is flagged as one', () => {
+        window.hasJoinedOcean = false;
+        window.setupOcean({
+          enablePause: true, enableTutorial: true, preparationText: '',
+          fishValue: 1.0, costDeparture: 0.5, costCast: 0.1, costSecond: 0.0
+        });
+        window.hasJoinedOcean.should.be.true();
+      });
+
       it('should send device info when joining an ocean', () => {
         window.setupOcean({
           enablePause: true,
