@@ -1146,6 +1146,28 @@ function rejoinGame(data) {
     }
 }
 
+// Leaving the page (navigating away, closing the tab, and on phones often
+// switching apps) may freeze it in the browser's back/forward cache without
+// closing the connection, so the server would only notice after the
+// heartbeat times out. Say goodbye explicitly instead.
+var disconnectedOnPageHide = false;
+
+function onPageHide() {
+    if (socket.connected) {
+        disconnectedOnPageHide = true;
+        socket.disconnect();
+    }
+}
+
+// Back from the cache (e.g. the Back button): reconnect, which rejoins the
+// game through the usual 'connect' -> enterOcean path
+function onPageShow(event) {
+    if (event.persisted && disconnectedOnPageHide) {
+        disconnectedOnPageHide = false;
+        socket.connect();
+    }
+}
+
 ////////////////////////////////////////
 //////////// END Disconnect Handling
 ////////////////////////////////////////
@@ -1263,6 +1285,9 @@ function startTutorial() {
 socket.on('connect', function () {
     socket.emit('enterOcean', mwId, pId, pParams);
 });
+
+window.addEventListener('pagehide', onPageHide);
+window.addEventListener('pageshow', onPageShow);
 
 socket.on('ocean', setupOcean);
 socket.on('initial delay', warnInitialDelay);

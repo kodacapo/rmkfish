@@ -1624,6 +1624,41 @@ describe('Fish (jsdom)', () => {
       });
     });
 
+    describe('leaving the page', () => {
+      let calls;
+
+      beforeEach(() => {
+        calls = [];
+        window.disconnectedOnPageHide = false;
+        window.socket.connected = true;
+        window.socket.disconnect = () => { calls.push('disconnect'); window.socket.connected = false; };
+        window.socket.connect = () => { calls.push('connect'); window.socket.connected = true; };
+      });
+
+      it('should disconnect when the page is hidden, so the server knows at once', () => {
+        window.onPageHide();
+        calls.should.eql(['disconnect']);
+      });
+
+      it('should reconnect when the page comes back from the back/forward cache', () => {
+        window.onPageHide();
+        window.onPageShow({ persisted: true });
+        calls.should.eql(['disconnect', 'connect']);
+      });
+
+      it('should not reconnect on a normal page load', () => {
+        window.onPageShow({ persisted: false });
+        calls.should.eql([]);
+      });
+
+      it('should not reconnect a game that had already ended', () => {
+        window.socket.connected = false; // endRun disconnected it
+        window.onPageHide();
+        window.onPageShow({ persisted: true });
+        calls.should.eql([]);
+      });
+    });
+
     describe('disconnect pause', () => {
       beforeEach(() => {
         window.st = { status: 'running', fishers: [] };

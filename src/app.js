@@ -230,6 +230,12 @@ app.use(function(err, req, res, next) {
 
 var server = http.createServer(app);
 var io = (exports.io = socketio.listen(server, {
+  // Heartbeat: browsers ping every 12 s; any message (ping or game action)
+  // proves a participant is there. After 12 + 8 = 20 s of silence the server
+  // treats them as disconnected (library defaults were 25 + 20 = 45 s). The
+  // 8 s wait leaves room for slow mobile round trips.
+  pingInterval: 12000,
+  pingTimeout: 8000,
   logger: {
     debug: logger.debug,
     info: logger.info,
