@@ -196,6 +196,35 @@ fr['warning_resuming'] = 'Attention : la partie reprend dans {seconds} s';
 pt['warning_resuming'] = 'Prepare-se: o jogo continua em {seconds} s';
 ko['warning_resuming'] = '준비하세요: {seconds}초 후 게임이 계속됩니다';
 
+// PhoneFirst layout, phone held upright (fish.js addTurnSidewaysScreen)
+en['warning_turnSideways'] = 'Please turn your phone sideways to play.';
+cn['warning_turnSideways'] = '请将手机横过来进行游戏。';
+ct['warning_turnSideways'] = '請將手機橫過來進行遊戲。';
+de['warning_turnSideways'] = 'Bitte drehen Sie Ihr Handy zum Spielen quer.';
+es['warning_turnSideways'] = 'Gire su teléfono de lado para jugar.';
+fr['warning_turnSideways'] = 'Veuillez tourner votre téléphone à l’horizontale pour jouer.';
+pt['warning_turnSideways'] = 'Vire o seu celular de lado para jogar.';
+ko['warning_turnSideways'] = '게임을 하려면 휴대폰을 가로로 돌려 주세요.';
+
+// Under it, if turning the phone does nothing (screen rotation is locked)
+en['warning_rotationIphone'] = 'Nothing happens? Switch off rotation lock in Control Centre.';
+cn['warning_rotationIphone'] = '没有反应？请在控制中心关闭竖排方向锁定。';
+ct['warning_rotationIphone'] = '沒有反應？請在控制中心關閉直向鎖定。';
+de['warning_rotationIphone'] = 'Nichts passiert? Schalten Sie im Kontrollzentrum die Ausrichtungssperre aus.';
+es['warning_rotationIphone'] = '¿No pasa nada? Desactive el bloqueo de rotación en el Centro de control.';
+fr['warning_rotationIphone'] = 'Rien ne se passe ? Désactivez le verrouillage de la rotation dans le centre de contrôle.';
+pt['warning_rotationIphone'] = 'Nada acontece? Desative o bloqueio de rotação na Central de Controle.';
+ko['warning_rotationIphone'] = '변화가 없나요? 제어 센터에서 화면 회전 잠금을 끄세요.';
+
+en['warning_rotationAndroid'] = 'Nothing happens? Switch on auto-rotate in the quick settings (swipe down from the top of the screen).';
+cn['warning_rotationAndroid'] = '没有反应？请在快捷设置中开启自动旋转（从屏幕顶部向下滑动）。';
+ct['warning_rotationAndroid'] = '沒有反應？請在快速設定中開啟自動旋轉（從螢幕頂端向下滑動）。';
+de['warning_rotationAndroid'] = 'Nichts passiert? Schalten Sie in den Schnelleinstellungen „Automatisch drehen“ ein (vom oberen Bildschirmrand nach unten wischen).';
+es['warning_rotationAndroid'] = '¿No pasa nada? Active la rotación automática en los ajustes rápidos (deslice hacia abajo desde la parte superior de la pantalla).';
+fr['warning_rotationAndroid'] = 'Rien ne se passe ? Activez la rotation automatique dans les réglages rapides (balayez vers le bas depuis le haut de l’écran).';
+pt['warning_rotationAndroid'] = 'Nada acontece? Ative a rotação automática nas configurações rápidas (deslize para baixo a partir do topo da tela).';
+ko['warning_rotationAndroid'] = '변화가 없나요? 빠른 설정에서 자동 회전을 켜세요(화면 위쪽에서 아래로 스와이프).';
+
 // Status bar during the countdown before the first season
 en['status_starting'] = 'The game is starting';
 cn['status_starting'] = '游戏即将开始';

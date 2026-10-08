@@ -35,6 +35,7 @@ function readyTooltips() {
     $('#show-fish-value-notice-tooltip').tooltip();
     $('#overfishing-warning-tooltip').tooltip();
     $('#game-clock-tooltip').tooltip();
+    $('#layout-tooltip').tooltip();
     $('#disconnect-handling-tooltip').tooltip();
     $('#disconnect-grace-period-tooltip').tooltip();
     $('#disconnect-during-grace-tooltip').tooltip();
@@ -529,6 +530,7 @@ function prepareMicroworldObject() {
     mw.hideOcean = $('#hide-ocean').prop('checked');
     mw.showFishValueNotice = $('#show-fish-value-notice').prop('checked');
     mw.gameClock = $('#game-clock').val();
+    mw.layout = $('#layout').val();
     mw.disconnectHandlingEnabled = $('#enable-disconnect-handling').prop('checked');
     mw.disconnectGracePeriod = $('#disconnect-grace-period').val();
     mw.disconnectDuringGrace = $('#disconnect-during-grace').val();
@@ -718,6 +720,7 @@ function populatePage() {
     $('#show-fish-value-notice').prop('checked', mw.params.showFishValueNotice !== false);
     // showGameClock: the on/off setting gameClock replaced (on meant time left)
     $('#game-clock').val(mw.params.gameClock || (mw.params.showGameClock ? 'remaining' : 'off'));
+    $('#layout').val(mw.params.layout || 'classic');
     // Older microworlds have none of these; the defaults match the model's
     $('#enable-disconnect-handling').prop('checked', mw.params.disconnectHandlingEnabled || false);
     $('#disconnect-grace-period').val(mw.params.disconnectGracePeriod || 30);

@@ -804,6 +804,7 @@ function setupOcean(o, joinState) {
     ocean = o;
     hasJoinedOcean = true;
     sendDeviceInfo();
+    applyLayout();
     applyOceanVisibility();
     validateFisherClass();
     validateFisherAdvantage();
@@ -1331,6 +1332,141 @@ function drawFish(oContext, image, coords) {
 }
 
 ////////////////////////////////////////
+//////////// PhoneFirst layout (microworld param layout)
+//////////// Its styles hang off the body class layout-phone-first, so the
+//////////// classic page is untouched.
+////////////////////////////////////////
+
+function isPhoneFirst() {
+    return !!(ocean && ocean.layout === 'phoneFirst');
+}
+
+// One screen, stacked full width: the status bar on top; the fisher table
+// (the lobby before the game), with the ocean beside it if shown; then the
+// catch-intent question; and along the bottom edge the buttons, with the
+// costs beside them (a line of its own would cost a table row: an iPhone
+// held sideways leaves Safari pages only 268px of height).
+// The boxes are moved, not copied, so their ids and handlers stay as they are.
+function applyLayout() {
+    if (!isPhoneFirst() || document.getElementById('pf-top')) return;
+    document.body.classList.add('layout-phone-first');
+    function byId(id) { return document.getElementById(id); }
+    function box(id, parts) {
+        var div = document.createElement('div');
+        div.id = id;
+        parts.forEach(function(part) { if (part) div.appendChild(part); });
+        return div;
+    }
+    var table = box('pf-table', [byId('fishers-box') && byId('fishers-box').parentNode,
+        byId('displaced-notice'), byId('lobby-status-box')]);
+    var game = byId('game-column');
+    game.appendChild(box('pf-top', [byId('status-box')]));
+    game.appendChild(box('pf-middle', [table, byId('ocean-box')]));
+    var actions = box('pf-actions', [byId('control-box') && byId('control-box').parentNode, byId('costs-box')]);
+    game.appendChild(box('pf-bottom', [byId('catch-intent-dialog-box'), actions]));
+    var oceanColumn = byId('ocean-column');
+    if (oceanColumn) oceanColumn.style.display = 'none';
+    // Use the whole screen and keep clear of the camera cut-out ourselves (the
+    // styles pad by env(safe-area-inset-*)). Left to itself, Brave on iPhone
+    // leaves a strip blank on the cut-out side but keeps the page full
+    // width, so the page runs off the other side.
+    var viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport && viewport.content.indexOf('viewport-fit') === -1) {
+        viewport.content += ', viewport-fit=cover';
+    }
+    addTurnSidewaysScreen();
+    if (wantsFullscreen(navigator.userAgent, screen.width, screen.height)) {
+        document.addEventListener('click', goFullscreen, true);
+        document.addEventListener('touchend', goFullscreen, true);
+    }
+    fitToWindowHeight();
+    window.addEventListener('resize', fitToWindowHeight);
+    window.addEventListener('orientationchange', function() { setTimeout(fitToWindowHeight, 300); });
+    // Phones show a number pad for the catch intent, not a letter keyboard
+    var intentInput = byId('catch-intent-input');
+    if (intentInput) {
+        intentInput.setAttribute('inputmode', 'numeric');
+        intentInput.setAttribute('pattern', '[0-9]*');
+    }
+}
+
+// Covers the game while a touch-screen device is held upright, so it can't
+// be played squeezed (Richardt: block, don't just remind). The game clock
+// keeps running. Whether it shows is up to the styles (orientation media
+// query), so it follows the phone the moment it turns.
+function addTurnSidewaysScreen() {
+    if (document.getElementById('turn-sideways')) return;
+    var screen = document.createElement('div');
+    screen.id = 'turn-sideways';
+    var icon = document.createElement('div');
+    icon.className = 'turn-sideways-icon';
+    icon.textContent = '📱'; // mobile phone emoji
+    var text = document.createElement('p');
+    text.textContent = msgs.warning_turnSideways;
+    screen.appendChild(icon);
+    screen.appendChild(text);
+    // If turning does nothing, the phone's rotation is locked; how to undo
+    // that depends on the system
+    var hint = rotationLockHint(navigator.userAgent, navigator.maxTouchPoints);
+    if (hint) {
+        var small = document.createElement('p');
+        small.className = 'turn-sideways-hint';
+        small.textContent = hint;
+        screen.appendChild(small);
+    }
+    document.body.appendChild(screen);
+}
+
+// Fullscreen, locked sideways: Android phones and small tablets (shorter
+// side under 800). iPhones can't (Safari has no fullscreen for pages), and
+// large tablets have room enough.
+function wantsFullscreen(userAgent, screenWidth, screenHeight) {
+    return /Android/.test(userAgent) && Math.min(screenWidth, screenHeight) < 800;
+}
+
+// Browsers allow fullscreen only in answer to a tap, so every tap tries,
+// until it works; a participant who leaves fullscreen (back gesture) is
+// put back by their next tap. In-app browsers (WhatsApp and the like)
+// usually refuse, and the game simply goes on without.
+function goFullscreen() {
+    var root = document.documentElement;
+    var request = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (!request || document.fullscreenElement || document.webkitFullscreenElement) return;
+    var result;
+    try {
+        result = request.call(root, { navigationUI: 'hide' });
+    } catch (e) {
+        return;
+    }
+    function lockSideways() {
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(function() {});
+        }
+    }
+    if (result && result.then) {
+        result.then(lockSideways, function() {});
+    } else {
+        lockSideways();
+    }
+}
+
+// iPads present themselves as Macs; the touch screen gives them away
+function rotationLockHint(userAgent, maxTouchPoints) {
+    if (/iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && maxTouchPoints > 1)) {
+        return msgs.warning_rotationIphone;
+    }
+    if (/Android/.test(userAgent)) return msgs.warning_rotationAndroid;
+    return '';
+}
+
+// The page is exactly as tall as what the browser shows. CSS's 100dvh would
+// do, but Firefox on iPhone keeps the upright height after the phone is
+// turned (651 instead of 333), which pushes the buttons off the screen.
+function fitToWindowHeight() {
+    document.documentElement.style.setProperty('--pf-height', window.innerHeight + 'px');
+}
+
+////////////////////////////////////////
 //////////// Hide Ocean Feature (microworld param hideOcean)
 ////////////////////////////////////////
 
@@ -1346,7 +1482,9 @@ function applyOceanVisibility() {
         return;
     }
     $('#ocean-column').hide();
-    $('#game-column').addClass('col-sm-offset-3');
+    // PhoneFirst moved the ocean into the left strip, and uses the full width
+    $('#ocean-box').hide();
+    if (!isPhoneFirst()) $('#game-column').addClass('col-sm-offset-3');
     $('#ocean-box').removeClass('bootstro');
 }
 
