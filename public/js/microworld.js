@@ -33,6 +33,7 @@ function readyTooltips() {
     $('#early-end-tooltip').tooltip();
     $('#hide-ocean-tooltip').tooltip();
     $('#show-fish-value-notice-tooltip').tooltip();
+    $('#overfishing-warning-tooltip').tooltip();
     $('#game-clock-tooltip').tooltip();
     $('#disconnect-handling-tooltip').tooltip();
     $('#disconnect-grace-period-tooltip').tooltip();

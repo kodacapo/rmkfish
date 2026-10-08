@@ -76,8 +76,8 @@ html {
     border-color: $lightPrimaryColor;
     color: $fishRemainingColor;
     margin: 1px;
-    // Overfishing warning when the ocean is hidden (fish.js updateRespawnWarning)
-    // (kept subtle, like the darker ocean picture it replaces)
+    // Overfishing warning (fish.js updateRespawnWarning), alongside the
+    // ocean's darker picture when the ocean is shown
     &.respawn-warning {
       color: $warningDarkPrimaryColor;
       font-weight: bold;

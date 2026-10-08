@@ -1371,16 +1371,24 @@ describe('Fish (jsdom)', () => {
         document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
       });
 
+      it('should not turn the line red between seasons, when it shows no fish count', () => {
+        window.ocean = { hideOcean: false, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
+        window.updateRespawnWarning();
+        window.st.status = 'resting';
+        window.updateRespawnWarning();
+        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
+      });
+
       it('should not turn the fish count red when the warning is off', () => {
         window.ocean = { hideOcean: true, enableRespawnWarning: false, spawnFactor: 2, maxFish: 20 };
         window.drawOcean();
         document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
       });
 
-      it('should not turn the fish count red when the ocean shows the warning', () => {
+      it('should turn the fish count red when overfishing with the ocean shown too', () => {
         window.ocean = { hideOcean: false, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
         window.updateRespawnWarning();
-        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.false();
+        document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.true();
       });
 
       it('should not touch the canvas when the ocean is hidden', () => {

@@ -1360,10 +1360,12 @@ function isRespawnWarningActive() {
         (st.certainFish + st.mysteryFish) * ocean.spawnFactor <= ocean.maxFish);
 }
 
-// The ocean shows the warning by changing its picture; without the ocean,
-// the fish count turns red instead (no text, mirroring the picture)
+// The fish count turns red (no text), and the ocean, if shown, changes its
+// picture as well; the picture alone was too easy to miss. Only while the
+// line shows the fish count, not the message between seasons.
 function updateRespawnWarning() {
-    $('#status-sub-label').toggleClass('respawn-warning', isOceanHidden() && isRespawnWarningActive());
+    var showsFishCount = st.status === 'running' || st.status === 'paused';
+    $('#status-sub-label').toggleClass('respawn-warning', showsFishCount && isRespawnWarningActive());
 }
 
 ////////////////////////////////////////
