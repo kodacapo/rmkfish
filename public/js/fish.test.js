@@ -1375,6 +1375,40 @@ describe('Fish (jsdom)', () => {
         window.rotationLockHint('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0).should.equal('');
       });
 
+      it('should go fullscreen on Android phones and small tablets only', () => {
+        window.wantsFullscreen('Mozilla/5.0 (Linux; Android 14; SM-A145F)', 384, 854).should.be.true();
+        window.wantsFullscreen('Mozilla/5.0 (Linux; Android 13; SM-T220)', 600, 960).should.be.true();
+        // A large tablet has room enough
+        window.wantsFullscreen('Mozilla/5.0 (Linux; Android 13; SM-X700)', 800, 1280).should.be.false();
+        // iPhones can't
+        window.wantsFullscreen('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', 393, 852).should.be.false();
+      });
+
+      it('should ask for fullscreen and the sideways lock on a tap', async () => {
+        var asked = [];
+        var root = document.documentElement;
+        var savedRequest = root.requestFullscreen;
+        var savedOrientation = Object.getOwnPropertyDescriptor(window.screen, 'orientation');
+        root.requestFullscreen = function(options) {
+          asked.push('fullscreen ' + options.navigationUI);
+          return Promise.resolve();
+        };
+        Object.defineProperty(window.screen, 'orientation', {
+          configurable: true,
+          value: { lock: function(o) { asked.push('lock ' + o); return Promise.resolve(); } },
+        });
+        try {
+          window.goFullscreen();
+          await Promise.resolve();
+          await Promise.resolve();
+          asked.should.eql(['fullscreen hide', 'lock landscape']);
+        } finally {
+          root.requestFullscreen = savedRequest;
+          if (savedOrientation) Object.defineProperty(window.screen, 'orientation', savedOrientation);
+          else delete window.screen.orientation;
+        }
+      });
+
       it('should keep the classic page by default', () => {
         window.applyLayout();
         document.body.classList.contains('layout-phone-first').should.be.false();

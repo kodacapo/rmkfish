@@ -1375,6 +1375,10 @@ function applyLayout() {
         viewport.content += ', viewport-fit=cover';
     }
     addTurnSidewaysScreen();
+    if (wantsFullscreen(navigator.userAgent, screen.width, screen.height)) {
+        document.addEventListener('click', goFullscreen, true);
+        document.addEventListener('touchend', goFullscreen, true);
+    }
     fitToWindowHeight();
     window.addEventListener('resize', fitToWindowHeight);
     window.addEventListener('orientationchange', function() { setTimeout(fitToWindowHeight, 300); });
@@ -1411,6 +1415,39 @@ function addTurnSidewaysScreen() {
         screen.appendChild(small);
     }
     document.body.appendChild(screen);
+}
+
+// Fullscreen, locked sideways: Android phones and small tablets (shorter
+// side under 800). iPhones can't (Safari has no fullscreen for pages), and
+// large tablets have room enough.
+function wantsFullscreen(userAgent, screenWidth, screenHeight) {
+    return /Android/.test(userAgent) && Math.min(screenWidth, screenHeight) < 800;
+}
+
+// Browsers allow fullscreen only in answer to a tap, so every tap tries,
+// until it works; a participant who leaves fullscreen (back gesture) is
+// put back by their next tap. In-app browsers (WhatsApp and the like)
+// usually refuse, and the game simply goes on without.
+function goFullscreen() {
+    var root = document.documentElement;
+    var request = root.requestFullscreen || root.webkitRequestFullscreen;
+    if (!request || document.fullscreenElement || document.webkitFullscreenElement) return;
+    var result;
+    try {
+        result = request.call(root, { navigationUI: 'hide' });
+    } catch (e) {
+        return;
+    }
+    function lockSideways() {
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(function() {});
+        }
+    }
+    if (result && result.then) {
+        result.then(lockSideways, function() {});
+    } else {
+        lockSideways();
+    }
 }
 
 // iPads present themselves as Macs; the touch screen gives them away
