@@ -1425,7 +1425,9 @@ function startTutorial() {
         // Prevent bootstro from choking on hidden catch intention tutorial data
         $("#catch-intent-th").removeClass("bootstro");
     }
-    bootstro.start('.bootstro', {
+    // Only what is on screen: bootstro freezes on a hidden element (e.g. the
+    // Pause button when the microworld doesn't allow pausing)
+    bootstro.start('.bootstro:visible', {
         onComplete: function (params) {
             hideCatchIntentColumn();
             displayRules();

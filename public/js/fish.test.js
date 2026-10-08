@@ -1254,6 +1254,21 @@ describe('Fish (jsdom)', () => {
         tutorial.style.display.should.not.equal('none');
       });
     });
+
+    describe('startTutorial()', () => {
+      it('should leave out hidden elements, which freeze the tutorial', () => {
+        var selector;
+        var saved = window.bootstro;
+        window.bootstro = { start: function(s) { selector = s; } };
+        window.ocean.catchIntentionsEnabled = false;
+        try {
+          window.startTutorial();
+        } finally {
+          window.bootstro = saved;
+        }
+        selector.should.equal('.bootstro:visible');
+      });
+    });
   });
 
   describe('Game Flow Functions', () => {
