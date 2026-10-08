@@ -65,7 +65,7 @@ switch (process.env.NODE_ENV || app.settings.env) {
         logger.info(message.slice(0, -1));
       },
     };
-    app.use(morgan({ stream: loggerStream }));
+    app.use(morgan('combined', { stream: loggerStream }));
     break;
 }
 logger.info('app.settings.env = ' + app.settings.env);
