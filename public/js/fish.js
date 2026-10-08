@@ -1374,6 +1374,7 @@ function applyLayout() {
     if (viewport && viewport.content.indexOf('viewport-fit') === -1) {
         viewport.content += ', viewport-fit=cover';
     }
+    addTurnSidewaysScreen();
     fitToWindowHeight();
     window.addEventListener('resize', fitToWindowHeight);
     window.addEventListener('orientationchange', function() { setTimeout(fitToWindowHeight, 300); });
@@ -1383,6 +1384,42 @@ function applyLayout() {
         intentInput.setAttribute('inputmode', 'numeric');
         intentInput.setAttribute('pattern', '[0-9]*');
     }
+}
+
+// Covers the game while a touch-screen device is held upright, so it can't
+// be played squeezed (Richardt: block, don't just remind). The game clock
+// keeps running. Whether it shows is up to the styles (orientation media
+// query), so it follows the phone the moment it turns.
+function addTurnSidewaysScreen() {
+    if (document.getElementById('turn-sideways')) return;
+    var screen = document.createElement('div');
+    screen.id = 'turn-sideways';
+    var icon = document.createElement('div');
+    icon.className = 'turn-sideways-icon';
+    icon.textContent = '📱'; // mobile phone emoji
+    var text = document.createElement('p');
+    text.textContent = msgs.warning_turnSideways;
+    screen.appendChild(icon);
+    screen.appendChild(text);
+    // If turning does nothing, the phone's rotation is locked; how to undo
+    // that depends on the system
+    var hint = rotationLockHint(navigator.userAgent, navigator.maxTouchPoints);
+    if (hint) {
+        var small = document.createElement('p');
+        small.className = 'turn-sideways-hint';
+        small.textContent = hint;
+        screen.appendChild(small);
+    }
+    document.body.appendChild(screen);
+}
+
+// iPads present themselves as Macs; the touch screen gives them away
+function rotationLockHint(userAgent, maxTouchPoints) {
+    if (/iPhone|iPad|iPod/.test(userAgent) || (/Macintosh/.test(userAgent) && maxTouchPoints > 1)) {
+        return msgs.warning_rotationIphone;
+    }
+    if (/Android/.test(userAgent)) return msgs.warning_rotationAndroid;
+    return '';
 }
 
 // The page is exactly as tall as what the browser shows. CSS's 100dvh would

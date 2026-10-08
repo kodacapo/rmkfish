@@ -1347,6 +1347,34 @@ describe('Fish (jsdom)', () => {
         document.body.classList.remove('layout-phone-first');
       });
 
+      it('should add one "turn sideways" screen, in the participant\'s language', () => {
+        window.msgs.warning_turnSideways = 'Turn it!';
+        try {
+          window.addTurnSidewaysScreen();
+          window.addTurnSidewaysScreen();
+          document.querySelectorAll('#turn-sideways').length.should.equal(1);
+          document.querySelector('#turn-sideways p').textContent.should.equal('Turn it!');
+        } finally {
+          document.getElementById('turn-sideways').remove();
+        }
+      });
+
+      it('should tell iPhones and iPads how to undo rotation lock', () => {
+        window.msgs.warning_rotationIphone = 'iOS hint';
+        window.rotationLockHint('Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)', 5).should.equal('iOS hint');
+        // An iPad says it is a Mac, but has a touch screen
+        window.rotationLockHint('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5).should.equal('iOS hint');
+      });
+
+      it('should tell Android phones how to switch on auto-rotate', () => {
+        window.msgs.warning_rotationAndroid = 'Android hint';
+        window.rotationLockHint('Mozilla/5.0 (Linux; Android 14; SM-A145F)', 5).should.equal('Android hint');
+      });
+
+      it('should give no rotation hint to a Mac with a mouse', () => {
+        window.rotationLockHint('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0).should.equal('');
+      });
+
       it('should keep the classic page by default', () => {
         window.applyLayout();
         document.body.classList.contains('layout-phone-first').should.be.false();
