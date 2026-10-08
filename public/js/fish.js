@@ -804,6 +804,7 @@ function setupOcean(o, joinState) {
     ocean = o;
     hasJoinedOcean = true;
     sendDeviceInfo();
+    applyLayout();
     applyOceanVisibility();
     validateFisherClass();
     validateFisherAdvantage();
@@ -1331,6 +1332,47 @@ function drawFish(oContext, image, coords) {
 }
 
 ////////////////////////////////////////
+//////////// PhoneFirst layout (microworld param layout)
+//////////// Its styles hang off the body class layout-phone-first, so the
+//////////// classic page is untouched.
+////////////////////////////////////////
+
+function isPhoneFirst() {
+    return !!(ocean && ocean.layout === 'phoneFirst');
+}
+
+// One screen, stacked full width: the status bar on top; the fisher table
+// (the lobby before the game), with the ocean beside it if shown; then the
+// catch-intent question, the costs and the buttons along the bottom edge.
+// The boxes are moved, not copied, so their ids and handlers stay as they are.
+function applyLayout() {
+    if (!isPhoneFirst() || document.getElementById('pf-top')) return;
+    document.body.classList.add('layout-phone-first');
+    function byId(id) { return document.getElementById(id); }
+    function box(id, parts) {
+        var div = document.createElement('div');
+        div.id = id;
+        parts.forEach(function(part) { if (part) div.appendChild(part); });
+        return div;
+    }
+    var table = box('pf-table', [byId('fishers-box') && byId('fishers-box').parentNode,
+        byId('displaced-notice'), byId('lobby-status-box')]);
+    var game = byId('game-column');
+    game.appendChild(box('pf-top', [byId('status-box')]));
+    game.appendChild(box('pf-middle', [table, byId('ocean-box')]));
+    game.appendChild(box('pf-bottom', [byId('catch-intent-dialog-box'), byId('costs-box'),
+        byId('control-box') && byId('control-box').parentNode]));
+    var oceanColumn = byId('ocean-column');
+    if (oceanColumn) oceanColumn.style.display = 'none';
+    // Phones show a number pad for the catch intent, not a letter keyboard
+    var intentInput = byId('catch-intent-input');
+    if (intentInput) {
+        intentInput.setAttribute('inputmode', 'numeric');
+        intentInput.setAttribute('pattern', '[0-9]*');
+    }
+}
+
+////////////////////////////////////////
 //////////// Hide Ocean Feature (microworld param hideOcean)
 ////////////////////////////////////////
 
@@ -1346,7 +1388,9 @@ function applyOceanVisibility() {
         return;
     }
     $('#ocean-column').hide();
-    $('#game-column').addClass('col-sm-offset-3');
+    // PhoneFirst moved the ocean into the left strip, and uses the full width
+    $('#ocean-box').hide();
+    if (!isPhoneFirst()) $('#game-column').addClass('col-sm-offset-3');
     $('#ocean-box').removeClass('bootstro');
 }
 

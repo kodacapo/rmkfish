@@ -1339,6 +1339,60 @@ describe('Fish (jsdom)', () => {
       };
     });
 
+    describe('layout', () => {
+      const LAYOUT_IDS = ['game-column', 'status-box', 'control-box', 'fishers-box', 'displaced-notice',
+        'lobby-status-box', 'catch-intent-dialog-box', 'costs-box', 'ocean-column', 'ocean-box'];
+
+      afterEach(() => {
+        document.body.classList.remove('layout-phone-first');
+      });
+
+      it('should keep the classic page by default', () => {
+        window.applyLayout();
+        document.body.classList.contains('layout-phone-first').should.be.false();
+      });
+
+      it('should stack status, table and buttons for PhoneFirst', () => {
+        var page = document.createElement('div');
+        page.id = 'pf-test-page';
+        page.innerHTML =
+          '<div id="game-column">' +
+          '<div id="status-box"></div>' +
+          '<div class="row"><div id="control-box"></div></div>' +
+          '<div class="row"><div id="fishers-box"></div></div>' +
+          '<div id="lobby-status-box"></div>' +
+          '<div id="catch-intent-dialog-box"></div>' +
+          '<div id="costs-box"></div>' +
+          '</div>' +
+          '<div id="ocean-column"><div id="ocean-box"></div></div>';
+        // The test page's own copies of these ids go out of the way
+        LAYOUT_IDS
+          .forEach(id => { const el = document.getElementById(id); if (el) el.id = id + '-saved'; });
+        document.body.appendChild(page);
+        try {
+          window.ocean.layout = 'phoneFirst';
+          window.applyLayout();
+          document.body.classList.contains('layout-phone-first').should.be.true();
+          var parts = Array.from(document.getElementById('game-column').children).map(el => el.id);
+          parts.should.eql(['pf-top', 'pf-middle', 'pf-bottom']);
+          document.getElementById('pf-top').contains(document.getElementById('status-box')).should.be.true();
+          var middle = document.getElementById('pf-middle');
+          middle.contains(document.getElementById('fishers-box')).should.be.true();
+          middle.contains(document.getElementById('lobby-status-box')).should.be.true();
+          middle.contains(document.getElementById('ocean-box')).should.be.true();
+          var bottom = document.getElementById('pf-bottom');
+          bottom.contains(document.getElementById('costs-box')).should.be.true();
+          // The buttons come last, along the bottom edge
+          bottom.lastElementChild.contains(document.getElementById('control-box')).should.be.true();
+          document.getElementById('ocean-column').style.display.should.equal('none');
+        } finally {
+          page.remove();
+          LAYOUT_IDS
+            .forEach(id => { const el = document.getElementById(id + '-saved'); if (el) el.id = id; });
+        }
+      });
+    });
+
     describe('hide ocean', () => {
       beforeEach(() => {
         // Fresh copy of the page structure the feature touches

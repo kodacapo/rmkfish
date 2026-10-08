@@ -61,6 +61,8 @@ var microworldSchema = new Schema({
     enableRespawnWarning: Boolean,
     hideOcean: { type: Boolean, default: false },
     showFishValueNotice: { type: Boolean, default: true }, // "Each fish earns you ..."
+    // Participant game page: the original, or the landscape layout made for phones
+    layout: { type: String, enum: ['classic', 'phoneFirst'], default: 'classic' },
     // Clock in the status bar: time elapsed or left in the season/break/countdown
     gameClock: { type: String, enum: ['off', 'elapsed', 'remaining'], default: 'off' },
     showGameClock: Boolean, // replaced by gameClock; still read for microworlds saved with it

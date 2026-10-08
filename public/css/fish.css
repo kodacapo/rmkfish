@@ -267,5 +267,216 @@ html {
     width: 25%;
   }
 }
+body.layout-phone-first {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+}
+body.layout-phone-first .container-fluid {
+  padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left);
+}
+body.layout-phone-first .container-fluid > .row {
+  margin: 0;
+}
+body.layout-phone-first #game-column {
+  float: none;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: 100vh;
+  height: 100dvh;
+}
+body.layout-phone-first #game-column .row {
+  margin: 0;
+}
+body.layout-phone-first #pf-top,
+body.layout-phone-first #pf-bottom {
+  flex: 0 0 auto;
+}
+body.layout-phone-first #pf-middle {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+}
+body.layout-phone-first #pf-table {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+body.layout-phone-first #pf-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+body.layout-phone-first #status-box {
+  display: flex;
+  gap: 2px;
+}
+body.layout-phone-first #status-box #status-label,
+body.layout-phone-first #status-box #status-sub-label {
+  flex: 1 1 50%;
+  min-width: 0;
+  margin: 0;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+body.layout-phone-first #status-box #status-label {
+  font-size: 18px;
+  font-size: 1.8rem;
+}
+body.layout-phone-first #status-box #status-label .status-clock {
+  font-size: 14px;
+  font-size: 1.4rem;
+  padding: 1px 6px;
+}
+body.layout-phone-first #status-box #status-sub-label {
+  font-size: 16px;
+  font-size: 1.6rem;
+}
+body.layout-phone-first #fishers-box table {
+  width: 100%;
+  font-size: 15px;
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+body.layout-phone-first #fishers-box table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: white;
+  padding: 2px 4px;
+  line-height: 1.2;
+}
+body.layout-phone-first #fishers-box table thead th img {
+  width: 16px;
+  height: 16px;
+}
+body.layout-phone-first #fishers-box table tbody td {
+  padding: 3px 6px;
+  line-height: 1.3;
+}
+body.layout-phone-first #lobby-status-box {
+  margin-top: 8px;
+}
+body.layout-phone-first #ocean-box {
+  flex: 0 0 40%;
+}
+body.layout-phone-first #ocean-box #ocean-canvas {
+  width: 100% !important;
+  height: auto;
+  margin-bottom: 0;
+  border-radius: 10px;
+}
+body.layout-phone-first #catch-intent-dialog {
+  font-size: 15px;
+  font-size: 1.5rem;
+}
+body.layout-phone-first #catch-intent-dialog .prompt-label {
+  margin: 0;
+  padding: 4px 8px;
+}
+body.layout-phone-first #catch-intent-dialog h4, body.layout-phone-first #catch-intent-dialog h5 {
+  margin: 2px 0;
+}
+body.layout-phone-first #catch-intent-dialog #catch-intent-input {
+  font-size: 16px;
+  width: 6em;
+  min-height: 40px;
+}
+body.layout-phone-first #catch-intent-dialog #catch-intent-submit {
+  min-height: 48px;
+}
+body.layout-phone-first #costs-box {
+  font-size: 14px;
+  font-size: 1.4rem;
+  margin: 0;
+  text-align: center;
+}
+body.layout-phone-first #costs-box .costs-label {
+  margin: 0 4px;
+  padding: 2px 6px;
+}
+body.layout-phone-first #control-box {
+  display: flex;
+  gap: 8px;
+}
+body.layout-phone-first #control-box .control-col,
+body.layout-phone-first #control-box #pause-col {
+  float: none;
+  width: auto;
+  flex: 1 1 0;
+  padding: 0;
+}
+body.layout-phone-first #control-box button {
+  width: 100%;
+  min-height: 48px;
+  white-space: normal;
+  font-size: 16px;
+  font-size: 1.6rem;
+  font-weight: bold;
+  line-height: 1.2;
+}
+body.layout-phone-first .modal-dialog {
+  margin: 8px auto;
+  max-width: calc(100% - 16px);
+}
+body.layout-phone-first .modal-content {
+  max-height: calc(100vh - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+}
+body.layout-phone-first .modal button {
+  min-height: 48px;
+}
+@media (hover: none) {
+  body.layout-phone-first #control-box .btn-changeLocation:hover:not(:active) {
+    background-color: #03A9F4;
+    border-color: #03A9F4;
+  }
+  body.layout-phone-first #control-box .btn-fish:hover:not(:active) {
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+  }
+  body.layout-phone-first .table-hover > tbody > tr:hover > td {
+    background-color: inherit;
+  }
+}
+@media (min-width: 992px) and (min-height: 600px) {
+  body.layout-phone-first #game-column {
+    padding: 16px;
+    gap: 12px;
+  }
+  body.layout-phone-first #status-box #status-label {
+    font-size: 24px;
+    font-size: 2.4rem;
+  }
+  body.layout-phone-first #status-box #status-sub-label {
+    font-size: 20px;
+    font-size: 2rem;
+  }
+  body.layout-phone-first #fishers-box table {
+    font-size: 17px;
+    font-size: 1.7rem;
+  }
+  body.layout-phone-first #costs-box {
+    font-size: 16px;
+    font-size: 1.6rem;
+  }
+  body.layout-phone-first #control-box button {
+    min-height: 56px;
+    font-size: 18px;
+    font-size: 1.8rem;
+  }
+}
 
 /*# sourceMappingURL=fish.css.map */

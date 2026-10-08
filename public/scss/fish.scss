@@ -311,3 +311,259 @@ html {
 @media (min-width: $media-large) {
 
 }
+
+
+////////////////////////////////////////
+// PhoneFirst layout (microworld setting "Layout"; fish.js applyLayout).
+// One screen, stacked full width: the status bar (#pf-top), the fisher table
+// with the ocean beside it if shown (#pf-middle), then the catch-intent
+// question, the costs and the buttons along the bottom edge (#pf-bottom).
+// Every device shows the same boxes in the same places; larger screens only
+// get more room and bigger type. Nothing here touches the classic page.
+////////////////////////////////////////
+
+$pf-touch-target: 48px; // minimum height of anything to tap
+$pf-gap: 8px;
+
+body.layout-phone-first {
+  // The page itself never scrolls (no pull-to-refresh); only the table
+  // scrolls, inside its own box
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: manipulation; // no double-tap zoom
+  -webkit-text-size-adjust: 100%;
+
+  .container-fluid {
+    padding: 0 env(safe-area-inset-right) 0 env(safe-area-inset-left); // iPhone notch
+    > .row {
+      margin: 0;
+    }
+  }
+
+  #game-column {
+    float: none;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: $pf-gap * 0.75;
+    display: flex;
+    flex-direction: column;
+    gap: $pf-gap * 0.75;
+    height: 100vh;
+    height: 100dvh; // the visible height, with the browser's bars
+    .row {
+      margin: 0;
+    }
+  }
+
+  #pf-top,
+  #pf-bottom {
+    flex: 0 0 auto;
+  }
+
+  #pf-middle {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    gap: $pf-gap;
+  }
+
+  #pf-table {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+
+  #pf-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: $pf-gap * 0.5;
+  }
+
+  // Status bar: the classic page's two lines side by side, which saves a
+  // line of height (the phase and clock left, the fish count or a notice
+  // right)
+  #status-box {
+    display: flex;
+    gap: 2px;
+    #status-label,
+    #status-sub-label {
+      flex: 1 1 50%;
+      min-width: 0;
+      margin: 0;
+      padding: 4px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #status-label {
+      font-size: 18px;
+      font-size: 1.8rem;
+      .status-clock {
+        font-size: 14px;
+        font-size: 1.4rem;
+        padding: 1px 6px;
+      }
+    }
+    #status-sub-label {
+      font-size: 16px;
+      font-size: 1.6rem;
+    }
+  }
+
+  // Fisher table: full width; the header stays put if the rows scroll
+  #fishers-box table {
+    width: 100%;
+    font-size: 15px;
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background-color: white;
+      padding: 2px 4px;
+      line-height: 1.2;
+      img {
+        width: 16px;
+        height: 16px;
+      }
+    }
+    tbody td {
+      padding: 3px 6px;
+      line-height: 1.3;
+    }
+  }
+
+  #lobby-status-box {
+    margin-top: $pf-gap;
+  }
+
+  // The ocean, if the microworld shows it, beside the table
+  #ocean-box {
+    flex: 0 0 40%;
+    #ocean-canvas {
+      width: 100% !important; // fish.js resizeOceanCanvasToScreenWidth sets a width
+      height: auto;
+      margin-bottom: 0;
+      border-radius: 10px;
+    }
+  }
+
+  // Catch intent: 16px stops iPhone zooming in when the box is tapped
+  #catch-intent-dialog {
+    font-size: 15px;
+    font-size: 1.5rem;
+    .prompt-label {
+      margin: 0;
+      padding: 4px 8px;
+    }
+    h4, h5 {
+      margin: 2px 0;
+    }
+    #catch-intent-input {
+      font-size: 16px;
+      width: 6em;
+      min-height: 40px;
+    }
+    #catch-intent-submit {
+      min-height: $pf-touch-target;
+    }
+  }
+
+  // Costs: one compact line
+  #costs-box {
+    font-size: 14px;
+    font-size: 1.4rem;
+    margin: 0;
+    text-align: center;
+    .costs-label {
+      margin: 0 4px;
+      padding: 2px 6px;
+    }
+  }
+
+  // Buttons along the bottom, tall enough to hit; labels wrap, never cut
+  #control-box {
+    display: flex;
+    gap: $pf-gap;
+    .control-col,
+    #pause-col {
+      float: none;
+      width: auto;
+      flex: 1 1 0;
+      padding: 0;
+    }
+    button {
+      width: 100%;
+      min-height: $pf-touch-target;
+      white-space: normal;
+      font-size: 16px;
+      font-size: 1.6rem;
+      font-weight: bold;
+      line-height: 1.2;
+    }
+  }
+
+  // Dialogs: fit the screen, scroll inside
+  .modal-dialog {
+    margin: $pf-gap auto;
+    max-width: calc(100% - #{$pf-gap * 2});
+  }
+  .modal-content {
+    max-height: calc(100vh - #{$pf-gap * 2});
+    max-height: calc(100dvh - #{$pf-gap * 2});
+    overflow-y: auto;
+  }
+  .modal button {
+    min-height: $pf-touch-target;
+  }
+
+  // Touch screens have no hover: a tapped button shouldn't stay highlighted
+  @media (hover: none) {
+    #control-box .btn-changeLocation:hover:not(:active) {
+      background-color: $primaryColor;
+      border-color: $primaryColor;
+    }
+    #control-box .btn-fish:hover:not(:active) {
+      background-color: $accentColor;
+      border-color: $accentColor;
+    }
+    .table-hover > tbody > tr:hover > td {
+      background-color: inherit;
+    }
+  }
+
+  // Desktops and large tablets: same layout, more room
+  @media (min-width: $media-medium) and (min-height: 600px) {
+    #game-column {
+      padding: $pf-gap * 2;
+      gap: $pf-gap * 1.5;
+    }
+    #status-box {
+      #status-label {
+        font-size: 24px;
+        font-size: 2.4rem;
+      }
+      #status-sub-label {
+        font-size: 20px;
+        font-size: 2rem;
+      }
+    }
+    #fishers-box table {
+      font-size: 17px;
+      font-size: 1.7rem;
+    }
+    #costs-box {
+      font-size: 16px;
+      font-size: 1.6rem;
+    }
+    #control-box button {
+      min-height: 56px;
+      font-size: 18px;
+      font-size: 1.8rem;
+    }
+  }
+}
