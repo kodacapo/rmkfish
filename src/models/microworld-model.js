@@ -61,7 +61,9 @@ var microworldSchema = new Schema({
     enableRespawnWarning: Boolean,
     hideOcean: { type: Boolean, default: false },
     showFishValueNotice: { type: Boolean, default: true }, // "Each fish earns you ..."
-    showGameClock: { type: Boolean, default: false }, // time left in the season/break, in the status bar
+    // Clock in the status bar: time elapsed or left in the season/break/countdown
+    gameClock: { type: String, enum: ['off', 'elapsed', 'remaining'], default: 'off' },
+    showGameClock: Boolean, // replaced by gameClock; still read for microworlds saved with it
     // Disconnect handling; when off, a fisher who drops mid-game is removed at once
     disconnectHandlingEnabled: { type: Boolean, default: false },
     disconnectGracePeriod: { type: Number, default: 30 }, // seconds to reconnect

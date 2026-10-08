@@ -33,7 +33,7 @@ function readyTooltips() {
     $('#early-end-tooltip').tooltip();
     $('#hide-ocean-tooltip').tooltip();
     $('#show-fish-value-notice-tooltip').tooltip();
-    $('#show-game-clock-tooltip').tooltip();
+    $('#game-clock-tooltip').tooltip();
     $('#disconnect-handling-tooltip').tooltip();
     $('#disconnect-grace-period-tooltip').tooltip();
     $('#disconnect-during-grace-tooltip').tooltip();
@@ -527,7 +527,7 @@ function prepareMicroworldObject() {
     mw.enableRespawnWarning = $('#change-ocean-colour').prop('checked');
     mw.hideOcean = $('#hide-ocean').prop('checked');
     mw.showFishValueNotice = $('#show-fish-value-notice').prop('checked');
-    mw.showGameClock = $('#show-game-clock').prop('checked');
+    mw.gameClock = $('#game-clock').val();
     mw.disconnectHandlingEnabled = $('#enable-disconnect-handling').prop('checked');
     mw.disconnectGracePeriod = $('#disconnect-grace-period').val();
     mw.disconnectDuringGrace = $('#disconnect-during-grace').val();
@@ -715,7 +715,8 @@ function populatePage() {
     $('#hide-ocean').prop('checked', mw.params.hideOcean || false);
     // On unless switched off (older microworlds don't have the setting)
     $('#show-fish-value-notice').prop('checked', mw.params.showFishValueNotice !== false);
-    $('#show-game-clock').prop('checked', mw.params.showGameClock || false);
+    // showGameClock: the on/off setting gameClock replaced (on meant time left)
+    $('#game-clock').val(mw.params.gameClock || (mw.params.showGameClock ? 'remaining' : 'off'));
     // Older microworlds have none of these; the defaults match the model's
     $('#enable-disconnect-handling').prop('checked', mw.params.disconnectHandlingEnabled || false);
     $('#disconnect-grace-period').val(mw.params.disconnectGracePeriod || 30);

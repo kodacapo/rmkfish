@@ -364,11 +364,20 @@ function clearNotice(kind) {
     renderStatusLine2();
 }
 
-// Time left in the current phase, e.g. "00:42", if the microworld shows a
-// clock and the phase has one; '' otherwise
+// 'off', 'elapsed' or 'remaining'. showGameClock is the on/off setting
+// gameClock replaced (on meant time left).
+function gameClockMode() {
+    if (!ocean) return 'off';
+    return ocean.gameClock || (ocean.showGameClock ? 'remaining' : 'off');
+}
+
+// Time elapsed or left in the current phase, e.g. "00:42", if the microworld
+// shows a clock and the phase has one; '' otherwise
 function clockText() {
-    if (!ocean || !ocean.showGameClock) return '';
+    var mode = gameClockMode();
+    if (mode === 'off') return '';
     if (typeof st.phaseLength !== 'number' || typeof st.seconds !== 'number') return '';
+    if (mode === 'elapsed') return formatMmSs(Math.min(st.seconds, st.phaseLength));
     return formatMmSs(Math.max(0, st.phaseLength - st.seconds));
 }
 

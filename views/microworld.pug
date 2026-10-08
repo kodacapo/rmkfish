@@ -438,13 +438,6 @@ html
             .form-group
               .col-md-10
                 label.form-label.checkbox
-                  | Show game&nbsp;
-                  a#show-game-clock-tooltip(title='Show the time left in the current season, break, or countdown in the status bar. The clock stops while the game is paused. A visible clock may change how participants fish.', data-toggle='tooltip', data-placement='top') clock
-                  input#show-game-clock.to-disable(type='checkbox')
-          .row
-            .form-group
-              .col-md-10
-                label.form-label.checkbox
                   | Show all fishers
                   input#show-fishers.to-disable(type='checkbox', checked='')
           .row
@@ -499,6 +492,15 @@ html
                   | Hide the&nbsp;
                   a#hide-ocean-tooltip(title='Do NOT show the ocean picture. Season messages appear under the fish count instead, and the overfishing warning turns the fish count red.', data-toggle='tooltip', data-placement='top') ocean image
                   input#hide-ocean.to-disable(type='checkbox')
+          .row
+            .form-group
+              label.form-label.col-md-5(for='game-clock') Game&nbsp;
+                  a#game-clock-tooltip(title='Show a clock in the status bar with the time elapsed or the time left in the current season, break, or countdown. The clock stops while the game is paused. A visible clock may change how participants fish.', data-toggle='tooltip', data-placement='top') clock
+              .col-md-5
+                select#game-clock.form-control.to-disable
+                  option(value='off') Off
+                  option(value='elapsed') Elapsed
+                  option(value='remaining') Remaining
           h3 Status Table Behaviour
           .row
             .col-md-10

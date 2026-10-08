@@ -1799,7 +1799,8 @@ describe('Fish (jsdom)', () => {
         window.msgs.status_season = 'Season ';
         window.msgs.status_paused = 'Paused';
         window.msgs.warning_resuming = 'Resuming in {seconds} s';
-        window.ocean.showGameClock = false;
+        window.ocean.gameClock = 'off';
+        window.ocean.showGameClock = undefined;
       });
 
       it('should say the game is starting during the countdown, not "wait in the lobby"', () => {
@@ -1809,6 +1810,21 @@ describe('Fish (jsdom)', () => {
       });
 
       it('should show the time left when the microworld shows a clock', () => {
+        window.ocean.gameClock = 'remaining';
+        window.st = { status: 'running', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
+        window.updateStatus();
+        line1().should.equal('Season 2 | 00:42');
+      });
+
+      it('should show the time elapsed when the microworld asks for it', () => {
+        window.ocean.gameClock = 'elapsed';
+        window.st = { status: 'running', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
+        window.updateStatus();
+        line1().should.equal('Season 2 | 00:18');
+      });
+
+      it('should show the time left for a microworld saved with the old on/off setting', () => {
+        window.ocean.gameClock = undefined;
         window.ocean.showGameClock = true;
         window.st = { status: 'running', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
         window.updateStatus();
@@ -1822,7 +1838,7 @@ describe('Fish (jsdom)', () => {
       });
 
       it('should show the stopped clock while paused', () => {
-        window.ocean.showGameClock = true;
+        window.ocean.gameClock = 'remaining';
         window.st = { status: 'paused', season: 2, seconds: 18, phaseLength: 60, certainFish: 5 };
         window.updateStatus();
         line1().should.equal('Paused | 00:42');
