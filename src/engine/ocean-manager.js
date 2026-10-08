@@ -65,10 +65,12 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
       var ocean = this.oceans[oId];
       if (ocean.microworld._id.toString() !== mwId) continue;
 
-      // Lost after disconnecting: may not rejoin, nor start over in a new group
+      // Lost after disconnecting: may not rejoin, nor start over in a new group.
+      // The params let a freshly loaded page show the end screen and the way
+      // back to the study.
       if (ocean.isLost(pId)) {
         log.info('Fisher ' + pId + ' was lost from ocean ' + oId + ' and may not rejoin');
-        return cb(null, 'lost');
+        return cb(null, 'lost', { params: ocean.getParams() });
       }
 
       // Reconnect: fisher is already in this ocean (e.g. browser refresh or second tab)
@@ -86,20 +88,21 @@ exports.OceanManager = function OceanManager(io, ioAdmin) {
       }
     }
 
-    // A reconnecting page whose game has ended, or which was removed from a
-    // game still in progress, must not be seated in a new group. (A fresh
-    // visit may start a new game, e.g. to reuse test IDs.)
-    if (isRejoin) {
-      for (var j in oKeys) {
-        var played = this.oceans[oKeys[j]];
-        if (!played || played.microworld._id.toString() !== mwId || !played.hasPlayed(pId)) continue;
-        if (played.isRemovable()) {
-          log.info('Fisher ' + pId + ' reconnected after their game in ocean ' + oKeys[j] + ' ended');
-          return cb(null, 'gameOver', { endReason: played.endReason });
-        }
-        log.info('Fisher ' + pId + ' reconnected after being removed from ocean ' + oKeys[j]);
-        return cb(null, 'removed');
+    // A participant removed from a game still in progress must not be seated
+    // in a new group, whether their page reconnects or is loaded afresh (some
+    // browsers, like Chrome on iPhone, reload a page left in the background).
+    // Nor must a reconnecting page whose game has ended; a fresh visit after
+    // the game ended may start a new game, e.g. to reuse test IDs.
+    for (var j in oKeys) {
+      var played = this.oceans[oKeys[j]];
+      if (!played || played.microworld._id.toString() !== mwId || !played.hasPlayed(pId)) continue;
+      if (played.isRemovable()) {
+        if (!isRejoin) continue;
+        log.info('Fisher ' + pId + ' reconnected after their game in ocean ' + oKeys[j] + ' ended');
+        return cb(null, 'gameOver', { endReason: played.endReason });
       }
+      log.info('Fisher ' + pId + ' returned after being removed from ocean ' + oKeys[j]);
+      return cb(null, 'removed', { params: played.getParams() });
     }
 
     this.createOcean(

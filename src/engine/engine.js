@@ -53,6 +53,9 @@ exports.engine = function engine(io, ioAdmin) {
       }
       if (REFUSALS[failure]) {
         log.info('Refused rejoin by ' + clientPId + ': ' + REFUSALS[failure].log);
+        // A freshly loaded page knows nothing of the game yet: give it the
+        // microworld first, so it can show the end screen and the redirect
+        if (info && info.params) socket.emit('ocean', info.params, { rejoining: true });
         socket.emit('joinError', { code: failure, message: REFUSALS[failure].message });
         return;
       }

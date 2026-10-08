@@ -1466,6 +1466,8 @@ listen('disconnectPauseOver', hideDisconnectPause);
 listen('rejoined', rejoinGame);
 listen('start asking intent', startAskingIntendedCatch);
 listen('stop asking intent', stopAskingIntendedCatch);
+// A refused participant gets the microworld ('ocean') first, even on a freshly
+// loaded page, so they see the end screen with the way back to the study
 listen('joinError', function(data) {
     if (hasJoinedOcean) {
         showRejoinRefused(data);

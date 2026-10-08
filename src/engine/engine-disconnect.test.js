@@ -142,6 +142,11 @@ describe('Engine - Disconnect handling', function() {
       var socketB2 = connect('B2', 'h2');
       sent(socketB2, 'joinError').length.should.equal(1);
       sent(socketB2, 'joinError')[0].data.message.should.match(/lost/);
+      // A freshly loaded page gets the microworld first, for the end screen
+      // and the redirect, without the rules screen
+      var events = socketB2.sent.map(function(s) { return s.event; });
+      events.indexOf('ocean').should.be.below(events.indexOf('joinError'));
+      socketB2.sentOcean.rejoining.should.be.true();
       Object.keys(om.oceans).length.should.equal(1); // not seated in a new game
       done();
     }, GRACE * 2000);
@@ -205,6 +210,7 @@ describe('Ocean manager - reconnecting pages', function() {
       hasRoom: function() { return false; },
       hasPlayed: function(p) { return p === 'h1'; },
       isRemovable: function() { return options.over; },
+      getParams: function() { return { redirectURL: 'https://study' }; },
       endReason: options.over ? 'time' : null,
     };
   }
@@ -217,11 +223,21 @@ describe('Ocean manager - reconnecting pages', function() {
 
   it('should refuse a page removed from a game still in progress', function(done) {
     om.oceans.o1 = stubOcean({ over: false });
+    om.assignFisherToOcean('mw1', 'h1', {}, function(oId, failure, info) {
+      should(oId).be.null();
+      failure.should.equal('removed');
+      info.params.should.eql({ redirectURL: 'https://study' });
+      done();
+    }, true);
+  });
+
+  it('should refuse a removed participant on a freshly loaded page too', function(done) {
+    om.oceans.o1 = stubOcean({ over: false });
     om.assignFisherToOcean('mw1', 'h1', {}, function(oId, failure) {
       should(oId).be.null();
       failure.should.equal('removed');
       done();
-    }, true);
+    }, false);
   });
 
   it('should send a page whose game ended to "game over"', function(done) {
