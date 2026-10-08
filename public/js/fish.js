@@ -1343,7 +1343,9 @@ function isPhoneFirst() {
 
 // One screen, stacked full width: the status bar on top; the fisher table
 // (the lobby before the game), with the ocean beside it if shown; then the
-// catch-intent question, the costs and the buttons along the bottom edge.
+// catch-intent question; and along the bottom edge the buttons, with the
+// costs beside them (a line of its own would cost a table row: an iPhone
+// held sideways leaves Safari pages only 268px of height).
 // The boxes are moved, not copied, so their ids and handlers stay as they are.
 function applyLayout() {
     if (!isPhoneFirst() || document.getElementById('pf-top')) return;
@@ -1360,16 +1362,34 @@ function applyLayout() {
     var game = byId('game-column');
     game.appendChild(box('pf-top', [byId('status-box')]));
     game.appendChild(box('pf-middle', [table, byId('ocean-box')]));
-    game.appendChild(box('pf-bottom', [byId('catch-intent-dialog-box'), byId('costs-box'),
-        byId('control-box') && byId('control-box').parentNode]));
+    var actions = box('pf-actions', [byId('control-box') && byId('control-box').parentNode, byId('costs-box')]);
+    game.appendChild(box('pf-bottom', [byId('catch-intent-dialog-box'), actions]));
     var oceanColumn = byId('ocean-column');
     if (oceanColumn) oceanColumn.style.display = 'none';
+    // Use the whole screen and keep clear of the camera cut-out ourselves (the
+    // styles pad by env(safe-area-inset-*)). Left to itself, Brave on iPhone
+    // leaves a strip blank on the cut-out side but keeps the page full
+    // width, so the page runs off the other side.
+    var viewport = document.querySelector('meta[name="viewport"]');
+    if (viewport && viewport.content.indexOf('viewport-fit') === -1) {
+        viewport.content += ', viewport-fit=cover';
+    }
+    fitToWindowHeight();
+    window.addEventListener('resize', fitToWindowHeight);
+    window.addEventListener('orientationchange', function() { setTimeout(fitToWindowHeight, 300); });
     // Phones show a number pad for the catch intent, not a letter keyboard
     var intentInput = byId('catch-intent-input');
     if (intentInput) {
         intentInput.setAttribute('inputmode', 'numeric');
         intentInput.setAttribute('pattern', '[0-9]*');
     }
+}
+
+// The page is exactly as tall as what the browser shows. CSS's 100dvh would
+// do, but Firefox on iPhone keeps the upright height after the phone is
+// turned (651 instead of 333), which pushes the buttons off the screen.
+function fitToWindowHeight() {
+    document.documentElement.style.setProperty('--pf-height', window.innerHeight + 'px');
 }
 
 ////////////////////////////////////////

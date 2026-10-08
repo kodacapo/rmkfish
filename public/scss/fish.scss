@@ -322,7 +322,7 @@ html {
 // get more room and bigger type. Nothing here touches the classic page.
 ////////////////////////////////////////
 
-$pf-touch-target: 48px; // minimum height of anything to tap
+$pf-touch-target: 44px; // minimum height of anything to tap (Apple: 44, Google: 48)
 $pf-gap: 8px;
 
 body.layout-phone-first {
@@ -346,12 +346,13 @@ body.layout-phone-first {
     width: 100%;
     max-width: 1200px;
     margin: 0 auto;
-    padding: $pf-gap * 0.75;
+    padding: $pf-gap * 0.5;
     display: flex;
     flex-direction: column;
-    gap: $pf-gap * 0.75;
+    gap: $pf-gap * 0.5;
     height: 100vh;
     height: 100dvh; // the visible height, with the browser's bars
+    height: var(--pf-height, 100dvh); // measured by fish.js fitToWindowHeight
     .row {
       margin: 0;
     }
@@ -382,6 +383,21 @@ body.layout-phone-first {
     gap: $pf-gap * 0.5;
   }
 
+  // The buttons and the costs share the last row: the costs take the width
+  // their text needs (none when they are switched off), the buttons the rest
+  #pf-actions {
+    display: flex;
+    gap: $pf-gap;
+    > .row {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    #costs-box {
+      flex: 0 1 auto;
+      max-width: 40%;
+    }
+  }
+
   // Status bar: the classic page's two lines side by side, which saves a
   // line of height (the phase and clock left, the fish count or a notice
   // right)
@@ -393,7 +409,7 @@ body.layout-phone-first {
       flex: 1 1 50%;
       min-width: 0;
       margin: 0;
-      padding: 4px 8px;
+      padding: 3px 8px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -424,16 +440,16 @@ body.layout-phone-first {
       top: 0;
       z-index: 1;
       background-color: white;
-      padding: 2px 4px;
+      padding: 1px 4px;
       line-height: 1.2;
       img {
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 14px;
       }
     }
     tbody td {
-      padding: 3px 6px;
-      line-height: 1.3;
+      padding: 2px 6px;
+      line-height: 1.25;
     }
   }
 
@@ -473,15 +489,22 @@ body.layout-phone-first {
     }
   }
 
-  // Costs: one compact line
+  // Costs: beside the buttons, one compact line each
   #costs-box {
     font-size: 14px;
     font-size: 1.4rem;
     margin: 0;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    div {
+      display: block;
+      text-align: center;
+    }
     .costs-label {
-      margin: 0 4px;
-      padding: 2px 6px;
+      margin: 0;
+      padding: 1px 4px;
+      line-height: 1.25;
     }
   }
 
@@ -515,6 +538,7 @@ body.layout-phone-first {
   .modal-content {
     max-height: calc(100vh - #{$pf-gap * 2});
     max-height: calc(100dvh - #{$pf-gap * 2});
+    max-height: calc(var(--pf-height, 100dvh) - #{$pf-gap * 2});
     overflow-y: auto;
   }
   .modal button {

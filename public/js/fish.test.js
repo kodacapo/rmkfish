@@ -1382,8 +1382,11 @@ describe('Fish (jsdom)', () => {
           middle.contains(document.getElementById('ocean-box')).should.be.true();
           var bottom = document.getElementById('pf-bottom');
           bottom.contains(document.getElementById('costs-box')).should.be.true();
-          // The buttons come last, along the bottom edge
-          bottom.lastElementChild.contains(document.getElementById('control-box')).should.be.true();
+          // The buttons and costs share the last row, along the bottom edge
+          var actions = document.getElementById('pf-actions');
+          bottom.lastElementChild.should.equal(actions);
+          actions.contains(document.getElementById('control-box')).should.be.true();
+          actions.contains(document.getElementById('costs-box')).should.be.true();
           document.getElementById('ocean-column').style.display.should.equal('none');
         } finally {
           page.remove();
