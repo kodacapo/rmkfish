@@ -64,11 +64,12 @@ function fromPairs(pairs) {
   return params;
 }
 
-function sameParams(a, b) {
-  var aKeys = Object.keys(a).sort();
-  var bKeys = Object.keys(b).sort();
-  if (aKeys.join('\n') !== bKeys.join('\n')) return false;
-  return aKeys.every(function(k) { return a[k] === b[k]; });
+// A later link fits the stored one when it says nothing else: the same
+// link, or a shortened one (the cleaned address, see browser-check.js)
+function fitsStored(given, stored) {
+  return Object.keys(given).every(function(k) {
+    return Object.prototype.hasOwnProperty.call(stored, k) && stored[k] === given[k];
+  });
 }
 
 // Same reading of fhasadvantage as fish.js: absent = no; present without a
@@ -111,9 +112,8 @@ exports.remember = function(mw, pId, rawParams, cb) {
         return cb(null, given, false);
       }
       var stored = fromPairs(link.params);
-      // A later visit without parameters (the cleaned address) is expected;
-      // one with other parameters is someone's edited or second link
-      if (Object.keys(given).length > 0 && !sameParams(given, stored)) {
+      // A link with other parameters is someone's edited or second link
+      if (!fitsStored(given, stored)) {
         log.warn('Participant ' + participant + ' of microworld ' + mw.code +
           ' arrived with a different link; keeping the first one');
       }

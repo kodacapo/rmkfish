@@ -1,0 +1,15 @@
+//- Shown instead of FISH to browsers that can't run it (src/middlewares/browser-check.js).
+//- Plain HTML, no scripts: Opera Mini may not run them.
+doctype html
+html(lang=lang)
+  head
+    meta(charset='utf-8')
+    meta(name='viewport', content='width=device-width, initial-scale=1.0')
+    title= title
+    style.
+      body { margin: 0; padding: 24px 16px; background: #fff; color: #222; font-family: sans-serif; }
+      h1 { margin: 0 0 12px; font-size: 1.4em; }
+      p { max-width: 36em; font-size: 1.1em; line-height: 1.5; }
+  body
+    h1= title
+    p= message

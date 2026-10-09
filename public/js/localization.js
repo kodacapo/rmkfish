@@ -651,6 +651,25 @@ fr['login_getStarted'] = 'Commencez';
 pt['login_getStarted'] = 'Começar!';
 ko['login_getStarted'] = '시작하기';
 
+// Page shown instead of FISH to Opera Mini (src/middlewares/browser-check.js)
+en['login_otherBrowser'] = 'Please use another browser';
+cn['login_otherBrowser'] = '请使用其他浏览器';
+ct['login_otherBrowser'] = '請使用其他瀏覽器';
+de['login_otherBrowser'] = 'Bitte verwenden Sie einen anderen Browser';
+es['login_otherBrowser'] = 'Use otro navegador';
+fr['login_otherBrowser'] = 'Veuillez utiliser un autre navigateur';
+pt['login_otherBrowser'] = 'Use outro navegador';
+ko['login_otherBrowser'] = '다른 브라우저를 사용해 주세요';
+
+en['login_operaMini'] = 'FISH does not work in Opera Mini. Please copy the address of this page and open it in another browser, such as Chrome, Samsung Internet, Safari or Firefox.';
+cn['login_operaMini'] = 'FISH 无法在 Opera Mini 中运行。请复制本页地址，并在其他浏览器（如 Chrome、三星浏览器、Safari 或 Firefox）中打开。';
+ct['login_operaMini'] = 'FISH 無法在 Opera Mini 中執行。請複製本頁網址，並在其他瀏覽器（如 Chrome、三星瀏覽器、Safari 或 Firefox）中開啟。';
+de['login_operaMini'] = 'FISH funktioniert nicht in Opera Mini. Bitte kopieren Sie die Adresse dieser Seite und öffnen Sie sie in einem anderen Browser, z. B. Chrome, Samsung Internet, Safari oder Firefox.';
+es['login_operaMini'] = 'FISH no funciona en Opera Mini. Copie la dirección de esta página y ábrala en otro navegador, como Chrome, Samsung Internet, Safari o Firefox.';
+fr['login_operaMini'] = 'FISH ne fonctionne pas dans Opera Mini. Veuillez copier l’adresse de cette page et l’ouvrir dans un autre navigateur, comme Chrome, Samsung Internet, Safari ou Firefox.';
+pt['login_operaMini'] = 'O FISH não funciona no Opera Mini. Copie o endereço desta página e abra-o em outro navegador, como Chrome, Samsung Internet, Safari ou Firefox.';
+ko['login_operaMini'] = 'FISH는 Opera Mini에서 작동하지 않습니다. 이 페이지 주소를 복사하여 Chrome, 삼성 인터넷, Safari 또는 Firefox 같은 다른 브라우저에서 열어 주세요.';
+
 langs['en'] = en;
 langs['cn'] = cn;
 langs['ct'] = ct;

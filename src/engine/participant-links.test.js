@@ -86,6 +86,23 @@ describe('Engine - Participant links', function() {
       later.params.should.deepEqual({ fclass: 'Lower', token: 'abc' });
     });
 
+    it('logs an edited link, but not a shortened one', async function() {
+      var winston = require('winston');
+      var warn = winston.warn;
+      var warned = [];
+      winston.warn = function(msg) { warned.push(msg); };
+      try {
+        await remember(active, 'p1', { expid: 'ACT', partid: 'p1', fhasadvantage: 'false' });
+        await remember(active, 'p1', { lang: 'en', expid: 'ACT', partid: 'p1' });
+        warned.length.should.equal(0);
+        await remember(active, 'p1', { expid: 'ACT', partid: 'p1', fhasadvantage: 'true' });
+        warned.length.should.equal(1);
+        warned[0].should.match(/different link/);
+      } finally {
+        winston.warn = warn;
+      }
+    });
+
     it('keeps participants and microworlds apart', async function() {
       await remember(active, 'p1', { fclass: 'Lower' });
       (await remember(active, 'p2', { fclass: 'Upper' })).params.fclass.should.equal('Upper');
