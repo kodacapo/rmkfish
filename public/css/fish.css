@@ -102,49 +102,49 @@ html {
   border-color: white;
 }
 
-#control-box .col-xs-4 {
+#control-box .col-xs-4, #control-box .col-xs-6 {
   padding: 0;
 }
-#control-box .col-xs-4 button {
+#control-box .col-xs-4 button, #control-box .col-xs-6 button {
   width: 100%;
   font-weight: bold;
 }
-#control-box .col-xs-4 .btn-changeLocation {
+#control-box .col-xs-4 .btn-changeLocation, #control-box .col-xs-6 .btn-changeLocation {
   background-color: #03A9F4;
   border-color: #03A9F4;
   color: #FFFFFF;
 }
-#control-box .col-xs-4 .btn-changeLocation:hover, #control-box .col-xs-4 .btn-changeLocation:focus, #control-box .col-xs-4 .btn-changeLocation:active {
+#control-box .col-xs-4 .btn-changeLocation:hover, #control-box .col-xs-4 .btn-changeLocation:focus, #control-box .col-xs-4 .btn-changeLocation:active, #control-box .col-xs-6 .btn-changeLocation:hover, #control-box .col-xs-6 .btn-changeLocation:focus, #control-box .col-xs-6 .btn-changeLocation:active {
   background-color: rgb(2.3805668016, 134.1052631579, 193.6194331984);
   border-color: rgb(2.3805668016, 134.1052631579, 193.6194331984);
 }
-#control-box .col-xs-4 .btn-changeLocation:disabled {
+#control-box .col-xs-4 .btn-changeLocation:disabled, #control-box .col-xs-6 .btn-changeLocation:disabled {
   background-color: #B3E5FC;
   border-color: #B3E5FC;
 }
-#control-box .col-xs-4 .btn-fish {
+#control-box .col-xs-4 .btn-fish, #control-box .col-xs-6 .btn-fish {
   background-color: #4CAF50;
   border-color: #4CAF50;
   color: #FFFFFF;
 }
-#control-box .col-xs-4 .btn-fish:hover, #control-box .col-xs-4 .btn-fish:focus, #control-box .col-xs-4 .btn-fish:active {
+#control-box .col-xs-4 .btn-fish:hover, #control-box .col-xs-4 .btn-fish:focus, #control-box .col-xs-4 .btn-fish:active, #control-box .col-xs-6 .btn-fish:hover, #control-box .col-xs-6 .btn-fish:focus, #control-box .col-xs-6 .btn-fish:active {
   background-color: rgb(60.5577689243, 139.4422310757, 63.7450199203);
   border-color: rgb(60.5577689243, 139.4422310757, 63.7450199203);
 }
-#control-box .col-xs-4 .btn-fish:disabled {
+#control-box .col-xs-4 .btn-fish:disabled, #control-box .col-xs-6 .btn-fish:disabled {
   background-color: rgb(109.9800796813, 192.0199203187, 113.2948207171);
   border-color: rgb(109.9800796813, 192.0199203187, 113.2948207171);
 }
-#control-box .col-xs-4 .btn-pause {
+#control-box .col-xs-4 .btn-pause, #control-box .col-xs-6 .btn-pause {
   background-color: #0288D1;
   border-color: #0288D1;
   color: #FFFFFF;
 }
-#control-box .col-xs-4 .btn-pause:hover, #control-box .col-xs-4 .btn-pause:focus, #control-box .col-xs-4 .btn-pause:active {
+#control-box .col-xs-4 .btn-pause:hover, #control-box .col-xs-4 .btn-pause:focus, #control-box .col-xs-4 .btn-pause:active, #control-box .col-xs-6 .btn-pause:hover, #control-box .col-xs-6 .btn-pause:focus, #control-box .col-xs-6 .btn-pause:active {
   background-color: rgb(1.5165876777, 103.1279620853, 158.4834123223);
   border-color: rgb(1.5165876777, 103.1279620853, 158.4834123223);
 }
-#control-box .col-xs-4 .btn-pause:disabled {
+#control-box .col-xs-4 .btn-pause:disabled, #control-box .col-xs-6 .btn-pause:disabled {
   background-color: rgb(9.3507109005, 166.8483412322, 252.6492890995);
   border-color: rgb(9.3507109005, 166.8483412322, 252.6492890995);
 }
@@ -355,6 +355,7 @@ body.layout-phone-first #status-box #status-label .status-clock {
 body.layout-phone-first #status-box #status-sub-label {
   font-size: 16px;
   font-size: 1.6rem;
+  font-weight: bold;
 }
 body.layout-phone-first #fishers-box table {
   width: 100%;
@@ -516,6 +517,11 @@ body.layout-phone-first .modal button {
   body.layout-phone-first #game-column {
     padding: 16px;
     gap: 12px;
+    height: auto;
+    max-height: var(--pf-height, 100vh);
+  }
+  body.layout-phone-first #pf-middle {
+    flex: 0 1 auto;
   }
   body.layout-phone-first #status-box #status-label {
     font-size: 24px;

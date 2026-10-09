@@ -1409,6 +1409,40 @@ describe('Fish (jsdom)', () => {
         }
       });
 
+      it('should let a downward swipe scroll the table back up, but not pull the page', () => {
+        var box = document.createElement('div');
+        var inner = document.createElement('p');
+        box.appendChild(inner);
+        document.body.appendChild(box);
+        try {
+          window.canScrollUp(inner).should.be.false(); // at the top: would pull the page
+          Object.defineProperty(box, 'scrollTop', { configurable: true, value: 40 });
+          window.canScrollUp(inner).should.be.true(); // scrolled down: scrolls back up
+        } finally {
+          box.remove();
+        }
+      });
+
+      it('should ask the phone to keep the screen on, once', async () => {
+        var requests = 0;
+        var saved = Object.getOwnPropertyDescriptor(window.navigator, 'wakeLock');
+        Object.defineProperty(window.navigator, 'wakeLock', {
+          configurable: true,
+          value: { request: function() { requests++; return Promise.resolve({ addEventListener: function() {} }); } },
+        });
+        Object.defineProperty(document, 'visibilityState', { configurable: true, value: 'visible' });
+        try {
+          window.keepScreenAwake();
+          await Promise.resolve();
+          window.keepScreenAwake(); // already holding it
+          requests.should.equal(1);
+        } finally {
+          if (saved) Object.defineProperty(window.navigator, 'wakeLock', saved);
+          else delete window.navigator.wakeLock;
+          delete document.visibilityState;
+        }
+      });
+
       it('should keep the classic page by default', () => {
         window.applyLayout();
         document.body.classList.contains('layout-phone-first').should.be.false();
@@ -1884,6 +1918,55 @@ describe('Fish (jsdom)', () => {
         window.onPageHide();
         window.onPageShow({ persisted: true });
         calls.should.eql([]);
+      });
+
+      describe('a PhoneFirst game leaving the screen of a phone or tablet', () => {
+        let touch, savedMatchMedia;
+
+        function setVisibility(state) {
+          Object.defineProperty(document, 'visibilityState', { configurable: true, value: state });
+          window.onVisibilityChange();
+        }
+
+        beforeEach(() => {
+          touch = true;
+          savedMatchMedia = window.matchMedia;
+          window.matchMedia = () => ({ matches: touch });
+          window.disconnectedWhileHidden = false;
+          window.ocean = { layout: 'phoneFirst', disconnectHandlingEnabled: true };
+          window.st = { status: 'running' };
+        });
+
+        afterEach(() => {
+          window.matchMedia = savedMatchMedia;
+          delete document.visibilityState;
+        });
+
+        it('should count as a disconnect, and rejoin when the game shows again', () => {
+          setVisibility('hidden');
+          setVisibility('visible');
+          calls.should.eql(['disconnect', 'connect']);
+        });
+
+        it('should be left alone on a computer', () => {
+          touch = false;
+          setVisibility('hidden');
+          calls.should.eql([]);
+        });
+
+        it('should be left alone with disconnect handling off, or in a Classic microworld', () => {
+          window.ocean.disconnectHandlingEnabled = false;
+          setVisibility('hidden');
+          window.ocean = { layout: 'classic', disconnectHandlingEnabled: true };
+          setVisibility('hidden');
+          calls.should.eql([]);
+        });
+
+        it('should be left alone before the game starts (rules, lobby)', () => {
+          window.st = { status: 'setup' };
+          setVisibility('hidden');
+          calls.should.eql([]);
+        });
       });
     });
 

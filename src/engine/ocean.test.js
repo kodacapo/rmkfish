@@ -898,6 +898,57 @@ describe('Engine - Ocean', function() {
     });
   });
 
+  describe('results when a fisher leaves mid-season', function() {
+    beforeEach(function() {
+      o.addFisher('p001');
+      o.addFisher('p002');
+      o.startNextSeason();
+    });
+
+    afterEach(function() {
+      o.clearDisconnectTimers();
+    });
+
+    function row(name) {
+      return o.results[0].fishers.filter(function(f) { return f.name === name; })[0];
+    }
+
+    function caught(pId, fish) {
+      var data = o.fishers[o.findFisherIndex(pId)].seasonData[1];
+      data.fishCaught = fish;
+      data.endMoney = fish * 2;
+    }
+
+    it('should record the season in progress when a disconnect ends the game', function() {
+      o.microworld.params.disconnectHandlingEnabled = true;
+      o.microworld.params.disconnectLostAction = 'end';
+      caught('p001', 3);
+      caught('p002', 5);
+      o.loseFisher('p002', 'grace period expired');
+      o.status.should.equal('over');
+      o.endReason.should.equal('disconnect');
+      row('p001').fishTaken.should.equal(3);
+      row('p001').profit.should.equal(6);
+      row('p002').fishTaken.should.equal(5);
+      o.results[0].fishEnd.should.be.a.Number();
+      row('p002').individualRestraint.should.be.a.Number();
+    });
+
+    it('should keep everyone\'s numbers in their own row when one leaves', function() {
+      caught('p001', 3);
+      caught('p002', 5);
+      o.removeFisher('p001');
+      o.endCurrentSeason('time');
+      // p002 moved up a place in the list of fishers, but not in the results
+      row('p001').fishTaken.should.equal(3);
+      row('p002').fishTaken.should.equal(5);
+      row('p001').individualRestraint.should.be.a.Number();
+      o.fishers.forEach(function(f) {
+        if (f.isBot()) row(f.name).fishTaken.should.be.a.Number();
+      });
+    });
+  });
+
   describe('dashboard tracking', function() {
     it('should include the ocean ID in the simulation data sent to the dashboard', function() {
       o.grabSimulationData().oceanId.should.equal(o.id);

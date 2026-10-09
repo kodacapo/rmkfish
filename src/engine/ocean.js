@@ -116,6 +116,8 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     for (var i in this.fishers) {
       var fisher = this.fishers[i];
       if (fisher.isHuman() && fisher.name === pId) {
+        // Leaving mid-season: keep what they caught and earned so far
+        if (this.currentPhase() === 'running') this.recordFisherSeasonResults(fisher);
         this.clearAllAbortTimers(pId);
         this.resume(pId); // just in case this fisher paused the game just before leaving!
         if (this.classesNeeded && fisher.params.fClass) {
@@ -553,6 +555,21 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     io.sockets.in(this.id).emit('begin season', status);
   };
 
+  // A fisher's catch and profit in the season in progress, into their row of
+  // the season's results. Rows are found by name: fishers who leave mid-season
+  // shift everyone after them in this.fishers, so positions don't match.
+  this.recordFisherSeasonResults = function(fisher) {
+    var seasonResults = this.results[this.season - 1];
+    var fisherData = fisher.seasonData && fisher.seasonData[this.season];
+    if (!seasonResults || !fisherData) return;
+    var row = seasonResults.fishers.filter(function(f) { return f.name === fisher.name; })[0];
+    if (!row) return;
+    row.fishPlanned = fisherData.catchIntent;
+    row.fishTaken = fisherData.fishCaught;
+    row.greed = fisherData.greed;
+    row.profit = fisherData.endMoney - fisherData.startMoney;
+  };
+
   this.endCurrentSeason = function(reason) {
     // Bring all fishers back to port
     for (var i in this.fishers) {
@@ -571,23 +588,19 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
       spawnFactor
     );
 
+    // Fishers who left during the season were recorded as they left
     for (i in this.fishers) {
-      var fisherData = this.fishers[i].seasonData[this.season];
-      var fisherResults = this.results[this.season - 1].fishers[i];
-      fisherResults.fishPlanned = fisherData.catchIntent;
-      fisherResults.fishTaken = fisherData.fishCaught;
-      fisherResults.greed = fisherData.greed;
-      fisherResults.profit = fisherData.endMoney - fisherData.startMoney;
-      fisherResults.individualRestraint = this.individualRestraint(this.results[this.season - 1], i);
-      fisherResults.individualEfficiency = this.individualEfficiency(
-        this.results[this.season - 1],
-        i,
-        preRunFish,
-        spawnFactor
-      );
+      this.recordFisherSeasonResults(this.fishers[i]);
+    }
+    var rows = seasonResults.fishers;
+    for (var r = 0; r < rows.length; r++) {
+      if (rows[r].fishTaken === undefined) continue;
+      rows[r].individualRestraint = this.individualRestraint(seasonResults, r);
+      rows[r].individualEfficiency = this.individualEfficiency(seasonResults, r, preRunFish, spawnFactor);
     }
 
-    if (this.season < this.microworld.params.numSeasons && reason !== 'depletion' && reason !== 'nohumans') {
+    var gameEnds = reason === 'depletion' || reason === 'nohumans' || reason === 'disconnect';
+    if (this.season < this.microworld.params.numSeasons && !gameEnds) {
       this.status = 'resting';
       this.resetTimer();
       this.log.info('Ending season ' + this.season + '.');

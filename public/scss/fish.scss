@@ -126,7 +126,8 @@ html {
 }
 
 #control-box {
-  .col-xs-4 {
+  // Half-width columns when pausing is off (fish.js makeUnpausable)
+  .col-xs-4, .col-xs-6 {
     padding: 0;
     button {
       width: 100%;
@@ -426,6 +427,7 @@ body.layout-phone-first {
     #status-sub-label {
       font-size: 16px;
       font-size: 1.6rem;
+      font-weight: bold; // easy to overlook while fishing (Richardt)
     }
   }
 
@@ -609,6 +611,13 @@ body.layout-phone-first {
     #game-column {
       padding: $pf-gap * 2;
       gap: $pf-gap * 1.5;
+      // The buttons follow the table rather than sit at the bottom edge of a
+      // tall window; the table scrolls only if the window is too short
+      height: auto;
+      max-height: var(--pf-height, 100vh);
+    }
+    #pf-middle {
+      flex: 0 1 auto;
     }
     #status-box {
       #status-label {

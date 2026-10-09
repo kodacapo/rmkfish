@@ -143,7 +143,13 @@ exports.install = function(ocean, io, ioAdmin) {
       }
     } else {
       this.recordConnectionEvent(pId, 'game ended', { reason: reason });
-      this.endOcean('disconnect');
+      // Mid-season, close the season first, so what everyone caught and
+      // earned in it is recorded (participants are paid from it)
+      if (this.currentPhase() === 'running' && this.results[this.season - 1]) {
+        this.endCurrentSeason('disconnect');
+      } else {
+        this.endOcean('disconnect');
+      }
     }
   };
 

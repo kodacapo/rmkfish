@@ -1314,6 +1314,34 @@ function onPageHide() {
     }
 }
 
+// PhoneFirst on phones and tablets: a game that leaves the screen (another
+// app or tab, a locked screen) counts as a disconnect, so the grace period
+// starts and it's recorded. An iPhone freezes the page anyway; Android keeps
+// it running, so nobody noticed the participant was away. Only once the game
+// is under way (before it, a disconnect still removes the participant at
+// once), and only with disconnect handling on. Computers are left alone: a
+// covered window can't be detected, and a glance elsewhere is harmless.
+var disconnectedWhileHidden = false;
+
+function isTouchDevice() {
+    return !!(window.matchMedia && window.matchMedia('(hover: none) and (pointer: coarse)').matches);
+}
+
+function onVisibilityChange() {
+    if (!isPhoneFirst() || !ocean.disconnectHandlingEnabled || !isTouchDevice()) return;
+    if (document.visibilityState === 'hidden') {
+        var underway = st.status === 'initial delay' || st.status === 'running' ||
+            st.status === 'resting' || st.status === 'paused';
+        if (underway && socket.connected) {
+            disconnectedWhileHidden = true;
+            socket.disconnect();
+        }
+    } else if (disconnectedWhileHidden) {
+        disconnectedWhileHidden = false;
+        socket.connect(); // rejoins through 'connect' -> enterOcean
+    }
+}
+
 // Back from the cache (e.g. the Back button): reconnect, which rejoins the
 // game through the usual 'connect' -> enterOcean path
 function onPageShow(event) {
@@ -1382,12 +1410,19 @@ function applyLayout() {
     fitToWindowHeight();
     window.addEventListener('resize', fitToWindowHeight);
     window.addEventListener('orientationchange', function() { setTimeout(fitToWindowHeight, 300); });
-    // Phones show a number pad for the catch intent, not a letter keyboard
+    // Phones show a number pad for the catch intent, not a letter keyboard.
+    // Not selected automatically: Samsung Internet would open the pad at once,
+    // over the question; it opens when the box is tapped.
     var intentInput = byId('catch-intent-input');
     if (intentInput) {
         intentInput.setAttribute('inputmode', 'numeric');
         intentInput.setAttribute('pattern', '[0-9]*');
+        intentInput.removeAttribute('autofocus');
     }
+    guardAgainstReloadAndZoom();
+    keepScreenAwake();
+    document.addEventListener('visibilitychange', keepScreenAwake);
+    document.addEventListener('click', keepScreenAwake); // some browsers want a tap first
 }
 
 // Covers the game while a touch-screen device is held upright, so it can't
@@ -1457,6 +1492,61 @@ function rotationLockHint(userAgent, maxTouchPoints) {
     }
     if (/Android/.test(userAgent)) return msgs.warning_rotationAndroid;
     return '';
+}
+
+// iPhones ignore the styles that stop pull-to-refresh and zooming on Android,
+// so the gestures themselves are blocked: a downward swipe that would only
+// pull the page (not scroll the table or a dialog back up), pinching, and a
+// second tap in quick succession (double-tap zoom). The answer box is left
+// alone, so it can still be tapped and edited.
+function guardAgainstReloadAndZoom() {
+    document.documentElement.style.overscrollBehavior = 'none';
+    document.documentElement.style.touchAction = 'manipulation';
+    var startY = 0;
+    document.addEventListener('touchstart', function(e) {
+        if (e.touches.length === 1) startY = e.touches[0].clientY;
+    }, { passive: true });
+    document.addEventListener('touchmove', function(e) {
+        if (e.touches.length > 1) {
+            e.preventDefault(); // pinch
+            return;
+        }
+        var pullingDown = e.touches[0].clientY > startY;
+        if (pullingDown && !canScrollUp(e.target)) e.preventDefault();
+    }, { passive: false });
+    var lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+        var now = Date.now();
+        if (now - lastTouchEnd < 350 && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)) {
+            e.preventDefault(); // the second tap of a double tap
+            if (e.target.click) e.target.click(); // ...still counts as a tap
+        }
+        lastTouchEnd = now;
+    }, { passive: false });
+    ['gesturestart', 'gesturechange'].forEach(function(name) {
+        document.addEventListener(name, function(e) { e.preventDefault(); }, { passive: false });
+    });
+}
+
+// Whether a downward swipe on this element would scroll something (the
+// table, a dialog) back up rather than pull the whole page
+function canScrollUp(el) {
+    for (; el && el !== document.body && el !== document.documentElement; el = el.parentElement) {
+        if (el.scrollTop > 0) return true;
+    }
+    return false;
+}
+
+// Phones lock their screen after a short time without a touch, also during
+// the lobby and between seasons. Browsers drop the request whenever the page
+// is hidden, so it is renewed each time the page shows again. Needs HTTPS.
+var screenWakeLock = null;
+function keepScreenAwake() {
+    if (!navigator.wakeLock || document.visibilityState !== 'visible' || screenWakeLock) return;
+    navigator.wakeLock.request('screen').then(function(lock) {
+        screenWakeLock = lock;
+        lock.addEventListener('release', function() { screenWakeLock = null; });
+    }, function() {});
 }
 
 // The page is exactly as tall as what the browser shows. CSS's 100dvh would
@@ -1587,6 +1677,7 @@ listen('connect', function () {
 
 window.addEventListener('pagehide', onPageHide);
 window.addEventListener('pageshow', onPageShow);
+document.addEventListener('visibilitychange', onVisibilityChange);
 
 listen('ocean', setupOcean);
 listen('initial delay', warnInitialDelay);
