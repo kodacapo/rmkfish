@@ -282,14 +282,36 @@ describe('Routes - Runs', () => {
       const res = await agent.get(`/runs?csv=true&mw=${mwId}`);
 
       const lines = res.text.trim().split('\n');
-      lines[0].should.match(/Disconnects,Seconds Away,Lost,Run End Reason,Device Class/);
+      lines[0].should.match(/Disconnects,Seconds Away,Lost,Run End Reason,Class,Advantage,Device Class/);
       const fisher1 = lines.filter(line => /Fisher1/.test(line));
       fisher1.length.should.equal(2);
-      fisher1[0].should.match(/,1,13,,time,phone,/); // season 1
-      fisher1[1].should.match(/,1,17,,time,phone,/); // season 2 (the break before it)
+      fisher1[0].should.match(/,1,13,,time,,,phone,/); // season 1
+      fisher1[1].should.match(/,1,17,,time,,,phone,/); // season 2 (the break before it)
       lines.filter(line => /Fisher2/.test(line)).forEach(line => {
         line.should.match(/,0,0,,time,,/);
       });
+    });
+
+    it('should show each fisher\'s class and advantage when the microworld recorded them', () => {
+      const flatten = require('./runs').flattenRunResults;
+      const rows = flatten({
+        _id: 'r3',
+        results: [{
+          season: 1,
+          fishers: [
+            { name: 'A', type: 'human', fClass: 'Upper', fHasAdvantage: true },
+            { name: 'B', type: 'bot', fClass: 'Lower', fHasAdvantage: false },
+            { name: 'C', type: 'human' }, // microworld without classes or advantage
+          ],
+        }],
+      });
+      const row = name => rows.filter(r => r.Fisher === name)[0];
+      row('A').Class.should.equal('Upper');
+      row('A').Advantage.should.equal('yes');
+      row('B').Class.should.equal('Lower');
+      row('B').Advantage.should.equal('no');
+      row('C').Class.should.equal('');
+      row('C').Advantage.should.equal('');
     });
 
     it('should put a loss on the row of the season it happened in', () => {

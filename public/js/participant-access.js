@@ -76,9 +76,12 @@ function attemptRedirect() {
         $('#pid').trigger('focus');
         return false;
     }
+    // The whole link goes along: in an active microworld the server stores
+    // it, and the game page's address then leaves it out (successfulRedirect)
     var credentials = {
         code: expid,
-        pid: partid
+        pid: partid,
+        params: JSON.stringify(queryParams)
     };
     $.ajax({
         type: 'POST',
@@ -91,6 +94,14 @@ function attemptRedirect() {
 }
 
 function successfulRedirect(mw) {
+    // Stored on the server: the game page gets the parameters from there, and
+    // replace() keeps the full link out of the Back history too
+    if (mw.linkRemembered) {
+        location.replace('/fish?lang=' + encodeURIComponent(lang) +
+            '&mwid=' + encodeURIComponent(mw._id) +
+            '&pid=' + encodeURIComponent(queryParams['partid']));
+        return;
+    }
     var newLocation =  '/fish?lang=' + lang +
         '&mwid=' + mw._id + 
         '&pid=' + queryParams['partid'];

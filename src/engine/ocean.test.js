@@ -898,6 +898,37 @@ describe('Engine - Ocean', function() {
     });
   });
 
+  describe('class and advantage in the results', function() {
+    afterEach(function() {
+      delete mw.params.fisherClassesEnabled;
+      delete mw.params.fisherClasses;
+      delete mw.params.fisherAdvantageEnabled;
+    });
+
+    function firstRow(ocean, name) {
+      return ocean.results[0].fishers.filter(function(f) { return f.name === name; })[0];
+    }
+
+    it('should record them when the microworld uses them', function() {
+      mw.params.fisherClassesEnabled = true;
+      mw.params.fisherClasses = ['Upper', 'Lower'];
+      mw.params.fisherAdvantageEnabled = true;
+      var ocean = new Ocean(mw, io, ioAdmin, { endOcean: function() {} });
+      ocean.addFisher('p001', { fClass: 'lower', fHasAdvantage: true });
+      ocean.startNextSeason();
+      firstRow(ocean, 'p001').fClass.should.equal('Lower');
+      firstRow(ocean, 'p001').fHasAdvantage.should.equal(true);
+    });
+
+    it('should leave them out when the microworld does not use them', function() {
+      var ocean = new Ocean(mw, io, ioAdmin, { endOcean: function() {} });
+      ocean.addFisher('p001', { fClass: 'Lower', fHasAdvantage: true });
+      ocean.startNextSeason();
+      should.not.exist(firstRow(ocean, 'p001').fClass);
+      should.not.exist(firstRow(ocean, 'p001').fHasAdvantage);
+    });
+  });
+
   describe('results when a fisher leaves mid-season', function() {
     beforeEach(function() {
       o.addFisher('p001');

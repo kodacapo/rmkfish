@@ -130,7 +130,28 @@ describe('POST /participant-sessions', () => {
         assert(res.statusCode === 200, 'The status code should be 200');
         assert(res.body.code === 'TEST123');
         assert(res.body.name === 'Test Microworld');
+        assert(res.body.linkRemembered === undefined);
         return done();
+      });
+  });
+
+  it('should store the link of a participant arriving through a redirect', done => {
+    const ParticipantLink = require('../models/participant-link-model').ParticipantLink;
+    const link = { lang: 'en', expid: 'TEST123', partid: 'participant1', fhasadvantage: 'false', token: 'g1' };
+    request(app)
+      .post('/participant-sessions')
+      .send({ code: 'TEST123', pid: 'participant1', params: JSON.stringify(link) })
+      .end((err, res) => {
+        assert(err === null, err);
+        assert(res.statusCode === 200);
+        assert(res.body.linkRemembered === true);
+        ParticipantLink.findOne({ microworld: testMicroworld._id, participant: 'participant1' }).then(stored => {
+          const params = {};
+          stored.params.forEach(p => { params[p.name] = p.value; });
+          assert.deepStrictEqual(params,
+            { expid: 'TEST123', partid: 'participant1', fhasadvantage: 'false', token: 'g1' });
+          done();
+        }).catch(done);
       });
   });
 
