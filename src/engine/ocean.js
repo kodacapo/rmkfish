@@ -540,9 +540,13 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     for (var i in this.fishers) {
       this.fishers[i].prepareFisherForSeason(this.season);
 
+      // Class and advantage only when the microworld uses them
+      var fParams = this.fishers[i].params || {};
       this.results[this.season - 1].fishers.push({
         name: this.fishers[i].name,
         type: this.fishers[i].type,
+        fClass: this.microworld.params.fisherClassesEnabled ? fParams.fClass : undefined,
+        fHasAdvantage: this.microworld.params.fisherAdvantageEnabled ? !!fParams.fHasAdvantage : undefined,
       });
     }
 

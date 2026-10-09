@@ -91,6 +91,10 @@ function flattenRunResults(runs) {
         toPush['Seconds Away'] = connection.secondsAway;
         toPush.Lost = connection.lost;
         toPush['Run End Reason'] = endReason;
+        // Empty when the microworld doesn't use classes or advantage, and for
+        // runs saved before these were recorded
+        toPush.Class = fishers[k].fClass || '';
+        toPush.Advantage = typeof fishers[k].fHasAdvantage === 'boolean' ? (fishers[k].fHasAdvantage ? 'yes' : 'no') : '';
 
         // Device columns last (the CSV keeps this order). They stay empty for
         // bots and for runs saved before devices were recorded

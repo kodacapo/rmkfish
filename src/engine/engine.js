@@ -2,6 +2,8 @@
 
 var log = require('winston');
 var OceanManager = require('./ocean-manager').OceanManager;
+var participantLinks = require('./participant-links');
+var Microworld = require('../models/microworld-model').Microworld;
 
 // Why a returning participant may not rejoin (from OceanManager.assignFisherToOcean).
 // The page shows its own translation of each code (fish.js: end_<code>); the
@@ -41,9 +43,25 @@ exports.engine = function engine(io, ioAdmin) {
     var clientOId;
     var clientPId;
 
-    socket.on('enterOcean', function(mwId, pId, pParams, isRejoin) {
+    // linkParams: every name/value pair of the page's link. In an active
+    // microworld the ones stored on the participant's first visit are used
+    // instead, and the page gets them back (see participant-links.js). Pages
+    // from before the link protection send only pParams.
+    socket.on('enterOcean', function(mwId, pId, pParams, isRejoin, linkParams) {
       clientPId = pId;
-      clientOId = om.assignFisherToOcean(mwId, pId, pParams, enteredOcean, !!isRejoin);
+      if (linkParams === undefined) {
+        clientOId = om.assignFisherToOcean(mwId, pId, pParams, enteredOcean, !!isRejoin);
+        return;
+      }
+      Microworld.findById(mwId, function(err, mw) {
+        // An invalid id is reported by assignFisherToOcean
+        participantLinks.remember(err ? null : mw, pId, linkParams, function(_, params, remembered) {
+          if (!socket.connected) return;
+          socket.emit('linkParams', params, remembered);
+          clientOId = om.assignFisherToOcean(mwId, pId, participantLinks.fisherParams(params),
+            enteredOcean, !!isRejoin);
+        });
+      });
     });
 
     var enteredOcean = function(newOId, failure, info) {

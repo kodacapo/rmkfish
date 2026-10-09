@@ -6,6 +6,7 @@ var log = require('winston');
 var Experimenter = require('../models/experimenter-model.js').Experimenter;
 const Superuser = require('../models/superuser-model.js').Superuser;
 var Microworld = require('../models/microworld-model.js').Microworld;
+var participantLinks = require('../engine/participant-links');
 
 // POST /sessions
 exports.createSession = function(req, res) {
@@ -129,7 +130,21 @@ exports.participantSession = function(req, res) {
       }
 
       log.info('Valid run creation for ' + code);
-      return res.status(200).send(mw);
+      // params: the access page's link, as JSON. In an active microworld it is
+      // stored, and the page then leaves it out of the game page's address
+      // (see participant-links.js)
+      var linkParams;
+      try {
+        linkParams = typeof req.body.params === 'string' ? JSON.parse(req.body.params) : undefined;
+      } catch (e) {
+        linkParams = undefined;
+      }
+      if (linkParams === undefined) return res.status(200).send(mw);
+      participantLinks.remember(mw, pid, linkParams, function(_, params, remembered) {
+        var body = mw.toObject();
+        body.linkRemembered = remembered;
+        return res.status(200).send(body);
+      });
     }
   );
 };

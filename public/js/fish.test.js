@@ -447,6 +447,39 @@ describe('Fish (jsdom)', () => {
         result.should.equal('http://example.com?value&value');
       });
     });
+
+    describe('receiveLinkParams()', () => {
+      const original = '/fish?mwid=123&pid=456&lang=en&fhasadvantage=true';
+
+      beforeEach(() => {
+        window.history.replaceState(null, '', original);
+      });
+
+      afterEach(() => {
+        window.history.replaceState(null, '', '/fish?mwid=123&pid=456&lang=en');
+      });
+
+      it('should use the stored link for class, advantage and the redirect', () => {
+        window.receiveLinkParams({ fclass: 'Lower', fhasadvantage: 'false', token: 'g1' }, true);
+        window.pParams.fClass.should.equal('Lower');
+        window.pParams.fHasAdvantage.should.equal(false);
+        window.queryParams.token.should.equal('g1');
+        window.queryParams.pid.should.equal('456');
+        window.substituteQueryParameter('https://gorilla.sc/?t=${token}&p=${pid}', 'token')
+          .should.equal('https://gorilla.sc/?t=g1&p=${pid}');
+      });
+
+      it('should leave only lang, mwid and pid in the address once stored', () => {
+        window.receiveLinkParams({ fclass: 'Lower' }, true);
+        window.location.search.should.equal('?lang=en&mwid=123&pid=456');
+      });
+
+      it('should leave the address alone when nothing is stored (test microworlds)', () => {
+        window.receiveLinkParams({ fclass: 'Lower' }, false);
+        window.location.pathname.should.equal('/fish');
+        window.location.search.should.equal('?mwid=123&pid=456&lang=en&fhasadvantage=true');
+      });
+    });
   });
 
   describe('Language Selection', () => {

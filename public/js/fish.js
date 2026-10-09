@@ -1166,6 +1166,37 @@ function showGameOver(overText) {
 
 var queryParams = $.url().param();
 
+// The link parameters the server holds for this participant (see
+// src/engine/participant-links.js). In an active microworld they are the ones
+// of the participant's first visit, so an edited link changes nothing. They
+// replace the page's own, for the fisher's class and advantage and for the
+// redirect; once stored, the address bar shows only lang, mwid and pid.
+function receiveLinkParams(params, remembered) {
+    var address = {};
+    ['lang', 'mwid', 'pid'].forEach(function (name) {
+        var value = $.url().param(name);
+        if (value !== undefined) address[name] = value;
+    });
+    queryParams = Object.assign({}, params || {}, address);
+    pParams = {
+        pDisplay: queryParams.pdisplay,
+        fClass: queryParams.fclass,
+        fHasAdvantage: parseHasAdvantage(queryParams.fhasadvantage)
+    };
+    if (remembered) cleanAddressBar(address);
+}
+
+function cleanAddressBar(address) {
+    if (!window.history || !window.history.replaceState) return;
+    var query = Object.keys(address).map(function (name) {
+        return name + '=' + encodeURIComponent(address[name]);
+    }).join('&');
+    var clean = location.pathname + (query ? '?' + query : '');
+    if (clean !== location.pathname + location.search) {
+        window.history.replaceState(window.history.state, '', clean);
+    }
+}
+
 function maybeRedirect() {
     if (simOverTimer) {
         clearTimeout(simOverTimer);
@@ -1672,13 +1703,15 @@ function startTutorial() {
 var hasJoinedOcean = false;
 
 listen('connect', function () {
-    socket.emit('enterOcean', mwId, pId, pParams, hasJoinedOcean);
+    // The whole link goes along: the server stores or replaces it (receiveLinkParams)
+    socket.emit('enterOcean', mwId, pId, pParams, hasJoinedOcean, $.url().param() || {});
 });
 
 window.addEventListener('pagehide', onPageHide);
 window.addEventListener('pageshow', onPageShow);
 document.addEventListener('visibilitychange', onVisibilityChange);
 
+listen('linkParams', receiveLinkParams);
 listen('ocean', setupOcean);
 listen('initial delay', warnInitialDelay);
 listen('begin season', beginSeason);
