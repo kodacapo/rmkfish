@@ -20,6 +20,7 @@ import {
   isUserSameAsParamsId,
 } from './middlewares/access';
 import { httpsRedirect, isEnabled as httpsRedirectEnabled } from './middlewares/https-redirect';
+import { turnAwayOperaMini } from './middlewares/browser-check';
 import config from './config';
 import engine from './engine/engine';
 import experimenters from './routes/experimenters';
@@ -122,7 +123,7 @@ app.use('/bower', serveStatic(path.join(__dirname, '../bower_components')));
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
-app.get('/', function (req, res) {
+app.get('/', turnAwayOperaMini, function (req, res) {
   res.render('participant-access.pug');
 });
 app.get('/explain-redirection', function (req, res) {
@@ -151,7 +152,7 @@ app.get('/explain-clean-abort', function (req, res) {
 app.get('/explain-disconnects', function (req, res) {
   res.render('explain-disconnects.pug');
 });
-app.get('/new-welcome', function (req, res) {
+app.get('/new-welcome', turnAwayOperaMini, function (req, res) {
   res.render('participant-access.pug');
 });
 app.get('/admin', function (req, res) {
@@ -198,7 +199,7 @@ app.get(
   isUserSameAsParamsId,
   experimenters.displayProfileUpdate
 );
-app.get('/fish', function (req, res) {
+app.get('/fish', turnAwayOperaMini, function (req, res) {
   res.render('fish.pug');
 });
 
