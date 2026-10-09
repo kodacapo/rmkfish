@@ -19,6 +19,7 @@ import {
   allowSelfAndSuperusers,
   isUserSameAsParamsId,
 } from './middlewares/access';
+import { httpsRedirect, isEnabled as httpsRedirectEnabled } from './middlewares/https-redirect';
 import config from './config';
 import engine from './engine/engine';
 import experimenters from './routes/experimenters';
@@ -77,6 +78,9 @@ app.set('port', process.env.PORT || 8080);
 mongoose.set('strictQuery', false);
 // Use family: 4 to force IPv4 (localhost may resolve to IPv6 ::1 which MongoDB may not listen on)
 mongoose.connect(config.db[app.settings.env], { family: 4 });
+
+// On the droplet, send visitors of http://…:8080 to the HTTPS address (see https-redirect.js)
+if (httpsRedirectEnabled(process.env)) app.use(httpsRedirect);
 
 app.set('views', path.join(__dirname, '../views'));
 app.set('view engine', 'pug');
