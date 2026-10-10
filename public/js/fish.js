@@ -1468,6 +1468,9 @@ function applyLayout() {
     game.appendChild(box('pf-bottom', [byId('catch-intent-dialog-box'), actions]));
     var oceanColumn = byId('ocean-column');
     if (oceanColumn) oceanColumn.style.display = 'none';
+    // The buttons and costs sit at the bottom of the screen: tutorial bubbles
+    // go above them, or the tutorial scrolls the page to show them below
+    $('#pf-bottom .bootstro').attr('data-bootstro-placement', 'top');
     // Use the whole screen and keep clear of the camera cut-out ourselves (the
     // styles pad by env(safe-area-inset-*)). Left to itself, Brave on iPhone
     // leaves a strip blank on the cut-out side but keeps the page full

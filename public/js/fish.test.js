@@ -1517,9 +1517,9 @@ describe('Fish (jsdom)', () => {
           '<div class="row"><div id="fishers-box"></div></div>' +
           '<div id="lobby-status-box"></div>' +
           '<div id="catch-intent-dialog-box"></div>' +
-          '<div id="costs-box"></div>' +
+          '<div id="costs-box" class="bootstro" data-bootstro-placement="bottom"></div>' +
           '</div>' +
-          '<div id="ocean-column"><div id="ocean-box"></div></div>';
+          '<div id="ocean-column"><div id="ocean-box" class="bootstro" data-bootstro-placement="bottom"></div></div>';
         // The test page's own copies of these ids go out of the way
         LAYOUT_IDS
           .forEach(id => { const el = document.getElementById(id); if (el) el.id = id + '-saved'; });
@@ -1587,6 +1587,9 @@ describe('Fish (jsdom)', () => {
       it('should turn the fish count red when overfishing and the ocean is hidden', () => {
         window.ocean = { hideOcean: true, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
         window.drawOcean();
+          // Tutorial bubbles go above the bottom row, below the rest
+          document.getElementById('costs-box').getAttribute('data-bootstro-placement').should.equal('top');
+          document.getElementById('ocean-box').getAttribute('data-bootstro-placement').should.equal('bottom');
         document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.true();
       });
 
