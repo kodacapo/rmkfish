@@ -1324,8 +1324,52 @@ describe('Fish (jsdom)', () => {
           window.startTutorial();
         } finally {
           window.bootstro = saved;
+          window.tutorialRunning = false;
         }
         selector.should.equal('.bootstro:visible');
+      });
+
+      describe('interrupted by a Clean Abort question', () => {
+        let saved, options, rulesShown, sent;
+
+        beforeEach(() => {
+          saved = { bootstro: window.bootstro, displayRules: window.displayRules, socket: window.socket,
+            showLobby: window.showLobby };
+          options = null;
+          rulesShown = 0;
+          sent = [];
+          window.bootstro = {
+            start: (s, o) => { options = o; },
+            stop: () => { options.onExit({ idx: 3 }); }
+          };
+          window.displayRules = () => { rulesShown++; };
+          window.showLobby = () => {};
+          window.socket = { emit: (event) => { sent.push(event); } };
+          window.ocean.catchIntentionsEnabled = false;
+          window.startTutorial();
+        });
+
+        afterEach(() => {
+          Object.keys(saved).forEach(name => { window[name] = saved[name]; });
+          window.tutorialRunning = false;
+          window.tutorialLeft = false;
+        });
+
+        it('should let the tutorial carry on after Keep Reading, not reopen the rules', () => {
+          window.doAbortKeepReading();
+          sent.should.eql(['keepReading']);
+          rulesShown.should.equal(0);
+          // Finishing the tutorial still brings the rules back, as before
+          options.onComplete({ idx: 9 });
+          rulesShown.should.equal(1);
+        });
+
+        it('should stop the tutorial without reopening the rules on Proceed to Lobby', () => {
+          window.doAbortProceed();
+          sent.should.eql(['proceedToLobby']);
+          rulesShown.should.equal(0);
+          window.tutorialRunning.should.be.false();
+        });
       });
     });
   });
@@ -1543,6 +1587,9 @@ describe('Fish (jsdom)', () => {
           actions.contains(document.getElementById('control-box')).should.be.true();
           actions.contains(document.getElementById('costs-box')).should.be.true();
           document.getElementById('ocean-column').style.display.should.equal('none');
+          // Tutorial bubbles go above the bottom row, below the rest
+          document.getElementById('costs-box').getAttribute('data-bootstro-placement').should.equal('top');
+          document.getElementById('ocean-box').getAttribute('data-bootstro-placement').should.equal('bottom');
         } finally {
           page.remove();
           LAYOUT_IDS
@@ -1587,9 +1634,6 @@ describe('Fish (jsdom)', () => {
       it('should turn the fish count red when overfishing and the ocean is hidden', () => {
         window.ocean = { hideOcean: true, enableRespawnWarning: true, spawnFactor: 2, maxFish: 20 };
         window.drawOcean();
-          // Tutorial bubbles go above the bottom row, below the rest
-          document.getElementById('costs-box').getAttribute('data-bootstro-placement').should.equal('top');
-          document.getElementById('ocean-box').getAttribute('data-bootstro-placement').should.equal('bottom');
         document.querySelector('#status-sub-label').classList.contains('respawn-warning').should.be.true();
       });
 
