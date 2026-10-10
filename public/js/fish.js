@@ -811,7 +811,7 @@ function setupOcean(o, joinState) {
     // Rejoining a game under way: no rules screen (rejoinGame rebuilds the
     // game screen). Opening it here and closing it on 'rejoined' doesn't work:
     // Bootstrap ignores a close while the modal is still fading in.
-    if (!(joinState && joinState.rejoining)) displayRules();
+    if (!(joinState && joinState.rejoining)) resumeSetup(joinState || {});
     loadLabels();
     updateCosts();
     makeUnpausable();
@@ -855,8 +855,26 @@ function validateFisherClass() {
 
 function readRules() {
     socket.emit('readRules');
+    showLobby();
+}
+
+function showLobby() {
     $('#lobby-status-box').show();
     startLobbyTimer();
+}
+
+// Before the game, a page (re)joining picks up where the participant was:
+// the rules, the lobby, or a Clean Abort question asked while it was away
+function resumeSetup(joinState) {
+    var notice = joinState.abortNotice;
+    if (joinState.ready) showLobby();
+    if (notice && notice.event === 'forceAbort') {
+        showForceAbortModal();
+    } else if (notice && notice.event === 'abortPrompt') {
+        showAbortPrompt(notice.data);
+    } else if (!joinState.ready) {
+        displayRules();
+    }
 }
 
 ////////////////////////////////////////
@@ -892,7 +910,13 @@ function renderLobbyTable() {
         } else {
             var entrySecs = Math.min(60*60-1, Math.max(0, Math.floor((now - slot.entryTime) / 1000)));
             var isReady = slot.readyTime !== null;
-            rowStatus = slot.pId === pId ? msgs.info_you : (isReady ? msgs.lobby_fisherReady : msgs.lobby_fisherReading);
+            if (slot.pId === pId) {
+                rowStatus = msgs.info_you;
+            } else if (slot.away) {
+                rowStatus = msgs.lobby_fisherAway;
+            } else {
+                rowStatus = isReady ? msgs.lobby_fisherReady : msgs.lobby_fisherReading;
+            }
             rowTime = formatMmSs(entrySecs);
             rowSortKey = entrySecs;
         }
@@ -988,7 +1012,21 @@ function doAbort() {
             url = substituteQueryParameter(url, key);
         }
         location.href = url;
+    } else {
+        showLeftStudy();
     }
+}
+
+// Left through Clean Abort with nowhere to go: the server has already freed
+// the seat, so the page says so instead of staying on the rules or lobby. No
+// OK button: it would lead to the redirect URL, which is for finishing.
+function showLeftStudy() {
+    st.status = 'over';
+    socket.disconnect();
+    $('#rules-modal').modal('hide');
+    $('#over-text').text(msgs.end_aborted);
+    $('#finished').hide();
+    $('#over-modal').modal({ keyboard: false, backdrop: 'static' });
 }
 
 function showForceAbortModal() {
@@ -1026,8 +1064,7 @@ function doAbortKeepReading() {
 function doAbortProceed() {
     hideAbortModal();
     socket.emit('proceedToLobby');
-    $('#lobby-status-box').show();
-    startLobbyTimer();
+    showLobby();
 }
 
 function doAbortKeepWaiting() {
@@ -1361,9 +1398,12 @@ function isTouchDevice() {
 function onVisibilityChange() {
     if (!isPhoneFirst() || !ocean.disconnectHandlingEnabled || !isTouchDevice()) return;
     if (document.visibilityState === 'hidden') {
+        // Also before the game (rules, lobby): the seat is held, as for a
+        // dropped connection, without counting toward the allowed disconnects
+        var beforeGame = hasJoinedOcean && (st.status === 'loading' || st.status === 'setup');
         var underway = st.status === 'initial delay' || st.status === 'running' ||
             st.status === 'resting' || st.status === 'paused';
-        if (underway && socket.connected) {
+        if ((beforeGame || underway) && socket.connected) {
             disconnectedWhileHidden = true;
             socket.disconnect();
         }

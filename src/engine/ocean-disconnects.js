@@ -11,6 +11,12 @@
 //
 // Every disconnect and its consequences are recorded in connectionEvents,
 // which is saved with the run, also when handling is off.
+//
+// Before the game (reading the rules, waiting in the lobby) the seat is held
+// for the grace period too, but such a disconnect doesn't count toward
+// disconnectsAllowed and pauses nothing. If the grace period runs out, the
+// seat goes to someone else, and the participant may come back as a new
+// visitor. A participant who leaves through Clean Abort gets no grace period.
 
 exports.install = function(ocean, io, ioAdmin) {
   ocean.connectionEvents = [];   // saved with the run
@@ -23,7 +29,7 @@ exports.install = function(ocean, io, ioAdmin) {
   };
 
   ocean.disconnectHandlingApplies = function() {
-    return !!this.microworld.params.disconnectHandlingEnabled && this.isGameInProgress();
+    return !!this.microworld.params.disconnectHandlingEnabled && (this.isInSetup() || this.isGameInProgress());
   };
 
   ocean.recordConnectionEvent = function(pId, event, extra) {
@@ -35,9 +41,10 @@ exports.install = function(ocean, io, ioAdmin) {
       season: this.season,
       second: this.seconds,
       phase: phase,
-      // The break between seasons (and the countdown before season 1) leads
-      // up to the next season, so events there count toward that season
-      resultsSeason: phase === 'resting' || phase === 'initial delay' ? this.season + 1 : this.season,
+      // The break between seasons (and the rules, lobby and countdown before
+      // season 1) leads up to the next season, so events there count toward it
+      resultsSeason: phase === 'resting' || phase === 'initial delay' || phase === 'setup' ?
+        this.season + 1 : this.season,
     };
     for (var key in extra || {}) record[key] = extra[key];
     this.connectionEvents.push(record);
@@ -67,19 +74,24 @@ exports.install = function(ocean, io, ioAdmin) {
     if (idx === null || this.isFisherDisconnected(pId)) return;
     var params = this.microworld.params;
     var fisher = this.fishers[idx];
+    var beforeGame = this.isInSetup();
 
-    fisher.disconnectCount = (fisher.disconnectCount || 0) + 1;
-    this.recordConnectionEvent(pId, 'disconnected', { count: fisher.disconnectCount });
+    if (beforeGame) {
+      this.recordConnectionEvent(pId, 'disconnected');
+    } else {
+      fisher.disconnectCount = (fisher.disconnectCount || 0) + 1;
+      this.recordConnectionEvent(pId, 'disconnected', { count: fisher.disconnectCount });
 
-    // An absent fisher shouldn't keep paying for time at sea
-    if (fisher.status === 'At sea') {
-      fisher.goToPort();
-      this.recordConnectionEvent(pId, 'sent to port');
-    }
+      // An absent fisher shouldn't keep paying for time at sea
+      if (fisher.status === 'At sea') {
+        fisher.goToPort();
+        this.recordConnectionEvent(pId, 'sent to port');
+      }
 
-    if (fisher.disconnectCount > params.disconnectsAllowed) {
-      this.loseFisher(pId, 'too many disconnects');
-      return;
+      if (fisher.disconnectCount > params.disconnectsAllowed) {
+        this.loseFisher(pId, 'too many disconnects');
+        return;
+      }
     }
 
     var graceMs = params.disconnectGracePeriod * 1000;
@@ -88,6 +100,16 @@ exports.install = function(ocean, io, ioAdmin) {
       deadline: Date.now() + graceMs,
       timer: setTimeout(this.loseFisher.bind(this, pId, 'grace period expired'), graceMs),
     };
+    this.announceDisconnectChange();
+  };
+
+  // Tell everyone: before the game the lobby shows who is away; during it
+  // the game may pause or resume
+  ocean.announceDisconnectChange = function() {
+    if (this.isInSetup()) {
+      io.sockets.in(this.id).emit('lobbyStatus', this.getLobbyStatus());
+      return;
+    }
     this.updateDisconnectPause();
     io.sockets.in(this.id).emit('status', this.getSimStatus());
   };
@@ -98,8 +120,7 @@ exports.install = function(ocean, io, ioAdmin) {
     clearTimeout(away.timer);
     delete this.disconnected[pId];
     this.recordConnectionEvent(pId, 'reconnected', { secondsAway: Math.round((Date.now() - away.since) / 1000) });
-    this.updateDisconnectPause();
-    io.sockets.in(this.id).emit('status', this.getSimStatus());
+    this.announceDisconnectChange();
   };
 
   // Pause (or keep paused) while anyone is being waited for, and tell the
@@ -129,6 +150,15 @@ exports.install = function(ocean, io, ioAdmin) {
       delete this.disconnected[pId];
     }
     if (this.isRemovable()) return;
+
+    if (this.isInSetup()) {
+      // Before the game: the seat goes to someone else; they may come back as a new visitor
+      this.recordConnectionEvent(pId, 'removed', { reason: reason });
+      this.removeFisher(pId);
+      if (!this.isRemovable()) io.sockets.in(this.id).emit('lobbyStatus', this.getLobbyStatus());
+      return;
+    }
+
     this.lostParticipants[pId] = reason;
 
     if (this.microworld.params.disconnectLostAction === 'remove') {

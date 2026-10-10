@@ -29,7 +29,11 @@ function summarizeConnectionEvents(events, lastSeasonByFisher) {
       disconnectSeason[e.participant] = season;
     }
     if (e.event === 'reconnected') s.secondsAway += e.secondsAway || 0;
-    if (e.event === 'removed' || e.event === 'game ended') s.lost = e.event + ': ' + e.reason;
+    // Removed before the game only freed their seat: not lost, and they may
+    // have come back as a new visitor and played
+    if ((e.event === 'removed' || e.event === 'game ended') && e.phase !== 'setup') {
+      s.lost = e.event + ': ' + e.reason;
+    }
   });
   return summary;
 }

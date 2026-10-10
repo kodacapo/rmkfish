@@ -445,6 +445,16 @@ fr['lobby_fisherReading'] = 'Pêcheur lit les règles';
 pt['lobby_fisherReading'] = 'Pescador lendo as regras';
 ko['lobby_fisherReading'] = '플레이어 규칙 읽는 중';
 
+// A fisher whose connection dropped before the game, during their grace period
+en['lobby_fisherAway'] = 'Fisher reconnecting';
+cn['lobby_fisherAway'] = '渔人正在重新连接';
+ct['lobby_fisherAway'] = '漁人正在重新連線';
+de['lobby_fisherAway'] = 'Fischer verbindet sich neu';
+es['lobby_fisherAway'] = 'Pescador reconectándose';
+fr['lobby_fisherAway'] = 'Pêcheur en cours de reconnexion';
+pt['lobby_fisherAway'] = 'Pescador reconectando';
+ko['lobby_fisherAway'] = '플레이어 재연결 중';
+
 // End report
 en['end_over'] = 'This simulation is over.';
 en['end_over'] = 'This game is over.';          // RMK
@@ -485,6 +495,16 @@ es['end_removed'] = 'Se desconectó del juego y fue retirado de él, por lo que 
 fr['end_removed'] = 'Vous avez été déconnecté de la partie et en avez été retiré : vous ne pouvez pas la rejoindre.';
 pt['end_removed'] = 'Você foi desconectado do jogo e removido dele, por isso não pode voltar.';
 ko['end_removed'] = '게임 연결이 끊어져 게임에서 제외되었으므로 다시 참여할 수 없습니다.';
+
+// Shown after leaving through Clean Abort when the microworld has no abort URL
+en['end_aborted'] = 'You have left the study. You can close this page.';
+cn['end_aborted'] = '您已退出本研究。您可以关闭此页面。';
+ct['end_aborted'] = '您已退出本研究。您可以關閉此頁面。';
+de['end_aborted'] = 'Sie haben die Studie verlassen. Sie können diese Seite schließen.';
+es['end_aborted'] = 'Ha abandonado el estudio. Puede cerrar esta página.';
+fr['end_aborted'] = "Vous avez quitté l'étude. Vous pouvez fermer cette page.";
+pt['end_aborted'] = 'Você saiu do estudo. Pode fechar esta página.';
+ko['end_aborted'] = '연구에서 나가셨습니다. 이 페이지를 닫으셔도 됩니다.';
 
 en['end_caught'] = 'You caught';
 cn['end_caught'] = '你捕捞了';

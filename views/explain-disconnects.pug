@@ -56,12 +56,30 @@ html(lang='en')
     p.
         A participant who has been lost cannot rejoin that game, and is not placed in
         a new group either.
+    h4 Before the game
+    p.
+        While participants read the rules or wait in the lobby, a disconnected participant
+        keeps their seat for the same grace period, and comes back to where they were:
+        the rules, or the lobby. The others see them as "Fisher reconnecting", and the
+        game doesn't start until they are back. Nothing pauses, and these disconnects
+        don't count toward the disconnects allowed. If the grace period runs out, their
+        seat goes to someone else; they are not lost, and may still join as a new visitor.
+    p.
+        With Clean Abort, the reading and waiting time limits keep running while a
+        participant is away. A question that came up meanwhile is asked when they return.
+        A participant who leaves through Clean Abort gets no grace period: their seat
+        is freed at once.
+    p.
+        In a PhoneFirst microworld, on phones and tablets, leaving the game's screen
+        (switching apps or tabs, locking the screen) counts as a disconnect, before and
+        during the game.
     h4 In the results
     p.
         Every disconnect, return, removal and game end is saved with the run, with the
         season and second it happened in. This also happens when the feature is off.
         The CSV export has four columns for it. The first three are per season: a
-        disconnect during the break between seasons counts toward the season that follows.
+        disconnect during the break between seasons counts toward the season that follows,
+        and one before the game (rules, lobby, countdown) toward season 1.
     dl
         dt Disconnects
         dd How many times the participant's connection dropped in that season.

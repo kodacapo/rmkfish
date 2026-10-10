@@ -161,6 +161,9 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
 
   this.isEveryoneReady = function() {
     if (this.hasRoom()) return false;
+    // Nobody starts a game with an empty chair: wait for anyone who is away
+    // until they are back or their grace period frees the seat
+    if (Object.keys(this.disconnected).length > 0) return false;
     for (var i in this.fishers) {
       if (!this.fishers[i].ready) return false;
     }
@@ -335,7 +338,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     var slots = [];
     for (var i = 0; i < this.fishers.length; i++) {
       var f = this.fishers[i];
-      slots.push({ pId: f.name, entryTime: f.entryTime, readyTime: f.readyTime });
+      slots.push({ pId: f.name, entryTime: f.entryTime, readyTime: f.readyTime, away: this.isFisherDisconnected(f.name) });
     }
     while (slots.length < numFishers) {
       slots.push(null);
@@ -350,10 +353,33 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
   this.setFisherNotifier = function(pId, socketId, notifyFn) {
     var idx = this.findFisherIndex(pId);
     if (idx !== null) {
-      this.fishers[idx].notify = notifyFn;
-      this.fishers[idx].socketId = socketId;
-      this.startReadRulesTimer(pId);
+      var fisher = this.fishers[idx];
+      fisher.notify = notifyFn;
+      fisher.socketId = socketId;
+      // A page coming back (reload, reconnect) doesn't restart the clock, nor
+      // replace a Clean Abort question still waiting for an answer
+      if (!fisher.readRulesTimer && !fisher.abortNotice) this.startReadRulesTimer(pId);
     }
+  };
+
+  // Where a page joining before the game should pick up: the rules, the
+  // lobby, or a Clean Abort question asked while it was away
+  this.getSetupJoinState = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx === null) return { ready: false, abortNotice: null };
+    var fisher = this.fishers[idx];
+    return { ready: !!fisher.ready, abortNotice: fisher.abortNotice || null };
+  };
+
+  // Left through Clean Abort: their page going away is no disconnect to wait for
+  this.markAborted = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    if (idx !== null) this.fishers[idx].aborted = true;
+  };
+
+  this.hasAborted = function(pId) {
+    var idx = this.findFisherIndex(pId);
+    return idx !== null && !!this.fishers[idx].aborted;
   };
 
   this.isCurrentSocket = function(pId, socketId) {
@@ -371,6 +397,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     var idx = this.findFisherIndex(pId);
     if (idx === null) return;
     var fisher = this.fishers[idx];
+    fisher.abortNotice = null;
     var timeoutMins = this.microworld.params.readRulesTimeout;
     if (!timeoutMins || fisher.ready) return;
     this.clearReadRulesTimer(pId);
@@ -395,6 +422,7 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     var idx = this.findFisherIndex(pId);
     if (idx === null) return;
     var fisher = this.fishers[idx];
+    fisher.abortNotice = null;
     var timeoutMins = this.microworld.params.lobbyWaitTimeout;
     if (!timeoutMins) return;
     this.clearLobbyWaitTimer(pId);
@@ -427,11 +455,10 @@ exports.Ocean = function Ocean(mw, incomingIo, incomingIoAdmin, om) {
     fisher.timeoutCount += 1;
     this.log.info('Fisher ' + pId + ' timed out (stage: ' + stage + ', count: ' + fisher.timeoutCount + ')');
     var maxTimeouts = this.microworld.params.maxTimeouts;
-    if (fisher.timeoutCount >= maxTimeouts) {
-      if (fisher.notify) fisher.notify('forceAbort', {});
-    } else {
-      if (fisher.notify) fisher.notify('abortPrompt', { stage: stage });
-    }
+    // Kept until answered, so a page that was away gets the question on return
+    fisher.abortNotice = fisher.timeoutCount >= maxTimeouts ?
+      { event: 'forceAbort', data: {} } : { event: 'abortPrompt', data: { stage: stage } };
+    if (fisher.notify) fisher.notify(fisher.abortNotice.event, fisher.abortNotice.data);
   };
 
   this.keepReading = function(pId) {

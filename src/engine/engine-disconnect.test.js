@@ -249,3 +249,116 @@ describe('Ocean manager - reconnecting pages', function() {
     }, true);
   });
 });
+
+describe('Engine - Disconnect handling before the game', function() {
+  var engine = require('./engine').engine;
+  var mw, om, ocean, mwId;
+
+  function createMockSocket(id) {
+    var socket = new EventEmitter();
+    socket.id = id;
+    socket.connected = true;
+    var emit = socket.emit.bind(socket);
+    socket.emit = function(event, data, extra) {
+      if (event === 'ocean') socket.sentOcean = extra;
+      return emit.apply(null, arguments);
+    };
+    socket.join = function() {};
+    socket.leave = function() {};
+    return socket;
+  }
+
+  var room = { emit: function() {} };
+  var io = { sockets: new EventEmitter(), in: function() { return room; }, on: function() {} };
+  io.sockets.in = function() { return room; };
+  io.sockets.connected = {};
+
+  function connect(id, pId) {
+    var socket = createMockSocket(id);
+    io.sockets.emit('connection', socket);
+    socket.emit('enterOcean', mwId, pId, {});
+    return socket;
+  }
+
+  before(async function() {
+    this.timeout(10000);
+    await setUpTestDb();
+    var experimenter = await Experimenter.create({ username: 'setupgracetest', passwordHash: 'x' });
+    mw = await Microworld.create({
+      name: 'Setup Grace Test MW',
+      code: 'SETUP' + Date.now(),
+      status: 'test',
+      experimenter: { _id: experimenter._id, username: experimenter.username },
+      dateCreated: new Date(),
+      params: {
+        numFishers: 2,
+        numHumans: 2,
+        seasonDuration: 10,
+        initialDelay: 5,
+        seasonDelay: 5,
+        certainFish: 10,
+        availableMysteryFish: 0,
+        reportedMysteryFish: 0,
+        numSeasons: 2,
+        catchIntentSeasons: [],
+        bots: [],
+        disconnectHandlingEnabled: true,
+        disconnectGracePeriod: 5,
+        disconnectDuringGrace: 'pause',
+        disconnectsAllowed: 0,
+        disconnectLostAction: 'end',
+      },
+    });
+    mwId = mw._id.toString();
+    om = engine(io, io);
+  });
+
+  after(async function() {
+    if (ocean) {
+      ocean.clearDisconnectTimers();
+      ocean.status = 'over'; // stops the ocean's loop
+    }
+    await Microworld.deleteMany({});
+    await Experimenter.deleteMany({});
+  });
+
+  var socketA, socketB;
+
+  it('should seat two participants, still in the rules', function(done) {
+    socketA = connect('A', 'r1');
+    setTimeout(function() { socketB = connect('B', 'r2'); }, 300);
+    setTimeout(function() {
+      ocean = om.oceans[Object.keys(om.oceans)[0]];
+      ocean.fishers.length.should.equal(2);
+      ocean.status.should.equal('setup');
+      socketA.sentOcean.ready.should.be.false();
+      done();
+    }, 600);
+  });
+
+  it('should hold the seat of a participant who drops in the lobby, without counting it', function() {
+    socketA.emit('readRules');
+    socketA.emit('disconnect');
+    should(ocean.findFisherIndex('r1')).not.be.null();
+    ocean.isFisherDisconnected('r1').should.be.true();
+    ocean.isLost('r1').should.be.false(); // disconnectsAllowed is 0
+  });
+
+  it('should bring them back to the lobby, not the rules', function() {
+    var socketA2 = connect('A2', 'r1');
+    ocean.isFisherDisconnected('r1').should.be.false();
+    socketA2.sentOcean.rejoining.should.be.false();
+    socketA2.sentOcean.ready.should.be.true();
+    socketA = socketA2;
+  });
+
+  it('should free the seat at once of a participant who leaves through Clean Abort', function() {
+    // Freed on the abort itself: a page without an abort URL stays open
+    socketB.emit('abortFish');
+    should(ocean.findFisherIndex('r2')).be.null();
+    // Its page closing later changes nothing
+    socketB.emit('disconnect');
+    ocean.isFisherDisconnected('r2').should.be.false();
+    ocean.connectionEvents.filter(function(e) { return e.participant === 'r2'; }).should.be.empty();
+  });
+});
