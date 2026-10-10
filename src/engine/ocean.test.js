@@ -775,14 +775,108 @@ describe('Engine - Ocean', function() {
       o.clearDisconnectTimers();
     });
 
-    it('should not apply when switched off, or before the game starts', function() {
+    it('should apply when switched on, before and during the game, not after it', function() {
       o.disconnectHandlingApplies().should.be.false();
       enable();
       o.disconnectHandlingApplies().should.be.true();
       o.status = 'setup';
-      o.disconnectHandlingApplies().should.be.false();
+      o.disconnectHandlingApplies().should.be.true();
       o.status = 'over';
       o.disconnectHandlingApplies().should.be.false();
+    });
+
+    describe('before the game (rules, lobby)', function() {
+      beforeEach(function() {
+        o.status = 'setup';
+      });
+
+      afterEach(function() {
+        o.clearAllAbortTimers('p001');
+        o.clearAllAbortTimers('p002');
+      });
+
+      it('should hold the seat without counting the disconnect or pausing', function() {
+        enable({ disconnectsAllowed: 0 });
+        o.fisherDisconnected('p001');
+        should(o.findFisherIndex('p001')).not.be.null();
+        o.isFisherDisconnected('p001').should.be.true();
+        o.status.should.equal('setup');
+        should.not.exist(human('p001').disconnectCount);
+        o.isLost('p001').should.be.false();
+        var e = o.connectionEvents[0];
+        e.event.should.equal('disconnected');
+        e.phase.should.equal('setup');
+        e.resultsSeason.should.equal(1);
+      });
+
+      it('should show the absent fisher as away in the lobby', function() {
+        enable();
+        o.fisherDisconnected('p001');
+        var slots = o.getLobbyStatus().slots.filter(function(sl) { return sl && sl.pId === 'p001'; });
+        slots[0].away.should.be.true();
+        o.fisherReconnected('p001');
+        o.getLobbyStatus().slots.filter(function(sl) { return sl && sl.pId === 'p001'; })[0].away.should.be.false();
+      });
+
+      it('should not start the game while someone is away', function() {
+        enable();
+        o.fishers.forEach(function(f) { f.ready = true; });
+        o.isEveryoneReady().should.be.true();
+        o.fisherDisconnected('p002');
+        o.isEveryoneReady().should.be.false();
+        o.fisherReconnected('p002');
+        o.isEveryoneReady().should.be.true();
+      });
+
+      it('should free the seat when the grace period runs out, without losing the participant', function(done) {
+        enable();
+        o.fisherDisconnected('p001');
+        setTimeout(function() {
+          should(o.findFisherIndex('p001')).be.null();
+          o.isLost('p001').should.be.false();
+          o.isRemovable().should.be.false(); // p002 is still there
+          events('p001').should.eql(['disconnected', 'removed']);
+          o.connectionEvents[1].reason.should.equal('grace period expired');
+          done();
+        }, GRACE * 2000);
+      });
+
+      it('should keep a Clean Abort question for a page that was away, and not restart the clock', function(done) {
+        enable({ disconnectGracePeriod: 1 }); // outlasts the check below
+        o.microworld.params.readRulesTimeout = 0.0005; // minutes: 30 ms
+        o.microworld.params.maxTimeouts = 3;
+        var sent = [];
+        o.setFisherNotifier('p001', 's1', function(event, data) { sent.push(event); });
+        o.fisherDisconnected('p001');
+        setTimeout(function() {
+          // The timer ran out while away: counted, and kept for the return
+          human('p001').timeoutCount.should.equal(1);
+          o.getSetupJoinState('p001').abortNotice.event.should.equal('abortPrompt');
+          o.getSetupJoinState('p001').abortNotice.data.stage.should.equal('readingRules');
+          // Back on a new page: no fresh timer while the question waits
+          o.setFisherNotifier('p001', 's2', function() {});
+          should.not.exist(human('p001').readRulesTimer);
+          // Answered ("keep reading"): the question is done, the clock restarts
+          o.keepReading('p001');
+          should.not.exist(o.getSetupJoinState('p001').abortNotice);
+          should.exist(human('p001').readRulesTimer);
+          delete o.microworld.params.readRulesTimeout;
+          delete o.microworld.params.maxTimeouts;
+          done();
+        }, 80);
+      });
+
+      it('should tell a returning page whether it was in the lobby', function() {
+        o.getSetupJoinState('p001').ready.should.be.false();
+        o.readRules('p001');
+        o.getSetupJoinState('p001').ready.should.be.true();
+      });
+
+      it('should remember who left through Clean Abort', function() {
+        o.hasAborted('p001').should.be.false();
+        o.markAborted('p001');
+        o.hasAborted('p001').should.be.true();
+      });
     });
 
     it('should pause the game and send the absent fisher\'s boat to port', function() {

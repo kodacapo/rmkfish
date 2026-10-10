@@ -320,7 +320,8 @@ describe('Fish (jsdom)', () => {
         end_disconnect: 'Game ended: a player lost their connection.',
         lobby_fisherMissing: 'Fisher missing',
         lobby_fisherReady: 'Fisher ready and waiting',
-        lobby_fisherReading: 'Fisher reading rules'
+        lobby_fisherReading: 'Fisher reading rules',
+        lobby_fisherAway: 'Fisher reconnecting'
       },
       es: {
         info_intent: 'Captura Prevista',
@@ -1995,8 +1996,17 @@ describe('Fish (jsdom)', () => {
           calls.should.eql([]);
         });
 
-        it('should be left alone before the game starts (rules, lobby)', () => {
-          window.st = { status: 'setup' };
+        it('should count in the rules and the lobby too, once the page has joined', () => {
+          window.hasJoinedOcean = true;
+          window.st = { status: 'loading' };
+          setVisibility('hidden');
+          setVisibility('visible');
+          calls.should.eql(['disconnect', 'connect']);
+        });
+
+        it('should be left alone before the page has joined a game', () => {
+          window.hasJoinedOcean = false;
+          window.st = { status: 'loading' };
           setVisibility('hidden');
           calls.should.eql([]);
         });
@@ -2201,6 +2211,32 @@ describe('Fish (jsdom)', () => {
       it('should fall back to the server\'s text, safely, without a known code', () => {
         window.showRejoinRefused({ message: 'Plain <b>text</b>' });
         document.querySelector('#over-text').innerHTML.should.equal('Plain &lt;b&gt;text&lt;/b&gt;');
+      });
+    });
+
+    describe('Clean Abort without an abort URL', () => {
+      it('should say the participant has left, with no way on to the redirect URL', () => {
+        const originalSocket = window.socket;
+        const sent = [];
+        let disconnected = false;
+        window.socket = { emit: (event) => { sent.push(event); }, disconnect: () => { disconnected = true; } };
+        window.ocean.abortUrl = '';
+        window.msgs.end_aborted = 'You have left (translated)';
+        const finished = document.createElement('button');
+        finished.id = 'finished';
+        document.body.appendChild(finished);
+        try {
+          window.doAbort();
+          sent.should.eql(['abortFish']);
+          disconnected.should.be.true();
+          document.querySelector('#over-text').textContent.should.equal('You have left (translated)');
+          document.querySelector('#finished').style.display.should.equal('none');
+          document.querySelector('#over-modal').getAttribute('data-modal-shown').should.equal('true');
+          window.st.status.should.equal('over');
+        } finally {
+          window.socket = originalSocket;
+          finished.remove();
+        }
       });
     });
 
@@ -2622,6 +2658,41 @@ describe('Fish (jsdom)', () => {
       });
     });
 
+    describe('resumeSetup()', () => {
+      let shown, saved;
+
+      beforeEach(() => {
+        shown = [];
+        saved = {};
+        ['displayRules', 'showLobby', 'showAbortPrompt', 'showForceAbortModal'].forEach(name => {
+          saved[name] = window[name];
+          window[name] = (data) => { shown.push(data && data.stage ? name + ':' + data.stage : name); };
+        });
+      });
+
+      afterEach(() => {
+        Object.keys(saved).forEach(name => { window[name] = saved[name]; });
+      });
+
+      it('should open the rules for a page that has not finished them', () => {
+        window.resumeSetup({ ready: false });
+        shown.should.eql(['displayRules']);
+      });
+
+      it('should go back to the lobby for a page that was waiting there', () => {
+        window.resumeSetup({ ready: true });
+        shown.should.eql(['showLobby']);
+      });
+
+      it('should ask a Clean Abort question that came up while away, instead of the rules', () => {
+        window.resumeSetup({ ready: false, abortNotice: { event: 'abortPrompt', data: { stage: 'readingRules' } } });
+        shown.should.eql(['showAbortPrompt:readingRules']);
+        shown = [];
+        window.resumeSetup({ ready: true, abortNotice: { event: 'forceAbort', data: {} } });
+        shown.should.eql(['showLobby', 'showForceAbortModal']);
+      });
+    });
+
     describe('renderLobbyTable()', () => {
       it('should create one row per slot', () => {
         const now = Date.now();
@@ -2650,6 +2721,12 @@ describe('Fish (jsdom)', () => {
         window.lobbySlots = [{ entryTime: Date.now(), readyTime: null }];
         window.renderLobbyTable();
         document.getElementById('lobby-tbody').querySelectorAll('td')[0].textContent.should.equal('Fisher reading rules');
+      });
+
+      it('should show "Fisher reconnecting" for someone away during their grace period', () => {
+        window.lobbySlots = [{ pId: 'other', entryTime: Date.now(), readyTime: Date.now(), away: true }];
+        window.renderLobbyTable();
+        document.getElementById('lobby-tbody').querySelectorAll('td')[0].textContent.should.equal('Fisher reconnecting');
       });
 
       it('should show "Fisher ready and waiting" when readyTime is set', () => {

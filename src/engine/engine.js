@@ -93,7 +93,15 @@ exports.engine = function engine(io, ioAdmin) {
       // A game already under way (or over) means this page is rejoining: it
       // must not open the rules screen (see fish.js setupOcean)
       var alreadyStarted = om.oceans[myOId].isGameInProgress() || om.oceans[myOId].isRemovable();
-      socket.emit('ocean', om.oceans[myOId].getParams(), { rejoining: alreadyStarted });
+      var joinState = { rejoining: alreadyStarted };
+      if (!alreadyStarted) {
+        // Before the game, a page coming back picks up where it was: the
+        // rules, the lobby, or an unanswered Clean Abort question
+        var setupState = om.oceans[myOId].getSetupJoinState(myPId);
+        joinState.ready = setupState.ready;
+        joinState.abortNotice = setupState.abortNotice;
+      }
+      socket.emit('ocean', om.oceans[myOId].getParams(), joinState);
       io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
 
       // Update ownership first so any incoming disconnect from the old socket
@@ -112,7 +120,11 @@ exports.engine = function engine(io, ioAdmin) {
         }
       }
 
-      if (alreadyStarted) restoreRejoiningFisher(socket, om.oceans[myOId], myPId);
+      if (alreadyStarted) {
+        restoreRejoiningFisher(socket, om.oceans[myOId], myPId);
+      } else if (om.oceans[myOId].isFisherDisconnected(myPId)) {
+        om.oceans[myOId].fisherReconnected(myPId);
+      }
 
       // Define handlers as named functions so we can remove them on disconnect
       // This prevents memory leaks from accumulated event listeners
@@ -189,7 +201,17 @@ exports.engine = function engine(io, ioAdmin) {
       function onAbortFish() {
         if (om.oceans[myOId]) {
           om.oceans[myOId].clearAllAbortTimers(myPId);
+          om.oceans[myOId].markAborted(myPId);
           om.oceans[myOId].log.info('Fisher ' + myPId + ' aborted session.');
+          // The seat is freed at once, also when the page has no abort URL to
+          // go to and stays open; its later disconnect is then a stale one
+          if (om.oceans[myOId].isInSetup()) {
+            om.removeFisherFromOcean(myOId, myPId);
+            socket.leave(myOId);
+            if (om.oceans[myOId] && om.oceans[myOId].isInSetup()) {
+              io.sockets.in(myOId).emit('lobbyStatus', om.oceans[myOId].getLobbyStatus());
+            }
+          }
         }
       }
 
@@ -215,8 +237,8 @@ exports.engine = function engine(io, ioAdmin) {
         } else if (!ocean.isCurrentSocket(myPId, socket.id)) {
           // Only the active socket counts: the participant has already reconnected elsewhere
           log.debug('Stale socket disconnect for ' + myPId + ' in ocean ' + myOId + ' — skipping removal');
-        } else if (ocean.disconnectHandlingApplies()) {
-          // Grace period: the fisher stays in the game and may reconnect
+        } else if (ocean.disconnectHandlingApplies() && !ocean.hasAborted(myPId)) {
+          // Grace period: the fisher keeps their seat and may reconnect
           ocean.fisherDisconnected(myPId);
         } else {
           if (ocean.isGameInProgress()) {

@@ -314,6 +314,23 @@ describe('Routes - Runs', () => {
       row('C').Advantage.should.equal('');
     });
 
+    it('should count a disconnect before the game toward season 1, but not a seat freed then as lost', () => {
+      const flatten = require('./runs').flattenRunResults;
+      const rows = flatten({
+        _id: 'r4',
+        endReason: 'time',
+        results: [{ season: 1, fishers: [{ name: 'A', type: 'human' }] }],
+        connectionEvents: [
+          // A dropped in the lobby, lost the seat, came back as a new visitor and played
+          { participant: 'A', event: 'disconnected', season: 0, phase: 'setup', resultsSeason: 1 },
+          { participant: 'A', event: 'removed', season: 0, phase: 'setup', resultsSeason: 1,
+            reason: 'grace period expired' },
+        ],
+      });
+      rows[0].Disconnects.should.equal(1);
+      rows[0].Lost.should.equal('');
+    });
+
     it('should put a loss on the row of the season it happened in', () => {
       const flatten = require('./runs').flattenRunResults;
       const run = {
