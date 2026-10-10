@@ -211,17 +211,6 @@ html
                 select#disconnect-lost-action.form-control.to-disable
                   option(value='end') End and record the game
                   option(value='remove') Remove them and play on
-          h3 Redirection
-          .row
-            .form-group
-              label.form-label.col-md-7(for='redirect-url') Redirection&nbsp;
-                  a#redirect-url-tooltip(title='Click the EXPLAIN button to find out how redirection works in Fish.', data-toggle='tooltip', data-placement='top') URL:&nbsp;
-              .col-md-5
-                button#show-redirect-explanation.btn.btn-info(type='button') EXPLAIN
-          .row
-            .form-group
-              .col-md-12
-                input#redirect-url.form-control.to-disable(type='text', value='')
           h3 Clean Abort
           .row
             .form-group
@@ -318,6 +307,18 @@ html
                 a#chance-catch-tooltip(title='If the chance of catch is 1.0, every fishing attempt is successful. If it is 0.5, half of them are.', data-toggle='tooltip', data-placement='top') Chance of catch
               .col-md-6
                 input#chance-catch.form-control.to-disable(type='number', min='0', step='0.01', value='1.00')
+
+          h3 Redirection
+          .row
+            .form-group
+              label.form-label.col-md-7(for='redirect-url') Redirection&nbsp;
+                  a#redirect-url-tooltip(title='Click the EXPLAIN button to find out how redirection works in Fish.', data-toggle='tooltip', data-placement='top') URL:&nbsp;
+              .col-md-5
+                button#show-redirect-explanation.btn.btn-info(type='button') EXPLAIN
+          .row
+            .form-group
+              .col-md-12
+                input#redirect-url.form-control.to-disable(type='text', value='')
 
           h3 Fisher Classes
           .row
