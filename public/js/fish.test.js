@@ -608,6 +608,31 @@ describe('Fish (jsdom)', () => {
 
         input.value.should.equal('');
       });
+
+      it('should select the answer box with a mouse, but not on a touch screen', () => {
+        const input = document.querySelector('#catch-intent-input');
+        const savedMatchMedia = window.matchMedia;
+        let touch = false;
+        window.matchMedia = () => ({ matches: touch });
+        let focused = 0;
+        const onFocus = () => { focused++; };
+        input.addEventListener('focus', onFocus);
+        try {
+          window.ocean = { catchIntentPrompt1: 'Test', catchIntentPrompt2: '', layout: 'phoneFirst' };
+          window.showCatchIntentDialog();
+          focused.should.equal(1);
+
+          // Touch screen, either layout: the number pad opens only when the box is tapped
+          touch = true;
+          window.showCatchIntentDialog();
+          window.ocean.layout = 'classic';
+          window.showCatchIntentDialog();
+          focused.should.equal(1);
+        } finally {
+          input.removeEventListener('focus', onFocus);
+          window.matchMedia = savedMatchMedia;
+        }
+      });
     });
 
     describe('hideCatchIntentDialog()', () => {
@@ -1299,8 +1324,52 @@ describe('Fish (jsdom)', () => {
           window.startTutorial();
         } finally {
           window.bootstro = saved;
+          window.tutorialRunning = false;
         }
         selector.should.equal('.bootstro:visible');
+      });
+
+      describe('interrupted by a Clean Abort question', () => {
+        let saved, options, rulesShown, sent;
+
+        beforeEach(() => {
+          saved = { bootstro: window.bootstro, displayRules: window.displayRules, socket: window.socket,
+            showLobby: window.showLobby };
+          options = null;
+          rulesShown = 0;
+          sent = [];
+          window.bootstro = {
+            start: (s, o) => { options = o; },
+            stop: () => { options.onExit({ idx: 3 }); }
+          };
+          window.displayRules = () => { rulesShown++; };
+          window.showLobby = () => {};
+          window.socket = { emit: (event) => { sent.push(event); } };
+          window.ocean.catchIntentionsEnabled = false;
+          window.startTutorial();
+        });
+
+        afterEach(() => {
+          Object.keys(saved).forEach(name => { window[name] = saved[name]; });
+          window.tutorialRunning = false;
+          window.tutorialLeft = false;
+        });
+
+        it('should let the tutorial carry on after Keep Reading, not reopen the rules', () => {
+          window.doAbortKeepReading();
+          sent.should.eql(['keepReading']);
+          rulesShown.should.equal(0);
+          // Finishing the tutorial still brings the rules back, as before
+          options.onComplete({ idx: 9 });
+          rulesShown.should.equal(1);
+        });
+
+        it('should stop the tutorial without reopening the rules on Proceed to Lobby', () => {
+          window.doAbortProceed();
+          sent.should.eql(['proceedToLobby']);
+          rulesShown.should.equal(0);
+          window.tutorialRunning.should.be.false();
+        });
       });
     });
   });
@@ -1492,9 +1561,9 @@ describe('Fish (jsdom)', () => {
           '<div class="row"><div id="fishers-box"></div></div>' +
           '<div id="lobby-status-box"></div>' +
           '<div id="catch-intent-dialog-box"></div>' +
-          '<div id="costs-box"></div>' +
+          '<div id="costs-box" class="bootstro" data-bootstro-placement="bottom"></div>' +
           '</div>' +
-          '<div id="ocean-column"><div id="ocean-box"></div></div>';
+          '<div id="ocean-column"><div id="ocean-box" class="bootstro" data-bootstro-placement="bottom"></div></div>';
         // The test page's own copies of these ids go out of the way
         LAYOUT_IDS
           .forEach(id => { const el = document.getElementById(id); if (el) el.id = id + '-saved'; });
@@ -1518,6 +1587,9 @@ describe('Fish (jsdom)', () => {
           actions.contains(document.getElementById('control-box')).should.be.true();
           actions.contains(document.getElementById('costs-box')).should.be.true();
           document.getElementById('ocean-column').style.display.should.equal('none');
+          // Tutorial bubbles go above the bottom row, below the rest
+          document.getElementById('costs-box').getAttribute('data-bootstro-placement').should.equal('top');
+          document.getElementById('ocean-box').getAttribute('data-bootstro-placement').should.equal('bottom');
         } finally {
           page.remove();
           LAYOUT_IDS

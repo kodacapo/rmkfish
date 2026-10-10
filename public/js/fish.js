@@ -163,7 +163,10 @@ function showCatchIntentDialog() {
     $('#catch-intent-input').val("");
     $('#catch-intent-submit').show();
     $('#catch-intent-dialog-box').show();
-    $('#catch-intent-input').trigger('focus');
+    // Not on touch screens, in either layout: selecting the box opens the
+    // number pad at once (Samsung Internet puts it over the question); there
+    // it opens when the box is tapped
+    if (!isTouchDevice()) $('#catch-intent-input').trigger('focus');
 }
 
 function hideCatchIntentDialog() {
@@ -1005,6 +1008,7 @@ function hideAbortModal() {
 
 function doAbort() {
     hideAbortModal();
+    leaveTutorial();
     socket.emit('abortFish');
     var url = ocean.abortUrl;
     if (url && url.length > 0) {
@@ -1058,11 +1062,12 @@ function doForceAbortOk() {
 function doAbortKeepReading() {
     hideAbortModal();
     socket.emit('keepReading');
-    displayRules();
+    if (!tutorialRunning) displayRules();
 }
 
 function doAbortProceed() {
     hideAbortModal();
+    leaveTutorial();
     socket.emit('proceedToLobby');
     showLobby();
 }
@@ -1463,6 +1468,9 @@ function applyLayout() {
     game.appendChild(box('pf-middle', [table, byId('ocean-box')]));
     var actions = box('pf-actions', [byId('control-box') && byId('control-box').parentNode, byId('costs-box')]);
     game.appendChild(box('pf-bottom', [byId('catch-intent-dialog-box'), actions]));
+    // The buttons and costs sit at the bottom of the screen: tutorial bubbles
+    // go above them, or the tutorial scrolls the page to show them below
+    $('#pf-bottom .bootstro').attr('data-bootstro-placement', 'top');
     var oceanColumn = byId('ocean-column');
     if (oceanColumn) oceanColumn.style.display = 'none';
     // Use the whole screen and keep clear of the camera cut-out ourselves (the
@@ -1715,7 +1723,30 @@ function resizeOceanCanvasToScreenWidth() {
     }
 }
 
+// The tutorial counts as reading the rules, so a Clean Abort question can
+// come up in the middle of it: "Keep Reading" then lets it carry on where it
+// was, and leaving stops it without reopening the rules
+var tutorialRunning = false;
+var tutorialLeft = false;
+
+function endTutorial() {
+    tutorialRunning = false;
+    hideCatchIntentColumn();
+    if (tutorialLeft) {
+        tutorialLeft = false;
+        return;
+    }
+    displayRules();
+}
+
+function leaveTutorial() {
+    if (!tutorialRunning) return;
+    tutorialLeft = true;
+    bootstro.stop();
+}
+
 function startTutorial() {
+    tutorialRunning = true;
     if (ocean && ocean.catchIntentionsEnabled) {
         showCatchIntentColumn(0);
     }
@@ -1727,14 +1758,8 @@ function startTutorial() {
     // Only what is on screen: bootstro freezes on a hidden element (e.g. the
     // Pause button when the microworld doesn't allow pausing)
     bootstro.start('.bootstro:visible', {
-        onComplete: function (params) {
-            hideCatchIntentColumn();
-            displayRules();
-        },
-        onExit: function (params) {
-            hideCatchIntentColumn();
-            displayRules();
-        }
+        onComplete: endTutorial,
+        onExit: endTutorial
     });
 }
 
