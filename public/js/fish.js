@@ -163,7 +163,10 @@ function showCatchIntentDialog() {
     $('#catch-intent-input').val("");
     $('#catch-intent-submit').show();
     $('#catch-intent-dialog-box').show();
-    $('#catch-intent-input').trigger('focus');
+    // Not on touch screens, in either layout: selecting the box opens the
+    // number pad at once (Samsung Internet puts it over the question); there
+    // it opens when the box is tapped
+    if (!isTouchDevice()) $('#catch-intent-input').trigger('focus');
 }
 
 function hideCatchIntentDialog() {

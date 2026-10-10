@@ -608,6 +608,31 @@ describe('Fish (jsdom)', () => {
 
         input.value.should.equal('');
       });
+
+      it('should select the answer box with a mouse, but not on a touch screen', () => {
+        const input = document.querySelector('#catch-intent-input');
+        const savedMatchMedia = window.matchMedia;
+        let touch = false;
+        window.matchMedia = () => ({ matches: touch });
+        let focused = 0;
+        const onFocus = () => { focused++; };
+        input.addEventListener('focus', onFocus);
+        try {
+          window.ocean = { catchIntentPrompt1: 'Test', catchIntentPrompt2: '', layout: 'phoneFirst' };
+          window.showCatchIntentDialog();
+          focused.should.equal(1);
+
+          // Touch screen, either layout: the number pad opens only when the box is tapped
+          touch = true;
+          window.showCatchIntentDialog();
+          window.ocean.layout = 'classic';
+          window.showCatchIntentDialog();
+          focused.should.equal(1);
+        } finally {
+          input.removeEventListener('focus', onFocus);
+          window.matchMedia = savedMatchMedia;
+        }
+      });
     });
 
     describe('hideCatchIntentDialog()', () => {
